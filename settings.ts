@@ -96,8 +96,24 @@ export class StreamsSettingTab extends PluginSettingTab {
         new Setting(card)
             .setName('Icon')
             .addDropdown(dropdown => {
-                const icons: LucideIcon[] = ['file-text', 'alarm-check', 'message-circle', 'inbox', 'star', 'heart', 'user'];
-                icons.forEach(icon => dropdown.addOption(icon, icon));
+                // Add icons with categories
+                const iconCategories = {
+                    'Files & Documents': ['file-text', 'file', 'files', 'folder', 'book', 'notebook', 'diary'],
+                    'Communication': ['message-circle', 'message-square', 'mail', 'inbox', 'send'],
+                    'Time & Planning': ['alarm-check', 'calendar', 'clock', 'timer', 'history'],
+                    'UI Elements': ['home', 'settings', 'search', 'bookmark', 'star', 'heart'],
+                    'Content': ['text', 'edit', 'pencil', 'pen', 'list', 'check-square'],
+                    'Media': ['image', 'video', 'music', 'camera'],
+                    'Weather': ['sun', 'moon', 'cloud', 'umbrella'],
+                    'Misc': ['user', 'users', 'tag', 'flag', 'bookmark', 'link']
+                } as const;
+
+                // Add category headers and their icons
+                Object.entries(iconCategories).forEach(([category, icons]) => {
+                    dropdown.addOption(`---${category}---`, category); // Add category header
+                    icons.forEach(icon => dropdown.addOption(icon, icon));
+                });
+
                 dropdown
                     .setValue(stream.icon)
                     .onChange(async (value: LucideIcon) => {
