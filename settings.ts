@@ -1,6 +1,6 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import StreamsPlugin from './main';
-import { Stream } from './types';
+import { Stream, StreamsSettings, LucideIcon } from './types';
 import { getFolderSuggestions } from './streamUtils';
 
 export class StreamsSettingTab extends PluginSettingTab {
@@ -29,7 +29,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                         id: String(Date.now()),
                         name: 'New Stream',
                         folder: '',
-                        icon: 'calendar',
+                        icon: 'file-text' as LucideIcon,
                         showInRibbon: true
                     };
                     this.plugin.settings.streams.push(newStream);
@@ -96,12 +96,11 @@ export class StreamsSettingTab extends PluginSettingTab {
         new Setting(card)
             .setName('Icon')
             .addDropdown(dropdown => {
-                // Add Obsidian icons to dropdown
-                const icons = ['calendar', 'pencil', 'book', 'note']; // Add more icons as needed
+                const icons: LucideIcon[] = ['file-text', 'alarm-check', 'message-circle', 'inbox', 'star', 'heart', 'user'];
                 icons.forEach(icon => dropdown.addOption(icon, icon));
                 dropdown
                     .setValue(stream.icon)
-                    .onChange(async (value) => {
+                    .onChange(async (value: LucideIcon) => {
                         stream.icon = value;
                         await this.plugin.saveSettings();
                     });

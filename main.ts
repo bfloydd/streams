@@ -3,7 +3,45 @@ import { StreamsSettingTab } from './settings';
 import { Stream, StreamsSettings } from './types';
 import { createDailyNote } from './streamUtils';
 
-// Remember to rename these classes and interfaces!
+// Add this type for Lucide icon names
+type LucideIcon =
+	| 'alarm-check'
+	| 'album'
+	| 'alert-circle'
+	| 'archive'
+	| 'book'
+	| 'bookmark'
+	| 'box'
+	| 'calendar'
+	| 'check-circle'
+	| 'clipboard'
+	| 'clock'
+	| 'cloud'
+	| 'code'
+	| 'coffee'
+	| 'edit'
+	| 'file-text'
+	| 'folder'
+	| 'heart'
+	| 'home'
+	| 'inbox'
+	| 'layout-dashboard'
+	| 'list'
+	| 'message-circle'
+	| 'music'
+	| 'pencil'
+	| 'settings'
+	| 'star'
+	| 'sun'
+	| 'tag'
+	| 'trash'
+	| 'user'
+	// Add more icons as needed from https://lucide.dev
+
+// Remove the Stream interface definition, keep only the helper function
+export function isValidIcon(icon: string): icon is LucideIcon {
+	return document.querySelector(`[data-icon="${icon}"]`) !== null;
+}
 
 const DEFAULT_SETTINGS: StreamsSettings = {
 	streams: []
