@@ -6,3 +6,33 @@ available in the app when your plugin is enabled.
 If your plugin does not need CSS, delete this file.
 
 */
+
+.streams-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 20px;
+}
+
+.stream-card {
+    background-color: var(--background-secondary);
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stream-card h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    padding-bottom: 10px;
+}
+
+.stream-ribbon-icon {
+    opacity: 0.8;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.stream-ribbon-icon:hover {
+    opacity: 1;
+}
