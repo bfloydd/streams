@@ -1,4 +1,4 @@
-import { App, TFolder } from 'obsidian';
+import { App, TFolder, TFile } from 'obsidian';
 import { join, normalize } from 'path';
 
 export function getFolderSuggestions(app: App): string[] {
@@ -44,5 +44,7 @@ export async function createDailyNote(app: App, folder: string) {
 
     // Open the file
     const leaf = app.workspace.getUnpinnedLeaf();
-    await leaf.openFile(file);
+    if (file instanceof TFile) {
+        await leaf.openFile(file);
+    }
 } 
