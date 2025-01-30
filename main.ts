@@ -48,56 +48,74 @@ const DEFAULT_SETTINGS: StreamsSettings = {
 
 export default class StreamsPlugin extends Plugin {
 	settings: StreamsSettings;
+	ribbonIconsByStreamId: Map<string, HTMLElement> = new Map();
 
 	async onload() {
 		await this.loadSettings();
-
 		this.addSettingTab(new StreamsSettingTab(this.app, this));
-
-		// Add ribbon icons for each active stream
-		this.refreshStreamRibbons();
+		// Initialize ribbon icons
+		this.settings.streams
+			.filter(stream => stream.showInRibbon)
+			.forEach(stream => this.addRibbonIconForStream(stream));
 	}
 
 	onunload() {
+		this.ribbonIconsByStreamId.forEach(icon => icon.remove());
+		this.ribbonIconsByStreamId.clear();
 	}
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 	}
 
-	async saveSettings(refreshRibbon: boolean = false) {
+	async saveSettings() {
 		await this.saveData(this.settings);
-		if (refreshRibbon) {
-			this.refreshStreamRibbons();
+		// Don't automatically refresh icons on every save
+	}
+
+	public addRibbonIconForStream(stream: Stream) {
+		// Remove existing icon if any
+		const existingIcon = this.ribbonIconsByStreamId.get(stream.id);
+		if (existingIcon) {
+			existingIcon.remove();
+			this.ribbonIconsByStreamId.delete(stream.id);
+		}
+
+		// Create new icon with unique tooltip
+		const ribbonIcon = this.addRibbonIcon(
+			stream.icon,
+			`Stream: ${stream.name} (${stream.id})`,
+			async () => {
+				const file = await createDailyNote(this.app, stream.folder);
+				if (file) {
+					const leaf = this.app.workspace.getLeaf(true);
+					await leaf.openFile(file);
+					this.app.workspace.revealLeaf(leaf);
+				}
+			}
+		);
+
+		// Store reference with stream ID
+		this.ribbonIconsByStreamId.set(stream.id, ribbonIcon);
+		
+		console.log(`Added icon for stream ${stream.id}, total icons: ${this.ribbonIconsByStreamId.size}`);
+	}
+
+	public removeRibbonIconForStream(streamId: string) {
+		const icon = this.ribbonIconsByStreamId.get(streamId);
+		if (icon) {
+			icon.remove();
+			this.ribbonIconsByStreamId.delete(streamId);
+			console.log(`Removed icon for stream ${streamId}`);
 		}
 	}
 
-	private refreshStreamRibbons() {
-		// First remove all existing stream ribbon icons
-		const ribbonIconsToRemove = document.querySelectorAll('.stream-ribbon-icon');
-		ribbonIconsToRemove.forEach(icon => {
-			icon.remove();
-		});
-
-		// Then add ribbon icons for enabled streams
-		this.settings.streams
-			.filter(stream => stream.showInRibbon)
-			.forEach(stream => {
-				this.addStreamRibbonIcon(stream);
-			});
-	}
-
-	private addStreamRibbonIcon(stream: Stream) {
-		return this.addRibbonIcon(stream.icon, `Open Today's ${stream.name} Note`, async () => {
-			const file = await createDailyNote(this.app, stream.folder);
-			if (file) {
-				// Create a new leaf and ensure it's active
-				const leaf = this.app.workspace.getLeaf(true);
-				// Open the file and ensure it's focused
-				await leaf.openFile(file);
-				this.app.workspace.revealLeaf(leaf);
-			}
-		}).addClass('stream-ribbon-icon');
+	public toggleRibbonIcon(stream: Stream) {
+		if (stream.showInRibbon) {
+			this.addRibbonIconForStream(stream);
+		} else {
+			this.removeRibbonIconForStream(stream.id);
+		}
 	}
 }
 

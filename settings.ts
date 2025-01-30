@@ -26,7 +26,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setCta()
                 .onClick(async () => {
                     const newStream: Stream = {
-                        id: String(Date.now()),
+                        id: crypto.randomUUID(),
                         name: 'New Stream',
                         folder: '',
                         icon: 'file-text' as LucideIcon,
@@ -34,6 +34,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                     };
                     this.plugin.settings.streams.push(newStream);
                     await this.plugin.saveSettings();
+                    // Add the ribbon icon after saving
+                    this.plugin.addRibbonIconForStream(newStream);
                     this.display();
                 }));
 
@@ -60,7 +62,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setValue(stream.name)
                 .onChange(async (value) => {
                     stream.name = value;
-                    await this.plugin.saveSettings(false);
+                    await this.plugin.saveSettings();
                 }));
 
         new Setting(card)
@@ -90,7 +92,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setValue(stream.showInRibbon)
                 .onChange(async (value) => {
                     stream.showInRibbon = value;
-                    await this.plugin.saveSettings(true);
+                    this.plugin.toggleRibbonIcon(stream);
+                    await this.plugin.saveSettings();
                 }));
 
         new Setting(card)
@@ -116,7 +119,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                     .setValue(stream.icon)
                     .onChange(async (value: LucideIcon) => {
                         stream.icon = value;
-                        await this.plugin.saveSettings(true);
+                        await this.plugin.saveSettings();
                     });
             });
 
