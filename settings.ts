@@ -60,7 +60,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setValue(stream.name)
                 .onChange(async (value) => {
                     stream.name = value;
-                    await this.plugin.saveSettings();
+                    await this.plugin.saveSettings(false);
                 }));
 
         new Setting(card)
@@ -90,13 +90,12 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setValue(stream.showInRibbon)
                 .onChange(async (value) => {
                     stream.showInRibbon = value;
-                    await this.plugin.saveSettings();
+                    await this.plugin.saveSettings(true);
                 }));
 
         new Setting(card)
             .setName('Icon')
             .addDropdown(dropdown => {
-                // Add icons with categories
                 const iconCategories = {
                     'Files & Documents': ['file-text', 'file', 'files', 'folder', 'book', 'notebook', 'diary'],
                     'Communication': ['message-circle', 'message-square', 'mail', 'inbox', 'send'],
@@ -108,7 +107,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                     'Misc': ['user', 'users', 'tag', 'flag', 'bookmark', 'link']
                 } as const;
 
-                // Add category headers and their icons
                 Object.entries(iconCategories).forEach(([category, icons]) => {
                     dropdown.addOption(`---${category}---`, category); // Add category header
                     icons.forEach(icon => dropdown.addOption(icon, icon));
@@ -118,7 +116,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                     .setValue(stream.icon)
                     .onChange(async (value: LucideIcon) => {
                         stream.icon = value;
-                        await this.plugin.saveSettings();
+                        await this.plugin.saveSettings(true);
                     });
             });
 

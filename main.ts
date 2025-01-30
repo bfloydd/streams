@@ -38,7 +38,6 @@ type LucideIcon =
 	| 'user'
 	// Add more icons as needed from https://lucide.dev
 
-// Remove the Stream interface definition, keep only the helper function
 export function isValidIcon(icon: string): icon is LucideIcon {
 	return document.querySelector(`[data-icon="${icon}"]`) !== null;
 }
@@ -53,7 +52,6 @@ export default class StreamsPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new StreamsSettingTab(this.app, this));
 
 		// Add ribbon icons for each active stream
@@ -61,33 +59,44 @@ export default class StreamsPlugin extends Plugin {
 	}
 
 	onunload() {
-
 	}
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 	}
 
-	async saveSettings() {
+	async saveSettings(refreshRibbon: boolean = false) {
 		await this.saveData(this.settings);
-		this.refreshStreamRibbons();
+		if (refreshRibbon) {
+			this.refreshStreamRibbons();
+		}
 	}
 
 	private refreshStreamRibbons() {
-		// Remove old icons by their class
-		document.querySelectorAll('.stream-ribbon-icon').forEach(icon => icon.remove());
-
-		// Add ribbon icons for enabled streams
-		this.settings.streams.forEach(stream => {
-			if (stream.showInRibbon) {
-				this.addStreamRibbonIcon(stream);
-			}
+		// First remove all existing stream ribbon icons
+		const ribbonIconsToRemove = document.querySelectorAll('.stream-ribbon-icon');
+		ribbonIconsToRemove.forEach(icon => {
+			icon.remove();
 		});
+
+		// Then add ribbon icons for enabled streams
+		this.settings.streams
+			.filter(stream => stream.showInRibbon)
+			.forEach(stream => {
+				this.addStreamRibbonIcon(stream);
+			});
 	}
 
 	private addStreamRibbonIcon(stream: Stream) {
 		return this.addRibbonIcon(stream.icon, `Open Today's ${stream.name} Note`, async () => {
-			await createDailyNote(this.app, stream.folder);
+			const file = await createDailyNote(this.app, stream.folder);
+			if (file) {
+				// Create a new leaf and ensure it's active
+				const leaf = this.app.workspace.getLeaf(true);
+				// Open the file and ensure it's focused
+				await leaf.openFile(file);
+				this.app.workspace.revealLeaf(leaf);
+			}
 		}).addClass('stream-ribbon-icon');
 	}
 }
