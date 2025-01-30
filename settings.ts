@@ -132,6 +132,9 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setButtonText('Delete Stream')
                 .setWarning()
                 .onClick(async () => {
+                    // Remove the ribbon icon first
+                    this.plugin.removeRibbonIconForStream(stream.id);
+                    // Then remove from settings
                     this.plugin.settings.streams.splice(index, 1);
                     await this.plugin.saveSettings();
                     this.display();
