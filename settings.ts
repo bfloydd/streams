@@ -119,6 +119,10 @@ export class StreamsSettingTab extends PluginSettingTab {
                     .setValue(stream.icon)
                     .onChange(async (value: LucideIcon) => {
                         stream.icon = value;
+                        // Refresh the ribbon icon immediately if it's showing
+                        if (stream.showInRibbon) {
+                            this.plugin.addRibbonIconForStream(stream);
+                        }
                         await this.plugin.saveSettings();
                     });
             });
