@@ -32,36 +32,26 @@ export async function createDailyNote(app: App, folder: string): Promise<TFile |
     const day = String(date.getDate()).padStart(2, '0');
     const fileName = `${year}-${month}-${day}.md`;
 
-    // Normalize folder path: remove leading/trailing slashes and normalize separators
+    // Normalize folder path
     const folderPath = folder
-        .split(/[/\\]/)  // Split on both forward and back slashes
-        .filter(Boolean)  // Remove empty segments
-        .join('/');      // Join with forward slashes (Obsidian's preferred format)
+        .split(/[/\\]/)
+        .filter(Boolean)
+        .join('/');
 
     // Construct the full file path
     const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
 
-    // Try to get existing file first
     let file = app.vault.getAbstractFileByPath(filePath);
     
     if (!file) {
-        try {
-            // Create folder if it doesn't exist and folder path is specified
-            if (folderPath && !app.vault.getAbstractFileByPath(folderPath)) {
-                await app.vault.createFolder(folderPath);
-            }
-            
-            // Create the daily note with a basic template
-            const template = `# Daily Note - ${year}-${month}-${day}\n\n`;
-            file = await app.vault.create(filePath, template);
-        } catch (error) {
-            // If file was created in the meantime, try to get it again
-            if (error.message === 'File already exists.') {
-                file = app.vault.getAbstractFileByPath(filePath);
-            } else {
-                throw error;
-            }
+        // Create folder if it doesn't exist
+        if (folderPath && !app.vault.getAbstractFileByPath(folderPath)) {
+            await app.vault.createFolder(folderPath);
         }
+        
+        // Create the daily note with an empty template
+        const template = '';  // Empty template
+        file = await app.vault.create(filePath, template);
     }
 
     return file instanceof TFile ? file : null;
