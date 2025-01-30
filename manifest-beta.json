@@ -1,0 +1,11 @@
+{
+    "id": "streams",
+    "name": "Streams",
+    "version": "0.0.1",
+    "minAppVersion": "0.15.0",
+    "description": "Coalesce your notes into a single document.",
+    "author": "Ben Floyd",
+    "authorUrl": "https://b.floy.dev",
+    "fundingUrl": "https://paypal.me/bfloydd",
+    "isDesktopOnly": false
+}
