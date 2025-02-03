@@ -1,5 +1,6 @@
 import { App, WorkspaceLeaf, TFile, MarkdownView } from 'obsidian';
 import { Stream } from './types';
+import { openStreamDate } from './streamUtils';
 
 export class CalendarWidget {
     private widget: HTMLElement;
@@ -25,6 +26,7 @@ export class CalendarWidget {
         const collapsedView = this.widget.createDiv('stream-calendar-collapsed');
         const todayButton = collapsedView.createDiv('stream-calendar-today-button');
         todayButton.setText(this.formatDate(new Date()));
+
 
         // Create expanded view
         const expandedView = this.widget.createDiv('stream-calendar-expanded');
@@ -126,45 +128,8 @@ export class CalendarWidget {
     }
 
     private async selectDate(day: number) {
-        // Format the selected date as YYYY-MM-DD
         const selectedDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-        const year = selectedDate.getFullYear();
-        const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-        const dayStr = String(day).padStart(2, '0');
-        const fileName = `${year}-${month}-${dayStr}.md`;
-
-        // Construct the full file path using the stream's folder
-        const folderPath = this.selectedStream.folder
-            .split(/[/\\]/)
-            .filter(Boolean)
-            .join('/');
-        const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
-
-        // Try to find existing file or create new one
-        let file = this.app.vault.getAbstractFileByPath(filePath);
-        if (!file) {
-            // Create folder if needed
-            if (folderPath && !this.app.vault.getAbstractFileByPath(folderPath)) {
-                await this.app.vault.createFolder(folderPath);
-            }
-            file = await this.app.vault.create(filePath, '');
-        }
-
-        if (file instanceof TFile) {
-            // Check if file is already open in a tab
-            const existingLeaf = this.app.workspace.getLeavesOfType('markdown')
-                .find(leaf => (leaf.view as MarkdownView).file?.path === file.path);
-
-            if (existingLeaf) {
-                // Switch to existing tab
-                this.app.workspace.setActiveLeaf(existingLeaf, { focus: true });
-            } else {
-                // Open in new tab
-                const leaf = this.app.workspace.getLeaf('tab');
-                await leaf.openFile(file);
-                this.app.workspace.setActiveLeaf(leaf, { focus: true });
-            }
-        }
+        await openStreamDate(this.app, this.selectedStream, selectedDate);
     }
 
     private toggleExpanded(collapsedView: HTMLElement, expandedView: HTMLElement) {

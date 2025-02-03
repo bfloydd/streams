@@ -1,7 +1,7 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, WorkspaceLeaf } from 'obsidian';
 import { StreamsSettingTab } from './settings';
 import { Stream, StreamsSettings } from './types';
-import { createDailyNote } from './streamUtils';
+import { createDailyNote, openStreamDate } from './streamUtils';
 import { CalendarWidget } from './CalendarWidget';
 
 // Add this type for Lucide icon names
@@ -258,22 +258,7 @@ export default class StreamsPlugin extends Plugin {
 			stream.icon,
 			`Stream: ${stream.name} (${stream.id})`,
 			async () => {
-				const file = await createDailyNote(this.app, stream.folder);
-				if (file) {
-					// Check if file is already open in a tab
-					const existingLeaf = this.app.workspace.getLeavesOfType('markdown')
-						.find(leaf => (leaf.view as MarkdownView).file?.path === file.path);
-
-					if (existingLeaf) {
-						// Switch to existing tab
-						this.app.workspace.setActiveLeaf(existingLeaf, { focus: true });
-					} else {
-						// Open in new tab
-						const leaf = this.app.workspace.getLeaf('tab');
-						await leaf.openFile(file);
-						this.app.workspace.setActiveLeaf(leaf, { focus: true });
-					}
-				}
+				await openStreamDate(this.app, stream);
 			}
 		);
 

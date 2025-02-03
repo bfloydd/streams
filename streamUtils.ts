@@ -55,4 +55,44 @@ export async function createDailyNote(app: App, folder: string): Promise<TFile |
     }
 
     return file instanceof TFile ? file : null;
+}
+
+export async function openStreamDate(app: App, stream: Stream, date: Date = new Date()): Promise<void> {
+    // Format date as YYYY-MM-DD
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const fileName = `${year}-${month}-${day}.md`;
+
+    // Normalize folder path
+    const folderPath = stream.folder
+        .split(/[/\\]/)
+        .filter(Boolean)
+        .join('/');
+    const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
+
+    // Try to find existing file or create new one
+    let file = app.vault.getAbstractFileByPath(filePath);
+    if (!file) {
+        if (folderPath && !app.vault.getAbstractFileByPath(folderPath)) {
+            await app.vault.createFolder(folderPath);
+        }
+        file = await app.vault.create(filePath, '');
+    }
+
+    if (file instanceof TFile) {
+        // Check if file is already open in a tab
+        const existingLeaf = app.workspace.getLeavesOfType('markdown')
+            .find(leaf => (leaf.view as MarkdownView).file?.path === file.path);
+
+        if (existingLeaf) {
+            // Switch to existing tab
+            app.workspace.setActiveLeaf(existingLeaf, { focus: true });
+        } else {
+            // Open in new tab
+            const leaf = app.workspace.getLeaf('tab');
+            await leaf.openFile(file);
+            app.workspace.setActiveLeaf(leaf, { focus: true });
+        }
+    }
 } 
