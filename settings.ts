@@ -82,7 +82,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                     });
                 })
                 .onChange(async (value) => {
-                    stream.folder = value;
+                    const normalizedPath = value.split(/[/\\]/).filter(Boolean).join('/');
+                    stream.folder = normalizedPath;
                     await this.plugin.saveSettings();
                 }));
 

@@ -6,7 +6,7 @@ export function getFolderSuggestions(app: App): string[] {
     const folders: string[] = [];
     
     function recurseFolder(folder: TFolder, path: string = '') {
-        const folderPath = join(path, folder.name);
+        const folderPath = path ? `${path}/${folder.name}` : folder.name;
         folders.push(folderPath);
         
         folder.children.forEach(child => {
@@ -65,20 +65,37 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
     const day = String(date.getDate()).padStart(2, '0');
     const fileName = `${year}-${month}-${day}.md`;
 
-    // Normalize folder path
+    // Normalize folder path - ensure forward slashes
     const folderPath = stream.folder
-        .split(/[/\\]/)
+        .split(/[/\\]/)  // Split on both forward and back slashes
         .filter(Boolean)
-        .join('/');
+        .join('/');      // Always join with forward slashes
+    
     const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
 
     // Try to find existing file or create new one
     let file = app.vault.getAbstractFileByPath(filePath);
     if (!file) {
-        if (folderPath && !app.vault.getAbstractFileByPath(folderPath)) {
-            await app.vault.createFolder(folderPath);
+        // Create folder if it doesn't exist
+        if (folderPath) {
+            try {
+                const folderExists = app.vault.getAbstractFileByPath(folderPath);
+                if (!folderExists) {
+                    await app.vault.createFolder(folderPath);
+                }
+            } catch (error) {
+                // Using folder that already exists
+                console.log('Using existing folder:', folderPath);
+            }
         }
-        file = await app.vault.create(filePath, '');
+        
+        try {
+            file = await app.vault.create(filePath, '');
+        } catch (error) {
+            // Using existing file
+            console.log('Using existing file:', filePath);
+            file = app.vault.getAbstractFileByPath(filePath);
+        }
     }
 
     if (file instanceof TFile) {
@@ -86,7 +103,7 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
         const existingLeaf = app.workspace.getLeavesOfType('markdown')
             .find(leaf => {
                 const view = leaf.view as MarkdownView;
-                return view && view.file && file && view.file.path === file.path;
+                return view && view.file && file && normalize(view.file.path) === normalize(file.path);
             });
 
         if (existingLeaf) {

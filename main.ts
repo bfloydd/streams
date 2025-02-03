@@ -3,6 +3,7 @@ import { StreamsSettingTab } from './settings';
 import { Stream, StreamsSettings } from './types';
 import { createDailyNote, openStreamDate } from './streamUtils';
 import { CalendarWidget } from './CalendarWidget';
+import { normalize } from 'path';
 
 // Add this type for Lucide icon names
 type LucideIcon =
@@ -203,15 +204,35 @@ export default class StreamsPlugin extends Plugin {
 
 		if (!filePath) return;
 
+		// Log all streams first
+		console.log('Available streams:', this.settings.streams.map(s => ({
+			name: s.name,
+			folder: s.folder
+		})));
+
 		// Find which stream this file belongs to
-		const stream = this.settings.streams.find(s => 
-			filePath.startsWith(s.folder)
-		);
+		const stream = this.settings.streams.find(s => {
+			// Normalize both paths to use forward slashes
+			const normalizedFilePath = filePath.split(/[/\\]/).filter(Boolean);
+			const normalizedStreamPath = s.folder.split(/[/\\]/).filter(Boolean);
+			
+			// Check if paths match at each level
+			const isMatch = normalizedStreamPath.every((part, index) => normalizedStreamPath[index] === normalizedFilePath[index]);
+			
+			console.log(`Checking stream "${s.name}":`, {
+				filePath,
+				streamFolder: s.folder,
+				normalizedFilePath,
+				normalizedStreamPath,
+				isMatch
+			});
+			
+			return isMatch;
+		});
 
 		if (stream) {
 			console.log('File belongs to stream:', stream.name);
 			const widget = new CalendarWidget(leaf, stream, this.app);
-			// Use the file path as the unique identifier
 			const widgetId = filePath || crypto.randomUUID();
 			this.calendarWidgets.set(widgetId, widget);
 		} else {
