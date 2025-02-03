@@ -84,7 +84,10 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
     if (file instanceof TFile) {
         // Check if file is already open in a tab
         const existingLeaf = app.workspace.getLeavesOfType('markdown')
-            .find(leaf => (leaf.view as MarkdownView).file?.path === file.path);
+            .find(leaf => {
+                const view = leaf.view as MarkdownView;
+                return view && view.file && file && view.file.path === file.path;
+            });
 
         if (existingLeaf) {
             // Switch to existing tab
