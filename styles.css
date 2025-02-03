@@ -36,3 +36,100 @@ If your plugin does not need CSS, delete this file.
 .stream-ribbon-icon:hover {
     opacity: 1;
 }
+
+.stream-calendar-top-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.stream-calendar-back {
+    cursor: pointer;
+    padding: 4px 8px;
+    color: var(--text-muted);
+    font-size: 16px;
+}
+
+.stream-calendar-name {
+    font-weight: 600;
+    color: var(--text-normal);
+}
+
+.stream-calendar-today-nav {
+    cursor: pointer;
+    padding: 4px 8px;
+    color: var(--text-accent);
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.stream-calendar-back:hover,
+.stream-calendar-today-nav:hover {
+    color: var(--text-normal);
+}
+
+/* Update existing calendar styles for better spacing */
+.stream-calendar-widget {
+    position: fixed;
+    top: 80px;
+    right: 0;
+    z-index: 1000;
+    font-size: 12px;
+}
+
+.stream-calendar-collapsed {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 8px 12px;
+    cursor: pointer;
+    transition: opacity 0.3s ease;
+    background-color: var(--background-primary);
+    border-radius: 6px 0 0 6px;
+    box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.15);
+    min-width: 80px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+.stream-calendar-expanded {
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 16px;
+    min-width: 250px;
+    background-color: var(--background-primary);
+    border-radius: 6px 0 0 6px;
+    box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.15);
+    opacity: 0;
+    transform: scale(0.95);
+    transition: all 0.3s ease;
+}
+
+.calendar-expanded {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.stream-calendar-header {
+    margin: 12px 0;
+}
+
+.calendar-day {
+    padding: 6px;
+    font-size: 12px;
+}
+
+.calendar-day-header {
+    padding: 6px;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: center;
+}
+
+.stream-calendar-today-button {
+    white-space: nowrap;
+}

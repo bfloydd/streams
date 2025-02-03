@@ -27,10 +27,18 @@ export class CalendarWidget {
         const todayButton = collapsedView.createDiv('stream-calendar-today-button');
         todayButton.setText(this.formatDate(new Date()));
 
-
         // Create expanded view
         const expandedView = this.widget.createDiv('stream-calendar-expanded');
         expandedView.style.display = 'none';
+
+        // Create top navigation bar with reversed positions
+        const topNav = expandedView.createDiv('stream-calendar-top-nav');
+        const todayNavButton = topNav.createDiv('stream-calendar-today-nav');
+        todayNavButton.setText('TODAY');
+        const streamName = topNav.createDiv('stream-calendar-name');
+        streamName.setText(this.selectedStream.name);
+        const backButton = topNav.createDiv('stream-calendar-back');
+        backButton.setText('→');
 
         // Create calendar header
         const header = expandedView.createDiv('stream-calendar-header');
@@ -59,6 +67,19 @@ export class CalendarWidget {
 
         nextButton.addEventListener('click', () => {
             this.currentDate.setMonth(this.currentDate.getMonth() + 1);
+            dateDisplay.setText(this.formatMonthYear(this.currentDate));
+            this.updateCalendarGrid(grid);
+        });
+
+        backButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleExpanded(collapsedView, expandedView);
+        });
+
+        todayNavButton.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await this.selectDate(new Date().getDate());
+            this.currentDate = new Date();
             dateDisplay.setText(this.formatMonthYear(this.currentDate));
             this.updateCalendarGrid(grid);
         });
