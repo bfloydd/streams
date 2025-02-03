@@ -1,5 +1,6 @@
-import { App, TFolder, TFile } from 'obsidian';
+import { App, TFolder, TFile, MarkdownView } from 'obsidian';
 import { join, normalize } from 'path';
+import { Stream } from './types';
 
 export function getFolderSuggestions(app: App): string[] {
     const folders: string[] = [];
