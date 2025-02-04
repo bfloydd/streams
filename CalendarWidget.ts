@@ -2,6 +2,8 @@ import { App, WorkspaceLeaf, TFile, MarkdownView } from 'obsidian';
 import { Stream } from './types';
 import { openStreamDate } from './streamUtils';
 import { Logger } from './src/utils/Logger';
+import { OpenStreamDateCommand } from './src/commands/OpenStreamDateCommand';
+import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
 
 export class CalendarWidget {
     private widget: HTMLElement;
@@ -94,7 +96,8 @@ export class CalendarWidget {
 
         todayNavButton.addEventListener('click', async (e) => {
             e.stopPropagation();
-            await this.selectDate(new Date().getDate());
+            const command = new OpenTodayStreamCommand(this.app, this.selectedStream);
+            await command.execute();
             this.currentDate = new Date();
             dateDisplay.setText(this.formatMonthYear(this.currentDate));
             this.updateCalendarGrid(grid);
@@ -172,7 +175,8 @@ export class CalendarWidget {
 
     private async selectDate(day: number) {
         const selectedDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-        await openStreamDate(this.app, this.selectedStream, selectedDate);
+        const command = new OpenStreamDateCommand(this.app, this.selectedStream, selectedDate);
+        await command.execute();
     }
 
     private toggleExpanded(collapsedView: HTMLElement, expandedView: HTMLElement) {

@@ -5,6 +5,7 @@ import { createDailyNote, openStreamDate } from './streamUtils';
 import { CalendarWidget } from './CalendarWidget';
 import { normalize } from 'path';
 import { Logger } from './src/utils/Logger';
+import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
 
 // Add this type for Lucide icon names
 type LucideIcon =
@@ -281,7 +282,8 @@ export default class StreamsPlugin extends Plugin {
 			stream.icon,
 			`Stream: ${stream.name} (${stream.id})`,
 			async () => {
-				await openStreamDate(this.app, stream);
+				const command = new OpenTodayStreamCommand(this.app, stream);
+				await command.execute();
 			}
 		);
 
