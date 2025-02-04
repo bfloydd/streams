@@ -30,7 +30,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                         name: 'New Stream',
                         folder: '',
                         icon: 'file-text' as LucideIcon,
-                        showInRibbon: true
+                        showInRibbon: true,
+                        addCommand: false
                     };
                     this.plugin.settings.streams.push(newStream);
                     await this.plugin.saveSettings();
@@ -94,6 +95,17 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     stream.showInRibbon = value;
                     this.plugin.toggleRibbonIcon(stream);
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(card)
+            .setName('Add Command')
+            .setDesc('Add this stream to the command palette')
+            .addToggle(toggle => toggle
+                .setValue(stream.addCommand ?? false)
+                .onChange(async (value) => {
+                    stream.addCommand = value;
+                    this.plugin.toggleStreamCommand(stream);
                     await this.plugin.saveSettings();
                 }));
 

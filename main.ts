@@ -53,6 +53,7 @@ const DEFAULT_SETTINGS: StreamsSettings = {
 export default class StreamsPlugin extends Plugin {
 	settings: StreamsSettings;
 	ribbonIconsByStreamId: Map<string, HTMLElement> = new Map();
+	commandsByStreamId: Map<string, string> = new Map();
 	calendarWidgets: Map<string, CalendarWidget> = new Map();
 	private log: Logger = new Logger();
 
@@ -85,6 +86,11 @@ export default class StreamsPlugin extends Plugin {
 		if (activeLeaf) {
 			this.updateCalendarWidget(activeLeaf);
 		}
+
+		// Initialize commands for streams that have it enabled
+		this.settings.streams
+			.filter(stream => stream.addCommand)
+			.forEach(stream => this.addStreamCommand(stream));
 	}
 
 	private loadStyles() {
@@ -258,6 +264,8 @@ export default class StreamsPlugin extends Plugin {
 		// Clean up ribbon icons
 		this.ribbonIconsByStreamId.forEach(icon => icon.remove());
 		this.ribbonIconsByStreamId.clear();
+
+		this.commandsByStreamId.clear();
 	}
 
 	async loadSettings() {
@@ -307,6 +315,43 @@ export default class StreamsPlugin extends Plugin {
 			this.addRibbonIconForStream(stream);
 		} else {
 			this.removeRibbonIconForStream(stream.id);
+		}
+	}
+
+	public toggleStreamCommand(stream: Stream) {
+		if (stream.addCommand) {
+			this.addStreamCommand(stream);
+		} else {
+			this.removeStreamCommand(stream.id);
+		}
+	}
+
+	private addStreamCommand(stream: Stream) {
+		const commandId = `streams-plugin:open-${stream.id}`;
+		
+		// Remove existing command if any
+		this.removeStreamCommand(stream.id);
+
+		// Add new command
+		const command = this.addCommand({
+			id: commandId,
+			name: `Open Today's Note: ${stream.name}`,
+			callback: async () => {
+				const command = new OpenTodayStreamCommand(this.app, stream);
+				await command.execute();
+			}
+		});
+
+		// Store command ID for later removal
+		this.commandsByStreamId.set(stream.id, commandId);
+	}
+
+	private removeStreamCommand(streamId: string) {
+		const commandId = this.commandsByStreamId.get(streamId);
+		if (commandId) {
+			// Remove command from Obsidian
+			this.removeCommand(commandId);
+			this.commandsByStreamId.delete(streamId);
 		}
 	}
 }

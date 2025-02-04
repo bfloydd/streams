@@ -22,6 +22,7 @@ export interface Stream {
     folder: string;
     icon: LucideIcon;
     showInRibbon: boolean;
+    addCommand: boolean;
 }
 
 export interface StreamsSettings {
