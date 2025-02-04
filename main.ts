@@ -4,6 +4,7 @@ import { Stream, StreamsSettings } from './types';
 import { createDailyNote, openStreamDate } from './streamUtils';
 import { CalendarWidget } from './CalendarWidget';
 import { normalize } from 'path';
+import { Logger } from './src/utils/Logger';
 
 // Add this type for Lucide icon names
 type LucideIcon =
@@ -52,6 +53,7 @@ export default class StreamsPlugin extends Plugin {
 	settings: StreamsSettings;
 	ribbonIconsByStreamId: Map<string, HTMLElement> = new Map();
 	calendarWidgets: Map<string, CalendarWidget> = new Map();
+	private log: Logger = new Logger();
 
 	async onload() {
 		console.log('Loading Streams plugin...');
@@ -219,7 +221,7 @@ export default class StreamsPlugin extends Plugin {
 			// Check if paths match at each level
 			const isMatch = normalizedStreamPath.every((part, index) => normalizedStreamPath[index] === normalizedFilePath[index]);
 			
-			console.log(`Checking stream "${s.name}":`, {
+			this.log.debug(`Checking stream "${s.name}":`, {
 				filePath,
 				streamFolder: s.folder,
 				normalizedFilePath,
