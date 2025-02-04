@@ -123,6 +123,33 @@ If your plugin does not need CSS, delete this file.
 .calendar-day {
     padding: 6px;
     font-size: 12px;
+    cursor: pointer;
+    touch-action: manipulation; /* Disable double-tap zoom */
+    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
+    min-height: 32px; /* Ensure touch target is large enough */
+    min-width: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-day:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.calendar-day:active {
+    background-color: var(--background-modifier-active);
+}
+
+.calendar-day.empty {
+    cursor: default;
+    min-height: 32px;
+    min-width: 32px;
+}
+
+.calendar-day.empty:hover,
+.calendar-day.empty:active {
+    background-color: transparent;
 }
 
 .calendar-day-header {

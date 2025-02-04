@@ -135,9 +135,15 @@ export class CalendarWidget {
                 dayEl.addClass('today');
             }
             
-            dayEl.addEventListener('click', () => {
+            // Add both click and touch handlers
+            const handleDaySelect = (e: Event) => {
+                e.preventDefault(); // Prevent default touch behavior
+                e.stopPropagation();
                 this.selectDate(day);
-            });
+            };
+
+            dayEl.addEventListener('click', handleDaySelect);
+            dayEl.addEventListener('touchend', handleDaySelect);
         }
     }
 
