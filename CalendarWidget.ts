@@ -38,6 +38,11 @@ export class CalendarWidget {
     private initializeWidget() {
         // Create collapsed view
         const collapsedView = this.widget.createDiv('stream-calendar-collapsed');
+        collapsedView.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleExpanded(collapsedView, expandedView);
+        });
+
         const todayButton = collapsedView.createDiv('stream-calendar-today-button');
         todayButton.setText(this.formatDate(new Date()));
 
@@ -68,11 +73,6 @@ export class CalendarWidget {
         this.updateCalendarGrid(grid);
 
         // Event listeners
-        todayButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.toggleExpanded(collapsedView, expandedView);
-        });
-
         prevButton.addEventListener('click', () => {
             this.currentDate.setMonth(this.currentDate.getMonth() - 1);
             dateDisplay.setText(this.formatMonthYear(this.currentDate));

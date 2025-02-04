@@ -94,6 +94,7 @@ If your plugin does not need CSS, delete this file.
     min-width: 80px;
     text-align: center;
     white-space: nowrap;
+    user-select: none;
 }
 
 .stream-calendar-expanded {
@@ -133,4 +134,5 @@ If your plugin does not need CSS, delete this file.
 
 .stream-calendar-today-button {
     white-space: nowrap;
+    pointer-events: none;
 }
