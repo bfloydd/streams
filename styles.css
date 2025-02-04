@@ -73,11 +73,12 @@ If your plugin does not need CSS, delete this file.
 
 /* Update existing calendar styles for better spacing */
 .stream-calendar-widget {
-    position: fixed;
-    top: 80px;
-    right: 0;
+    position: absolute;
+    top: 32px;
+    right: 100%;
     z-index: 1000;
     font-size: 12px;
+    margin-right: 8px;
 }
 
 .stream-calendar-collapsed {
@@ -88,7 +89,7 @@ If your plugin does not need CSS, delete this file.
     cursor: pointer;
     transition: opacity 0.3s ease;
     background-color: var(--background-primary);
-    border-radius: 6px 0 0 6px;
+    border-radius: 6px;
     box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.15);
     min-width: 80px;
     text-align: center;
@@ -102,7 +103,7 @@ If your plugin does not need CSS, delete this file.
     padding: 16px;
     min-width: 250px;
     background-color: var(--background-primary);
-    border-radius: 6px 0 0 6px;
+    border-radius: 6px;
     box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.15);
     opacity: 0;
     transform: scale(0.95);

@@ -16,7 +16,21 @@ export class CalendarWidget {
         
         this.widget = document.createElement('div');
         this.widget.addClass('stream-calendar-widget');
-        document.body.appendChild(this.widget);
+        
+        // Find the markdown view container
+        const markdownView = leaf.view as MarkdownView;
+        const contentContainer = markdownView.contentEl;
+        
+        if (!contentContainer) {
+            console.error('Could not find content container');
+            return;
+        }
+
+        // Make the content container relative for absolute positioning
+        contentContainer.style.position = 'relative';
+        
+        // Append to the content container
+        contentContainer.appendChild(this.widget);
         
         this.initializeWidget();
     }
@@ -162,6 +176,8 @@ export class CalendarWidget {
 
     public destroy() {
         console.log('Destroying calendar widget');
-        this.widget?.remove();
+        if (this.widget && this.widget.parentElement) {
+            this.widget.remove();
+        }
     }
 } 
