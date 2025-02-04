@@ -1,6 +1,7 @@
 import { App, WorkspaceLeaf, TFile, MarkdownView } from 'obsidian';
 import { Stream } from './types';
 import { openStreamDate } from './streamUtils';
+import { Logger } from './src/utils/Logger';
 
 export class CalendarWidget {
     private widget: HTMLElement;
@@ -8,9 +9,10 @@ export class CalendarWidget {
     private currentDate: Date = new Date();
     private selectedStream: Stream;
     private app: App;
+    private log: Logger = new Logger();
 
     constructor(leaf: WorkspaceLeaf, stream: Stream, app: App) {
-        console.log('Creating calendar widget for stream:', stream.name);
+        this.log.debug('Creating calendar widget for stream:', stream.name);
         this.selectedStream = stream;
         this.app = app;
         
@@ -181,7 +183,7 @@ export class CalendarWidget {
     }
 
     public destroy() {
-        console.log('Destroying calendar widget');
+        this.log.debug('Destroying calendar widget');
         if (this.widget && this.widget.parentElement) {
             this.widget.remove();
         }

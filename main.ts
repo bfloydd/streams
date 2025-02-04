@@ -56,7 +56,7 @@ export default class StreamsPlugin extends Plugin {
 	private log: Logger = new Logger();
 
 	async onload() {
-		console.log('Loading Streams plugin...');
+		this.log.info('Loading Streams plugin...');
 		
 		// Load styles first
 		this.loadStyles();
@@ -72,7 +72,7 @@ export default class StreamsPlugin extends Plugin {
 		// Register event for active leaf changes
 		this.registerEvent(
 			this.app.workspace.on('active-leaf-change', (leaf) => {
-				console.log('Active leaf changed');
+				this.log.debug('Active leaf changed');
 				if (leaf?.view instanceof MarkdownView) {
 					this.updateCalendarWidget(leaf);
 				}
@@ -196,7 +196,7 @@ export default class StreamsPlugin extends Plugin {
 		const view = leaf.view as MarkdownView;
 		const filePath = view.file?.path;
 		
-		console.log('Updating calendar widget for file:', filePath);
+		this.log.debug('Updating calendar widget for file:', filePath);
 
 		// Remove existing widget if any
 		this.calendarWidgets.forEach((widget) => {
@@ -207,7 +207,7 @@ export default class StreamsPlugin extends Plugin {
 		if (!filePath) return;
 
 		// Log all streams first
-		console.log('Available streams:', this.settings.streams.map(s => ({
+		this.log.debug('Available streams:', this.settings.streams.map(s => ({
 			name: s.name,
 			folder: s.folder
 		})));
@@ -233,17 +233,17 @@ export default class StreamsPlugin extends Plugin {
 		});
 
 		if (stream) {
-			console.log('File belongs to stream:', stream.name);
+			this.log.debug('File belongs to stream:', stream.name);
 			const widget = new CalendarWidget(leaf, stream, this.app);
 			const widgetId = filePath || crypto.randomUUID();
 			this.calendarWidgets.set(widgetId, widget);
 		} else {
-			console.log('File does not belong to any stream');
+			this.log.debug('File does not belong to any stream');
 		}
 	}
 
 	onunload() {
-		console.log('Unloading Streams plugin...');
+		this.log.debug('Unloading Streams plugin...');
 		
 		// Clean up styles
 		document.getElementById('streams-calendar-styles')?.remove();
@@ -288,7 +288,7 @@ export default class StreamsPlugin extends Plugin {
 		// Store reference with stream ID
 		this.ribbonIconsByStreamId.set(stream.id, ribbonIcon);
 		
-		console.log(`Added icon for stream ${stream.id}, total icons: ${this.ribbonIconsByStreamId.size}`);
+		this.log.debug(`Added icon for stream ${stream.id}, total icons: ${this.ribbonIconsByStreamId.size}`);
 	}
 
 	public removeRibbonIconForStream(streamId: string) {
@@ -296,7 +296,7 @@ export default class StreamsPlugin extends Plugin {
 		if (icon) {
 			icon.remove();
 			this.ribbonIconsByStreamId.delete(streamId);
-			console.log(`Removed icon for stream ${streamId}`);
+			this.log.debug(`Removed icon for stream ${streamId}`);
 		}
 	}
 

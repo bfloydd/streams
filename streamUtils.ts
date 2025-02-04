@@ -1,6 +1,9 @@
 import { App, TFolder, TFile, MarkdownView } from 'obsidian';
 import { join, normalize } from 'path';
 import { Stream } from './types';
+import { Logger } from './src/utils/Logger';
+
+const log = new Logger();
 
 export function getFolderSuggestions(app: App): string[] {
     const folders: string[] = [];
@@ -84,16 +87,14 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                     await app.vault.createFolder(folderPath);
                 }
             } catch (error) {
-                // Using folder that already exists
-                console.log('Using existing folder:', folderPath);
+                log.debug('Using existing folder:', folderPath);
             }
         }
         
         try {
             file = await app.vault.create(filePath, '');
         } catch (error) {
-            // Using existing file
-            console.log('Using existing file:', filePath);
+            log.debug('Using existing file:', filePath);
             file = app.vault.getAbstractFileByPath(filePath);
         }
     }
