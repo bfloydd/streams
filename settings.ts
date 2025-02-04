@@ -1,7 +1,7 @@
 import { App, PluginSettingTab, Setting } from 'obsidian';
 import StreamsPlugin from './main';
 import { Stream, StreamsSettings, LucideIcon } from './types';
-import { getFolderSuggestions } from './streamUtils';
+import { getFolderSuggestions } from './src/utils/streamUtils';
 
 export class StreamsSettingTab extends PluginSettingTab {
     plugin: StreamsPlugin;

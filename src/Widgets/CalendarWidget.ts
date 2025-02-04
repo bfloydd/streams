@@ -1,9 +1,9 @@
 import { App, WorkspaceLeaf, TFile, MarkdownView } from 'obsidian';
-import { Stream } from './types';
-import { openStreamDate } from './streamUtils';
-import { Logger } from './src/utils/Logger';
-import { OpenStreamDateCommand } from './src/commands/OpenStreamDateCommand';
-import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
+import { Stream } from '../../types';
+import { openStreamDate } from '../utils/streamUtils';
+import { Logger } from '../utils/Logger';
+import { OpenStreamDateCommand } from '../commands/OpenStreamDateCommand';
+import { OpenTodayStreamCommand } from '../commands/OpenTodayStreamCommand';
 
 export class CalendarWidget {
     private widget: HTMLElement;

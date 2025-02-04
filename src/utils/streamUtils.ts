@@ -1,7 +1,7 @@
 import { App, TFolder, TFile, MarkdownView } from 'obsidian';
 import { join, normalize } from 'path';
-import { Stream } from './types';
-import { Logger } from './src/utils/Logger';
+import { Stream } from '../../types';
+import { Logger } from './Logger';
 
 const log = new Logger();
 

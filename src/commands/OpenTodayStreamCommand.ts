@@ -1,8 +1,9 @@
 import { App } from 'obsidian';
 import { Stream } from '../../types';
-import { openStreamDate } from '../../streamUtils';
+import { openStreamDate } from '../utils/streamUtils';
 import { Logger } from '../utils/Logger';
 import { Command } from './Command';
+
 
 const log = new Logger();
 

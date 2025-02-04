@@ -1,8 +1,8 @@
 import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, WorkspaceLeaf } from 'obsidian';
 import { StreamsSettingTab } from './settings';
 import { Stream, StreamsSettings } from './types';
-import { createDailyNote, openStreamDate } from './streamUtils';
-import { CalendarWidget } from './CalendarWidget';
+import { createDailyNote, openStreamDate } from './src/utils/streamUtils';
+import { CalendarWidget } from './src/Widgets/CalendarWidget';
 import { normalize } from 'path';
 import { Logger } from './src/utils/Logger';
 import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
