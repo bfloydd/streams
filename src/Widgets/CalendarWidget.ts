@@ -17,6 +17,8 @@ export class CalendarWidget {
     private selectedStream: Stream;
     private app: App;
     private log: Logger = new Logger();
+    private grid: HTMLElement | null = null;  // Store grid reference
+    private fileModifyHandler: () => void;    // Store handler for cleanup
 
     constructor(leaf: WorkspaceLeaf, stream: Stream, app: App) {
         this.log.debug('Creating calendar widget for stream:', stream.name);
@@ -41,8 +43,24 @@ export class CalendarWidget {
         // Append to the content container
         contentContainer.appendChild(this.widget);
         
+        // Add file modification listener
+        this.fileModifyHandler = this.handleFileModify.bind(this);
+        this.app.vault.on('modify', this.fileModifyHandler);
+
         this.initializeWidget();
         this.loadStyles();
+    }
+
+    private handleFileModify(file: TFile) {
+        // Only update if the file is in our stream's folder
+        const streamPath = this.selectedStream.folder.split(/[/\\]/).filter(Boolean);
+        const filePath = file.path.split(/[/\\]/).filter(Boolean);
+        
+        const isInStream = streamPath.every((part, index) => streamPath[index] === filePath[index]);
+        
+        if (isInStream && this.grid) {
+            this.updateCalendarGrid(this.grid);
+        }
     }
 
     private initializeWidget() {
@@ -80,6 +98,7 @@ export class CalendarWidget {
 
         // Create calendar grid
         const grid = expandedView.createDiv('stream-calendar-grid');
+        this.grid = grid;  // Store reference
         this.updateCalendarGrid(grid);
 
         // Event listeners
@@ -281,6 +300,9 @@ export class CalendarWidget {
 
     public destroy() {
         this.log.debug('Destroying calendar widget');
+        // Remove event listener
+        this.app.vault.off('modify', this.fileModifyHandler);
+        
         if (this.widget && this.widget.parentElement) {
             this.widget.remove();
         }
