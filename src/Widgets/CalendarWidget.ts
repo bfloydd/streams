@@ -260,7 +260,6 @@ export class CalendarWidget {
     }
 
     private loadStyles() {
-        // Add these styles to the existing styles in main.ts
         const additionalStyles = `
             .calendar-day {
                 display: flex;
@@ -286,12 +285,16 @@ export class CalendarWidget {
                 background-color: var(--text-normal);
             }
 
+            .calendar-day.today {
+                color: var(--text-accent);
+                font-weight: 600;
+            }
+
             .calendar-day.today .content-dot {
                 background-color: var(--text-accent);
             }
         `;
 
-        // Add styles to the document
         const styleEl = document.getElementById('streams-calendar-styles');
         if (styleEl) {
             styleEl.textContent += additionalStyles;
