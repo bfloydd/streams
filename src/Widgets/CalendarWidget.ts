@@ -1,6 +1,5 @@
 import { App, WorkspaceLeaf, TFile, MarkdownView } from 'obsidian';
 import { Stream } from '../../types';
-import { openStreamDate } from '../utils/streamUtils';
 import { Logger } from '../utils/Logger';
 import { OpenStreamDateCommand } from '../commands/OpenStreamDateCommand';
 import { OpenTodayStreamCommand } from '../commands/OpenTodayStreamCommand';
@@ -19,6 +18,7 @@ export class CalendarWidget {
     private log: Logger = new Logger();
     private grid: HTMLElement | null = null;  // Store grid reference
     private fileModifyHandler: () => void;    // Store handler for cleanup
+    private currentViewedDate: string | null = null;
 
     constructor(leaf: WorkspaceLeaf, stream: Stream, app: App) {
         this.log.debug('Creating calendar widget for stream:', stream.name);
@@ -46,6 +46,15 @@ export class CalendarWidget {
         // Add file modification listener
         this.fileModifyHandler = this.handleFileModify.bind(this);
         this.app.vault.on('modify', this.fileModifyHandler);
+
+        // Get current file's date if it exists
+        const currentFile = markdownView.file;
+        if (currentFile) {
+            const match = currentFile.basename.match(/^\d{4}-\d{2}-\d{2}/);
+            if (match) {
+                this.currentViewedDate = match[0];
+            }
+        }
 
         this.initializeWidget();
         this.loadStyles();
@@ -199,9 +208,17 @@ export class CalendarWidget {
             
             const dotContainer = dayEl.createDiv('dot-container');
             
+            // Format date for comparison
+            const currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
+            const dateString = currentDate.toISOString().split('T')[0];
+            
+            // Add viewed class if this is the current file's date
+            if (dateString === this.currentViewedDate) {
+                dayEl.addClass('viewed');
+            }
+            
             // Check content for this day
-            const date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-            const content = await this.getContentIndicator(date);
+            const content = await this.getContentIndicator(currentDate);
             
             if (content.exists) {
                 const dots = content.size === 'small' ? 1 : content.size === 'medium' ? 2 : 3;
@@ -266,6 +283,13 @@ export class CalendarWidget {
                 flex-direction: column;
                 align-items: center;
                 gap: 2px;
+                border: 1px solid transparent;
+                padding: 4px;
+                border-radius: 4px;
+            }
+
+            .calendar-day.viewed {
+                border-color: var(--text-accent);
             }
 
             .dot-container {
