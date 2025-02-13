@@ -5,6 +5,11 @@ import { Logger } from '../utils/Logger';
 import { OpenStreamDateCommand } from '../commands/OpenStreamDateCommand';
 import { OpenTodayStreamCommand } from '../commands/OpenTodayStreamCommand';
 
+interface ContentIndicator {
+    exists: boolean;
+    size: 'small' | 'medium' | 'large';
+}
+
 export class CalendarWidget {
     private widget: HTMLElement;
     private expanded: boolean = false;
@@ -37,6 +42,7 @@ export class CalendarWidget {
         contentContainer.appendChild(this.widget);
         
         this.initializeWidget();
+        this.loadStyles();
     }
 
     private initializeWidget() {
@@ -110,7 +116,42 @@ export class CalendarWidget {
         });
     }
 
-    private updateCalendarGrid(grid: HTMLElement) {
+    private async getContentIndicator(date: Date): Promise<ContentIndicator> {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const fileName = `${year}-${month}-${day}.md`;
+        
+        const folderPath = this.selectedStream.folder
+            .split(/[/\\]/)
+            .filter(Boolean)
+            .join('/');
+        
+        const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
+        const file = this.app.vault.getAbstractFileByPath(filePath);
+
+        if (!(file instanceof TFile)) {
+            return { exists: false, size: 'small' };
+        }
+
+        // Use file.stat.size instead of reading contents
+        const fileSize = file.stat.size;
+
+        let size: 'small' | 'medium' | 'large';
+        // Adjust these thresholds based on typical markdown file sizes
+        // Current thresholds: 1KB and 5KB
+        if (fileSize < 1024) {
+            size = 'small';
+        } else if (fileSize < 5120) {
+            size = 'medium';
+        } else {
+            size = 'large';
+        }
+
+        return { exists: true, size };
+    }
+
+    private async updateCalendarGrid(grid: HTMLElement) {
         grid.empty();
 
         // Add day headers
@@ -134,15 +175,28 @@ export class CalendarWidget {
         // Add days of month
         for (let day = 1; day <= totalDays; day++) {
             const dayEl = grid.createDiv('calendar-day');
-            dayEl.setText(String(day));
+            const dateContainer = dayEl.createDiv('date-container');
+            dateContainer.setText(String(day));
+            
+            const dotContainer = dayEl.createDiv('dot-container');
+            
+            // Check content for this day
+            const date = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
+            const content = await this.getContentIndicator(date);
+            
+            if (content.exists) {
+                const dots = content.size === 'small' ? 1 : content.size === 'medium' ? 2 : 3;
+                for (let i = 0; i < dots; i++) {
+                    dotContainer.createDiv('content-dot');
+                }
+            }
             
             if (this.isToday(day)) {
                 dayEl.addClass('today');
             }
             
-            // Add both click and touch handlers
             const handleDaySelect = (e: Event) => {
-                e.preventDefault(); // Prevent default touch behavior
+                e.preventDefault();
                 e.stopPropagation();
                 this.selectDate(day);
             };
@@ -184,6 +238,45 @@ export class CalendarWidget {
         expandedView.style.display = this.expanded ? 'block' : 'none';
         collapsedView.toggleClass('today-button-expanded', this.expanded);
         expandedView.toggleClass('calendar-expanded', this.expanded);
+    }
+
+    private loadStyles() {
+        // Add these styles to the existing styles in main.ts
+        const additionalStyles = `
+            .calendar-day {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 2px;
+            }
+
+            .dot-container {
+                display: flex;
+                gap: 2px;
+                height: 4px;
+            }
+
+            .content-dot {
+                width: 4px;
+                height: 4px;
+                border-radius: 50%;
+                background-color: var(--text-muted);
+            }
+
+            .calendar-day:hover .content-dot {
+                background-color: var(--text-normal);
+            }
+
+            .calendar-day.today .content-dot {
+                background-color: var(--text-accent);
+            }
+        `;
+
+        // Add styles to the document
+        const styleEl = document.getElementById('streams-calendar-styles');
+        if (styleEl) {
+            styleEl.textContent += additionalStyles;
+        }
     }
 
     public destroy() {

@@ -173,6 +173,10 @@ export default class StreamsPlugin extends Plugin {
 			}
 
 			.calendar-day {
+				display: flex;
+				flex-direction: column;
+				align-items: center;
+				gap: 2px;
 				padding: 4px;
 				text-align: center;
 				cursor: pointer;
@@ -180,21 +184,25 @@ export default class StreamsPlugin extends Plugin {
 				transition: background-color 0.2s ease;
 			}
 
-			.calendar-day:hover {
-				background-color: var(--background-modifier-hover);
+			.dot-container {
+				display: flex;
+				gap: 2px;
+				height: 4px;
 			}
 
-			.calendar-day.empty {
-				cursor: default;
+			.content-dot {
+				width: 4px;
+				height: 4px;
+				border-radius: 50%;
+				background-color: var(--text-muted);
 			}
 
-			.calendar-day.empty:hover {
-				background-color: transparent;
+			.calendar-day:hover .content-dot {
+				background-color: var(--text-normal);
 			}
 
-			.calendar-day.today {
-				color: var(--text-accent);
-				font-weight: bold;
+			.calendar-day.today .content-dot {
+				background-color: var(--text-accent);
 			}
 		`;
 	}
