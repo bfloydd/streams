@@ -80,6 +80,10 @@ export class CalendarWidget {
             this.toggleExpanded(collapsedView, expandedView);
         });
 
+        // Add stream name above the date
+        const streamLabel = collapsedView.createDiv('stream-calendar-label');
+        streamLabel.setText(this.selectedStream.name);
+
         const todayButton = collapsedView.createDiv('stream-calendar-today-button');
         todayButton.setText(this.formatDate(new Date()));
 
@@ -316,6 +320,18 @@ export class CalendarWidget {
 
             .calendar-day.today .content-dot {
                 background-color: var(--text-accent);
+            }
+
+            .stream-calendar-label {
+                font-size: 0.8em;
+                color: var(--text-muted);
+                margin-bottom: 2px;
+            }
+
+            .stream-calendar-collapsed {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
             }
         `;
 
