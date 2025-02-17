@@ -1,9 +1,13 @@
 import { App, TFolder, TFile, MarkdownView } from 'obsidian';
-import { join, normalize } from 'path';
 import { Stream } from '../../types';
 import { Logger } from './Logger';
 
 const log = new Logger();
+
+function normalizePath(path: string): string {
+    // Convert backslashes to forward slashes and remove any duplicate slashes
+    return path.replace(/\\/g, '/').replace(/\/+/g, '/');
+}
 
 export function getFolderSuggestions(app: App): string[] {
     const folders: string[] = [];
@@ -109,8 +113,8 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                         const viewFile = view?.file;
                         if (!viewFile || !file) return false;
                         
-                        const viewPath = normalize(viewFile.path);
-                        const filePath = normalize(file.path);
+                        const viewPath = normalizePath(viewFile.path);
+                        const filePath = normalizePath(file.path);
                         return viewPath === filePath;
                     } catch (e) {
                         log.debug('Error comparing files:', e);
