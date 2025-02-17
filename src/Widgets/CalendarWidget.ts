@@ -19,6 +19,7 @@ export class CalendarWidget {
     private grid: HTMLElement | null = null;  // Store grid reference
     private fileModifyHandler: () => void;    // Store handler for cleanup
     private currentViewedDate: string | null = null;
+    private todayButton: HTMLElement; // Add this property to store reference
 
     constructor(leaf: WorkspaceLeaf, stream: Stream, app: App) {
         this.log.debug('Creating calendar widget for stream:', stream.name);
@@ -69,6 +70,7 @@ export class CalendarWidget {
         
         if (isInStream && this.grid) {
             this.updateCalendarGrid(this.grid);
+            this.updateTodayButton(); // Update button when files change
         }
     }
 
@@ -85,7 +87,8 @@ export class CalendarWidget {
         streamLabel.setText(this.selectedStream.name);
 
         const todayButton = collapsedView.createDiv('stream-calendar-today-button');
-        todayButton.setText(this.formatDate(new Date()));
+        this.todayButton = todayButton; // Store reference
+        this.updateTodayButton(); // Use new method
 
         // Create expanded view
         const expandedView = this.widget.createDiv('stream-calendar-expanded');
@@ -146,6 +149,23 @@ export class CalendarWidget {
                 this.toggleExpanded(collapsedView, expandedView);
             }
         });
+    }
+
+    private updateTodayButton() {
+        if (!this.currentViewedDate) {
+            this.todayButton.setText(this.formatDate(this.currentDate));
+            return;
+        }
+
+        const today = new Date().toISOString().split('T')[0];
+        if (this.currentViewedDate === today) {
+            this.todayButton.setText('TODAY');
+        } else {
+            // Create date using year, month, day components to avoid timezone issues
+            const [year, month, day] = this.currentViewedDate.split('-').map(Number);
+            const viewedDate = new Date(year, month - 1, day); // month is 0-based in Date constructor
+            this.todayButton.setText(this.formatDate(viewedDate));
+        }
     }
 
     private async getContentIndicator(date: Date): Promise<ContentIndicator> {
@@ -231,7 +251,7 @@ export class CalendarWidget {
                 }
             }
             
-            if (this.isToday(day)) {
+            if (this.isToday(currentDate)) {
                 dayEl.addClass('today');
             }
             
@@ -260,17 +280,20 @@ export class CalendarWidget {
         });
     }
 
-    private isToday(day: number): boolean {
+    private isToday(date: Date): boolean {
         const today = new Date();
-        return day === today.getDate() && 
-               this.currentDate.getMonth() === today.getMonth() && 
-               this.currentDate.getFullYear() === today.getFullYear();
+        return date.getDate() === today.getDate() && 
+               date.getMonth() === today.getMonth() && 
+               date.getFullYear() === today.getFullYear();
     }
 
     private async selectDate(day: number) {
         const selectedDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
+        // Update currentViewedDate before executing command
+        this.currentViewedDate = selectedDate.toISOString().split('T')[0];
         const command = new OpenStreamDateCommand(this.app, this.selectedStream, selectedDate);
         await command.execute();
+        this.updateTodayButton();
     }
 
     private toggleExpanded(collapsedView: HTMLElement, expandedView: HTMLElement) {
