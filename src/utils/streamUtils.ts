@@ -100,21 +100,35 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
     }
 
     if (file instanceof TFile) {
-        // Check if file is already open in a tab
-        const existingLeaf = app.workspace.getLeavesOfType('markdown')
-            .find(leaf => {
-                const view = leaf.view as MarkdownView;
-                return view && view.file && file && normalize(view.file.path) === normalize(file.path);
-            });
+        try {
+            // Check if file is already open in a tab
+            const existingLeaf = app.workspace.getLeavesOfType('markdown')
+                .find(leaf => {
+                    try {
+                        const view = leaf.view as MarkdownView;
+                        const viewFile = view?.file;
+                        if (!viewFile || !file) return false;
+                        
+                        const viewPath = normalize(viewFile.path);
+                        const filePath = normalize(file.path);
+                        return viewPath === filePath;
+                    } catch (e) {
+                        log.debug('Error comparing files:', e);
+                        return false;
+                    }
+                });
 
-        if (existingLeaf) {
-            // Switch to existing tab
-            app.workspace.setActiveLeaf(existingLeaf, { focus: true });
-        } else {
-            // Open in new tab
-            const leaf = app.workspace.getLeaf('tab');
-            await leaf.openFile(file);
-            app.workspace.setActiveLeaf(leaf, { focus: true });
+            if (existingLeaf) {
+                // Switch to existing tab
+                app.workspace.setActiveLeaf(existingLeaf, { focus: true });
+            } else {
+                // Open in new tab
+                const leaf = app.workspace.getLeaf('tab');
+                await leaf.openFile(file);
+                app.workspace.setActiveLeaf(leaf, { focus: true });
+            }
+        } catch (e) {
+            log.error('Error opening stream date:', e);
         }
     }
 } 
