@@ -1,4 +1,4 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, WorkspaceLeaf } from 'obsidian';
+import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, WorkspaceLeaf, Platform, Menu, TFile } from 'obsidian';
 import { StreamsSettingTab } from './settings';
 import { Stream, StreamsSettings } from './types';
 import { createDailyNote, openStreamDate } from './src/utils/streamUtils';
@@ -6,6 +6,7 @@ import { CalendarWidget } from './src/Widgets/CalendarWidget';
 import { normalize } from 'path';
 import { Logger } from './src/utils/Logger';
 import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
+import { StreamSelectionModal } from './src/modals/StreamSelectionModal';
 
 // Add this type for Lucide icon names
 type LucideIcon =
@@ -80,6 +81,42 @@ export default class StreamsPlugin extends Plugin {
 				}
 			})
 		);
+
+
+
+		/**
+		 * 
+		 * TESTING
+		 * >>>
+		 * 
+		 */
+		// Register mobile share handler
+		if (Platform.isAndroidApp) {
+			this.registerEvent(
+				this.app.workspace.on('file-menu', (menu, file) => {
+					if (file && this.settings.streams.length > 0) {
+						menu.addItem((item) => {
+							item
+								.setTitle('Insert link into stream')
+								.setIcon('link')
+								.onClick(async () => {
+									await this.showStreamSelectionModal(file.path);
+								});
+						});
+					}
+				})
+			);
+		}
+		/**
+		 * 
+		 * <<<
+		 * 
+		 */
+
+
+
+
+
 
 		// Initial setup
 		const activeLeaf = this.app.workspace.getActiveViewOfType(MarkdownView)?.leaf;
@@ -360,6 +397,64 @@ export default class StreamsPlugin extends Plugin {
 			// Remove command from Obsidian
 			this.removeCommand(commandId);
 			this.commandsByStreamId.delete(streamId);
+		}
+	}
+
+
+	/**
+	 * 
+	 * TESTING
+	 * 
+	 * 
+	 */
+
+	// Add new methods for handling stream link insertion
+	private async showStreamSelectionModal(filePath: string) {
+		const modal = new StreamSelectionModal(this.app, this.settings.streams, async (selectedStream) => {
+			if (selectedStream) {
+				await this.insertLinkIntoStream(selectedStream, filePath);
+			}
+		});
+		modal.open();
+	}
+
+	private async insertLinkIntoStream(stream: Stream, filePath: string) {
+		try {
+			// Get today's stream note
+			const date = new Date();
+			const year = date.getFullYear();
+			const month = String(date.getMonth() + 1).padStart(2, '0');
+			const day = String(date.getDate()).padStart(2, '0');
+			const fileName = `${year}-${month}-${day}.md`;
+			const streamPath = `${stream.folder}/${fileName}`;
+
+			// Create or get the stream note
+			let file = this.app.vault.getAbstractFileByPath(streamPath);
+			if (!file || !(file instanceof TFile)) {
+				file = await this.app.vault.create(streamPath, '');
+			}
+
+			if (file instanceof TFile) {
+				// Get the file to link to
+				const linkFile = this.app.vault.getAbstractFileByPath(filePath);
+				if (!linkFile || !(linkFile instanceof TFile)) {
+					new Notice('Could not find file to link to');
+					return;
+				}
+
+				// Create the link
+				const link = this.app.fileManager.generateMarkdownLink(linkFile, streamPath);
+				
+				// Append the link to the stream note
+				const content = await this.app.vault.read(file);
+				const newContent = content + (content.length > 0 ? '\n' : '') + link;
+				await this.app.vault.modify(file, newContent);
+
+				new Notice(`Added link to ${stream.name}`);
+			}
+		} catch (error) {
+			this.log.error('Error inserting link:', error);
+			new Notice('Failed to insert link into stream');
 		}
 	}
 }
