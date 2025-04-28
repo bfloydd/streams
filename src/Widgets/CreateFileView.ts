@@ -29,9 +29,40 @@ export class CreateFileView extends ItemView {
     }
 
     getDisplayText(): string {
-        // Extract just the filename without extension for the tab title
-        const fileName = this.filePath.split('/').pop()?.replace('.md', '') || '';
-        return fileName;
+        // Format the date for display in a user-friendly way
+        try {
+            // Extract date from the filename
+            const fileName = this.filePath.split('/').pop() || '';
+            const match = fileName.match(/(\d{4}-\d{2}-\d{2})\.md$/);
+            
+            if (match && match[1]) {
+                // Get a readable date format
+                const [year, month, day] = match[1].split('-').map(n => parseInt(n, 10));
+                const dateObj = new Date(year, month - 1, day);
+                
+                if (!isNaN(dateObj.getTime())) {
+                    // Format as MMM DD, YYYY
+                    const dateString = dateObj.toLocaleDateString('en-US', {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    });
+                    
+                    // Return a title like "Work Notes: Apr 27, 2025"
+                    if (this.stream && this.stream.name) {
+                        return `${this.stream.name}: ${dateString}`;
+                    }
+                    
+                    return dateString;
+                }
+            }
+            
+            // Fallback to just the filename without extension
+            return fileName.replace('.md', '');
+        } catch (error) {
+            this.log.error('Error formatting display text:', error);
+            return this.filePath.split('/').pop()?.replace('.md', '') || '';
+        }
     }
 
     getState(): any {
@@ -79,32 +110,34 @@ export class CreateFileView extends ItemView {
                         }
                     }
                     
-                    // Validate the date
-                    if (isNaN(this.date.getTime())) {
-                        this.log.error(`Invalid date after parsing: ${state.date}`);
-                        // Try to extract from filename as fallback
-                        this.extractDateFromFilename();
-                    }
-                    
                     // Check if date has changed
-                    if (oldDate && this.date) {
-                        dateChanged = oldDate.toDateString() !== this.date.toDateString();
+                    if (oldDate) {
+                        dateChanged = oldDate.getTime() !== this.date.getTime();
+                    } else {
+                        dateChanged = true;
                     }
-                    
                 } catch (error) {
-                    this.log.error(`Error setting date: ${error}`);
-                    // Try to extract from filename as fallback
-                    this.extractDateFromFilename();
+                    this.log.error(`Error parsing date: ${error}`);
+                    this.date = new Date(); // Fallback to current date
                 }
-            } else {
-                // Try to extract from filename if no date provided
-                this.extractDateFromFilename();
             }
             
-            // If date or file path changed, refresh the view
-            if (dateChanged || oldFilePath !== this.filePath) {
-                this.log.debug("Date or file path changed, refreshing view");
-                await this.refreshView();
+            // Determine if we need to refresh the view
+            const filePathChanged = oldFilePath !== this.filePath;
+            
+            // Check for a flag in the result that indicates this was just a title update
+            // to prevent infinite loops
+            const isJustTitleUpdate = result && result.isTitleRefresh;
+            
+            if ((filePathChanged || dateChanged) && !isJustTitleUpdate) {
+                this.log.debug(`State changed significantly, refreshing view`);
+                // Use a setTimeout to ensure this runs after setState completes
+                setTimeout(() => {
+                    this.refreshView();
+                    
+                    // Trigger a custom event so that the plugin can update the calendar widget
+                    this.app.workspace.trigger('streams-create-file-state-changed', this);
+                }, 0);
             }
         }
     }
@@ -234,5 +267,33 @@ export class CreateFileView extends ItemView {
         // Force a refresh of the view content
         this.contentEl.empty();
         await this.onOpen();
+        
+        // Update the tab title
+        this.updateTabTitle();
+        
+        // Let Obsidian know the view has updated
+        this.app.workspace.trigger('layout-change');
+    }
+
+    /**
+     * Updates the tab title to match the current date
+     * This is needed because when navigating between dates the tab title
+     * doesn't automatically update
+     */
+    private updateTabTitle(): void {
+        try {
+            this.log.debug('Updating tab title');
+            
+            // Force Obsidian to update the tab title by setting the view state again
+            // This will call getDisplayText() internally and update the tab UI
+            this.leaf.setViewState({
+                type: this.getViewType(),
+                state: this.getState(),
+            }, { history: false, isTitleRefresh: true });
+            
+            this.log.debug(`Updated tab title to: ${this.getDisplayText()}`);
+        } catch (error) {
+            this.log.error('Error updating tab title:', error);
+        }
     }
 } 

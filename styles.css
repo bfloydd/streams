@@ -81,6 +81,14 @@ If your plugin does not need CSS, delete this file.
     margin-right: 8px;
 }
 
+/* Special positioning for calendar in create file view */
+.streams-create-file-container .stream-calendar-widget {
+    position: fixed;
+    top: 80px;
+    right: 0;
+    margin-right: 0;
+}
+
 .stream-calendar-collapsed {
     position: absolute;
     top: 0;

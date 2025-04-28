@@ -3,6 +3,7 @@ import { Stream } from '../../types';
 import { Logger } from '../utils/Logger';
 import { OpenStreamDateCommand } from '../commands/OpenStreamDateCommand';
 import { OpenTodayStreamCommand } from '../commands/OpenTodayStreamCommand';
+import { CREATE_FILE_VIEW_TYPE } from './CreateFileView';
 
 interface ContentIndicator {
     exists: boolean;
@@ -29,12 +30,49 @@ export class CalendarWidget {
         this.widget = document.createElement('div');
         this.widget.addClass('stream-calendar-widget');
         
-        // Find the markdown view container
-        const markdownView = leaf.view as MarkdownView;
-        const contentContainer = markdownView.contentEl;
+        // Find the content container based on view type
+        let contentContainer: HTMLElement | null = null;
+        
+        // Handle different view types
+        const viewType = leaf.view.getViewType();
+        this.log.debug(`Creating calendar widget for view type: ${viewType}`);
+        
+        if (viewType === 'markdown') {
+            // For markdown views
+            const markdownView = leaf.view as MarkdownView;
+            contentContainer = markdownView.contentEl;
+            
+            // Get current file's date if it exists
+            const currentFile = markdownView.file;
+            if (currentFile) {
+                const match = currentFile.basename.match(/^\d{4}-\d{2}-\d{2}/);
+                if (match) {
+                    this.currentViewedDate = match[0];
+                }
+            }
+        } else if (viewType === CREATE_FILE_VIEW_TYPE) {
+            // For create file views
+            contentContainer = (leaf.view as any).contentEl;
+            
+            // Try to get the date from the view's state
+            try {
+                const state = leaf.view.getState();
+                if (state && state.date) {
+                    const dateString = state.date as string;
+                    // Extract date string in YYYY-MM-DD format for currentViewedDate
+                    this.currentViewedDate = dateString.split('T')[0];
+                    this.log.debug(`Set currentViewedDate from state: ${this.currentViewedDate}`);
+                }
+            } catch (error) {
+                this.log.error('Error getting date from CreateFileView state:', error);
+            }
+        } else {
+            // For other view types
+            contentContainer = (leaf.view as any).contentEl;
+        }
         
         if (!contentContainer) {
-            console.error('Could not find content container');
+            this.log.error('Could not find content container');
             return;
         }
 
@@ -47,15 +85,6 @@ export class CalendarWidget {
         // Add file modification listener
         this.fileModifyHandler = this.handleFileModify.bind(this);
         this.app.vault.on('modify', this.fileModifyHandler);
-
-        // Get current file's date if it exists
-        const currentFile = markdownView.file;
-        if (currentFile) {
-            const match = currentFile.basename.match(/^\d{4}-\d{2}-\d{2}/);
-            if (match) {
-                this.currentViewedDate = match[0];
-            }
-        }
 
         this.initializeWidget();
         this.loadStyles();

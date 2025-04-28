@@ -114,8 +114,20 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
             }
         }
         
-        // Get or create a leaf
-        const leaf = app.workspace.getLeaf('tab');
+        // Look for an existing CreateFileView leaf to reuse
+        let leaf: WorkspaceLeaf | null = null;
+        
+        // First, look for an existing CreateFileView leaf
+        const existingCreateFileViewLeaves = app.workspace.getLeavesOfType(CREATE_FILE_VIEW_TYPE);
+        if (existingCreateFileViewLeaves.length > 0) {
+            // Reuse the first one we find
+            leaf = existingCreateFileViewLeaves[0];
+            log.debug('Reusing existing CreateFileView leaf');
+        } else {
+            // If no existing CreateFileView leaf, create a new one
+            leaf = app.workspace.getLeaf('tab');
+            log.debug('Created a new leaf for CreateFileView');
+        }
         
         // Register the view type if not already registered
         // Access the viewRegistry through app as any since it might not be in the type definitions

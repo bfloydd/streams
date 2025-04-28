@@ -92,8 +92,6 @@ export default class StreamsPlugin extends Plugin {
 			})
 		);
 
-
-
 		/**
 		 * 
 		 * TESTING
@@ -123,11 +121,6 @@ export default class StreamsPlugin extends Plugin {
 		 * 
 		 */
 
-
-
-
-
-
 		// Initial setup
 		const activeLeaf = this.app.workspace.getActiveViewOfType(MarkdownView)?.leaf;
 		if (activeLeaf) {
@@ -138,6 +131,18 @@ export default class StreamsPlugin extends Plugin {
 		this.settings.streams
 			.filter(stream => stream.addCommand)
 			.forEach(stream => this.addStreamCommand(stream));
+
+		// Listen for CreateFileView state changes and update calendar widget accordingly
+		this.registerEvent(
+			// Use 'on' directly on app.workspace without type checking
+			// @ts-ignore - Custom event not in type definitions
+			this.app.workspace.on('streams-create-file-state-changed', (view: any) => {
+				this.log.debug('Create file state changed, updating calendar widget');
+				if (view && view.leaf) {
+					this.updateCalendarWidgetForCreateView(view.leaf);
+				}
+			})
+		);
 	}
 
 	private loadStyles() {
@@ -409,7 +414,6 @@ export default class StreamsPlugin extends Plugin {
 			this.commandsByStreamId.delete(streamId);
 		}
 	}
-
 
 	/**
 	 * 
