@@ -121,16 +121,15 @@ If your plugin does not need CSS, delete this file.
 }
 
 .calendar-day {
-    padding: 6px;
-    font-size: 12px;
-    cursor: pointer;
-    touch-action: manipulation; /* Disable double-tap zoom */
-    -webkit-tap-highlight-color: transparent; /* Remove tap highlight on mobile */
-    min-height: 32px; /* Ensure touch target is large enough */
-    min-width: 32px;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    min-height: 32px;
+    min-width: 32px;
+    padding: 2px;
+    position: relative;
+    overflow: visible;
 }
 
 .calendar-day:hover {
@@ -329,4 +328,21 @@ svg.svg-icon.lucide-calendar {
 /* Alternative way to hide it if the above doesn't work */
 [data-icon="calendar"] {
     display: none;
+}
+
+/* Calendar grid fixes */
+.stream-calendar-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    width: 100%;
+    min-width: 200px;
+}
+
+.date-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    line-height: 1;
 }

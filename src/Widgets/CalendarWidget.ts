@@ -288,8 +288,12 @@ export class CalendarWidget {
     }
 
     private async updateCalendarGrid(grid: HTMLElement) {
+        // Make sure the grid is completely empty before starting
         grid.empty();
-
+        grid.style.display = 'grid'; // Ensure grid display is set
+        
+        this.log.debug(`Updating calendar grid for ${this.formatMonthYear(this.currentDate)}`);
+        
         // Add day headers
         const days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
         days.forEach(day => {
@@ -302,6 +306,8 @@ export class CalendarWidget {
         const lastDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0);
         const totalDays = lastDay.getDate();
         const startingDay = firstDay.getDay();
+        
+        this.log.debug(`Month: ${this.currentDate.getMonth() + 1}, First day: ${startingDay}, Total days: ${totalDays}`);
 
         // Add blank spaces for days before start of month
         for (let i = 0; i < startingDay; i++) {
@@ -311,6 +317,7 @@ export class CalendarWidget {
         // Add days of month
         for (let day = 1; day <= totalDays; day++) {
             const dayEl = grid.createDiv('calendar-day');
+            // Use a single text node for the date number to avoid duplicate elements
             const dateContainer = dayEl.createDiv('date-container');
             dateContainer.setText(String(day));
             
@@ -384,7 +391,21 @@ export class CalendarWidget {
         this.expanded = !this.expanded;
         expandedView.style.display = this.expanded ? 'block' : 'none';
         collapsedView.toggleClass('today-button-expanded', this.expanded);
-        expandedView.toggleClass('calendar-expanded', this.expanded);
+        
+        // Slight delay before adding the expanded class to ensure proper animation
+        if (this.expanded) {
+            // If expanding, make sure the calendar grid is up to date
+            const grid = this.grid;
+            if (grid) {
+                // Force a complete rebuild of the calendar grid when expanding
+                setTimeout(() => {
+                    this.updateCalendarGrid(grid);
+                    expandedView.toggleClass('calendar-expanded', true);
+                }, 10);
+            }
+        } else {
+            expandedView.toggleClass('calendar-expanded', false);
+        }
     }
 
     private loadStyles() {
