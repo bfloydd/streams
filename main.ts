@@ -7,6 +7,7 @@ import { normalize } from 'path';
 import { Logger } from './src/utils/Logger';
 import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
 import { StreamSelectionModal } from './src/modals/StreamSelectionModal';
+import { CREATE_FILE_VIEW_TYPE, CreateFileView } from './src/Widgets/CreateFileView';
 
 // Add this type for Lucide icon names
 type LucideIcon =
@@ -67,6 +68,12 @@ export default class StreamsPlugin extends Plugin {
 		await this.loadSettings();
 		this.addSettingTab(new StreamsSettingTab(this.app, this));
 		
+		// Register CreateFileView
+		this.registerView(
+			CREATE_FILE_VIEW_TYPE,
+			(leaf) => new CreateFileView(leaf, this.app, "", { id: "", name: "", folder: "", icon: "calendar", showInRibbon: false, addCommand: false }, new Date())
+		);
+		
 		// Initialize ribbon icons
 		this.settings.streams
 			.filter(stream => stream.showInRibbon)
@@ -78,6 +85,9 @@ export default class StreamsPlugin extends Plugin {
 				this.log.debug('Active leaf changed');
 				if (leaf?.view instanceof MarkdownView) {
 					this.updateCalendarWidget(leaf);
+				} else if (leaf?.view.getViewType() === CREATE_FILE_VIEW_TYPE) {
+					// Also show calendar widget in the create file view
+					this.updateCalendarWidgetForCreateView(leaf);
 				}
 			})
 		);
@@ -455,6 +465,48 @@ export default class StreamsPlugin extends Plugin {
 		} catch (error) {
 			this.log.error('Error inserting link:', error);
 			new Notice('Failed to insert link into stream');
+		}
+	}
+
+	// Add new method to handle calendar widget for create file view
+	private updateCalendarWidgetForCreateView(leaf: WorkspaceLeaf) {
+		const view = leaf.view;
+		if (!view) return;
+		
+		// Remove existing widget if any
+		this.calendarWidgets.forEach((widget) => {
+			widget.destroy();
+		});
+		this.calendarWidgets.clear();
+		
+		try {
+			// Get the stream and date from the view's state
+			const state = view.getState();
+			if (state && state.stream && state.date) {
+				// Cast to appropriate types
+				const stream = state.stream as Stream;
+				const dateString = state.date as string;
+				const date = new Date(dateString);
+				
+				this.log.debug('Creating calendar widget for create file view:', {
+					stream: stream.name,
+					date: date.toISOString()
+				});
+				
+				// Create the calendar widget with the correct date
+				const widget = new CalendarWidget(leaf, stream, this.app);
+				
+				// Extract date string in YYYY-MM-DD format for currentViewedDate
+				const formattedDate = dateString.split('T')[0];
+				
+				// Set the currentViewedDate explicitly
+				widget.setCurrentViewedDate(formattedDate);
+				
+				const widgetId = 'create-file-view-' + stream.id;
+				this.calendarWidgets.set(widgetId, widget);
+			}
+		} catch (error) {
+			this.log.error('Error setting up calendar widget for create view:', error);
 		}
 	}
 }

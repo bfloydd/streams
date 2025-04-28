@@ -198,3 +198,80 @@ If your plugin does not need CSS, delete this file.
     flex: 1;
     text-align: center;
 }
+
+/* Styles for the Create File view */
+.streams-create-file-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    padding: 20px;
+}
+
+.streams-create-file-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 500px;
+    background-color: var(--background-secondary);
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.streams-create-file-stream {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: var(--text-normal);
+    margin-bottom: 8px;
+}
+
+.streams-create-file-date {
+    font-size: 1.8em;
+    font-weight: 700;
+    color: var(--text-accent);
+    margin-bottom: 12px;
+}
+
+.streams-create-file-path {
+    font-family: var(--font-monospace);
+    font-size: 0.9em;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    padding: 6px 12px;
+    background-color: var(--background-primary);
+    border-radius: 4px;
+}
+
+.streams-create-file-button-container {
+    margin-top: 16px;
+}
+
+.streams-create-file-button {
+    padding: 8px 24px;
+    font-size: 1.1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.streams-create-file-button-text {
+    margin-left: 4px;
+}
+
+.streams-create-file-button svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Mobile adjustments */
+.is-mobile .streams-create-file-content {
+    width: 100%;
+    max-width: none;
+    padding: 20px;
+}
+
+.is-phone .streams-create-file-date {
+    font-size: 1.5em;
+}

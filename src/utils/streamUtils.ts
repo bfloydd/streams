@@ -1,6 +1,7 @@
-import { App, TFolder, TFile, MarkdownView } from 'obsidian';
+import { App, TFolder, TFile, MarkdownView, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../types';
 import { Logger } from './Logger';
+import { CREATE_FILE_VIEW_TYPE, CreateFileView } from '../Widgets/CreateFileView';
 
 const log = new Logger();
 
@@ -66,11 +67,22 @@ export async function createDailyNote(app: App, folder: string): Promise<TFile |
 }
 
 export async function openStreamDate(app: App, stream: Stream, date: Date = new Date()): Promise<void> {
+    log.debug(`==== OPEN STREAM DATE START ====`);
+    log.debug(`Date provided: ${date.toISOString()}`);
+    
+    // Validate date
+    if (!(date instanceof Date) || isNaN(date.getTime())) {
+        log.error(`Invalid date provided: ${date}`);
+        return;
+    }
+    
     // Format date as YYYY-MM-DD
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     const fileName = `${year}-${month}-${day}.md`;
+    
+    log.debug(`Formatted date: ${year}-${month}-${day}`);
 
     // Normalize folder path - ensure forward slashes
     const folderPath = stream.folder
@@ -79,28 +91,57 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
         .join('/');      // Always join with forward slashes
     
     const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
+    log.debug(`Looking for file at path: ${filePath}`);
 
-    // Try to find existing file or create new one
+    // Try to find existing file
     let file = app.vault.getAbstractFileByPath(filePath);
+    log.debug(`File exists: ${!!file}`);
+    
+    // If file doesn't exist, show the create file view instead of creating it
     if (!file) {
-        // Create folder if it doesn't exist
+        log.debug(`File not found: ${filePath}, showing create file view`);
+        
+        // Create folder if it doesn't exist (we still need the folder to exist)
         if (folderPath) {
             try {
                 const folderExists = app.vault.getAbstractFileByPath(folderPath);
                 if (!folderExists) {
                     await app.vault.createFolder(folderPath);
+                    log.debug(`Created folder: ${folderPath}`);
                 }
             } catch (error) {
                 log.debug('Using existing folder:', folderPath);
             }
         }
         
-        try {
-            file = await app.vault.create(filePath, '');
-        } catch (error) {
-            log.debug('Using existing file:', filePath);
-            file = app.vault.getAbstractFileByPath(filePath);
+        // Get or create a leaf
+        const leaf = app.workspace.getLeaf('tab');
+        
+        // Register the view type if not already registered
+        // Access the viewRegistry through app as any since it might not be in the type definitions
+        const viewRegistry = (app as any).viewRegistry;
+        if (viewRegistry && !viewRegistry.getViewCreatorByType(CREATE_FILE_VIEW_TYPE)) {
+            viewRegistry.registerView(
+                CREATE_FILE_VIEW_TYPE,
+                (newLeaf: WorkspaceLeaf) => new CreateFileView(newLeaf, app, filePath, stream, date)
+            );
+            log.debug(`Registered CreateFileView`);
         }
+        
+        // Set the view to our custom create view
+        await leaf.setViewState({
+            type: CREATE_FILE_VIEW_TYPE,
+            state: { 
+                filePath: filePath, 
+                stream: stream,
+                date: date.toISOString() 
+            }
+        });
+        log.debug(`Set view state with date: ${date.toISOString()}`);
+        
+        app.workspace.setActiveLeaf(leaf, { focus: true });
+        log.debug(`==== OPEN STREAM DATE END (create view) ====`);
+        return;
     }
 
     if (file instanceof TFile) {
