@@ -206,6 +206,7 @@ If your plugin does not need CSS, delete this file.
     align-items: center;
     height: 100%;
     padding: 20px;
+    background-color: var(--background-primary);
 }
 
 .streams-create-file-content {
@@ -214,34 +215,67 @@ If your plugin does not need CSS, delete this file.
     align-items: center;
     max-width: 500px;
     background-color: var(--background-secondary);
-    border-radius: 10px;
-    padding: 30px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     text-align: center;
+    animation: fade-in 0.3s ease-in-out;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.streams-create-file-icon {
+    margin-bottom: 24px;
+}
+
+.streams-create-file-icon svg {
+    width: 48px;
+    height: 48px;
+    color: var(--text-accent);
+    opacity: 0.9;
+}
+
+.streams-create-file-stream-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.streams-create-file-stream-icon {
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.streams-create-file-stream-icon svg {
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
 }
 
 .streams-create-file-stream {
-    font-size: 1.2em;
+    font-size: 1.1em;
     font-weight: 600;
-    color: var(--text-normal);
-    margin-bottom: 8px;
+    color: var(--text-muted);
 }
 
 .streams-create-file-date {
-    font-size: 1.8em;
+    font-size: 2em;
     font-weight: 700;
-    color: var(--text-accent);
-    margin-bottom: 12px;
+    color: var(--text-normal);
+    margin-bottom: 30px;
+    line-height: 1.2;
 }
 
 .streams-create-file-path {
     font-family: var(--font-monospace);
-    font-size: 0.9em;
+    font-size: 0.8em;
     color: var(--text-muted);
-    margin-bottom: 24px;
-    padding: 6px 12px;
-    background-color: var(--background-primary);
-    border-radius: 4px;
+    margin-bottom: 32px;
+    opacity: 0.8;
 }
 
 .streams-create-file-button-container {
@@ -249,11 +283,21 @@ If your plugin does not need CSS, delete this file.
 }
 
 .streams-create-file-button {
-    padding: 8px 24px;
+    padding: 10px 24px;
     font-size: 1.1em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    background-color: var(--interactive-accent);
+    text-align: center;
+}
+
+.streams-create-file-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.streams-create-file-button:active {
+    transform: translateY(0);
 }
 
 .streams-create-file-button-text {
@@ -269,9 +313,20 @@ If your plugin does not need CSS, delete this file.
 .is-mobile .streams-create-file-content {
     width: 100%;
     max-width: none;
-    padding: 20px;
+    padding: 30px 20px;
+    border-radius: 8px;
 }
 
 .is-phone .streams-create-file-date {
     font-size: 1.5em;
+}
+
+/* Hide the calendar icon */
+svg.svg-icon.lucide-calendar {
+    display: none;
+}
+
+/* Alternative way to hide it if the above doesn't work */
+[data-icon="calendar"] {
+    display: none;
 }

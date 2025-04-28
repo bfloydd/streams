@@ -29,7 +29,9 @@ export class CreateFileView extends ItemView {
     }
 
     getDisplayText(): string {
-        return `Create: ${this.filePath}`;
+        // Extract just the filename without extension for the tab title
+        const fileName = this.filePath.split('/').pop()?.replace('.md', '') || '';
+        return fileName;
     }
 
     getState(): any {
@@ -45,15 +47,78 @@ export class CreateFileView extends ItemView {
 
     async setState(state: any, result?: any): Promise<void> {
         if (state) {
+            this.log.debug(`Setting state with: ${JSON.stringify(state)}`);
+            
+            const oldFilePath = this.filePath;
+            const oldDate = this.date ? new Date(this.date.getTime()) : null;
+            
             this.filePath = state.filePath || this.filePath;
             this.stream = state.stream || this.stream;
             
+            let dateChanged = false;
+            
             if (state.date) {
                 // Handle date which could be a string or Date object
-                this.date = typeof state.date === 'string' 
-                    ? new Date(state.date) 
-                    : state.date;
+                try {
+                    if (typeof state.date === 'string') {
+                        this.date = new Date(state.date);
+                        this.log.debug(`Parsed date from string: ${this.date.toISOString()}`);
+                    } else if (state.date instanceof Date) {
+                        this.date = state.date;
+                        this.log.debug(`Used date object directly: ${this.date.toISOString()}`);
+                    } else {
+                        // Try to extract date from filepath if all else fails
+                        const filePathMatch = this.filePath.match(/(\d{4}-\d{2}-\d{2})\.md$/);
+                        if (filePathMatch && filePathMatch[1]) {
+                            const [year, month, day] = filePathMatch[1].split('-').map(n => parseInt(n, 10));
+                            this.date = new Date(year, month - 1, day);
+                            this.log.debug(`Extracted date from filepath: ${this.date.toISOString()}`);
+                        } else {
+                            this.date = new Date(); // Last resort fallback
+                            this.log.debug(`Using current date as fallback: ${this.date.toISOString()}`);
+                        }
+                    }
+                    
+                    // Validate the date
+                    if (isNaN(this.date.getTime())) {
+                        this.log.error(`Invalid date after parsing: ${state.date}`);
+                        // Try to extract from filename as fallback
+                        this.extractDateFromFilename();
+                    }
+                    
+                    // Check if date has changed
+                    if (oldDate && this.date) {
+                        dateChanged = oldDate.toDateString() !== this.date.toDateString();
+                    }
+                    
+                } catch (error) {
+                    this.log.error(`Error setting date: ${error}`);
+                    // Try to extract from filename as fallback
+                    this.extractDateFromFilename();
+                }
+            } else {
+                // Try to extract from filename if no date provided
+                this.extractDateFromFilename();
             }
+            
+            // If date or file path changed, refresh the view
+            if (dateChanged || oldFilePath !== this.filePath) {
+                this.log.debug("Date or file path changed, refreshing view");
+                await this.refreshView();
+            }
+        }
+    }
+
+    private extractDateFromFilename(): void {
+        // Extract date from filename
+        const fileNameMatch = this.filePath.match(/(\d{4}-\d{2}-\d{2})\.md$/);
+        if (fileNameMatch && fileNameMatch[1]) {
+            const [year, month, day] = fileNameMatch[1].split('-').map(n => parseInt(n, 10));
+            this.date = new Date(year, month - 1, day);
+            this.log.debug(`Extracted date from filename fallback: ${this.date.toISOString()}`);
+        } else {
+            this.date = new Date();
+            this.log.debug(`Using today as final fallback: ${this.date.toISOString()}`);
         }
     }
 
@@ -61,39 +126,56 @@ export class CreateFileView extends ItemView {
         this.contentEl.empty();
         this.contentEl.addClass('streams-create-file-container');
         
+        // Always ensure we have the correct date based on the file path first
+        const fileNameMatch = this.filePath.match(/(\d{4}-\d{2}-\d{2})\.md$/);
+        if (fileNameMatch && fileNameMatch[1]) {
+            const [year, month, day] = fileNameMatch[1].split('-').map(n => parseInt(n, 10));
+            const fileDate = new Date(year, month - 1, day);
+            
+            if (!isNaN(fileDate.getTime())) {
+                if (!this.date || this.date.toDateString() !== fileDate.toDateString()) {
+                    this.log.debug(`Updating date from file path: ${fileDate.toISOString()}`);
+                    this.date = fileDate;
+                }
+            }
+        }
+        
         const container = this.contentEl.createDiv('streams-create-file-content');
         
-        // Stream name
-        const streamName = container.createDiv('streams-create-file-stream');
+        // Create note icon at the top
+        const iconContainer = container.createDiv('streams-create-file-icon');
+        setIcon(iconContainer, 'file-plus');
+        
+        // Stream name with icon
+        const streamContainer = container.createDiv('streams-create-file-stream-container');
+        const streamIcon = streamContainer.createSpan('streams-create-file-stream-icon');
+        setIcon(streamIcon, this.stream.icon || 'book');
+        
+        const streamName = streamContainer.createSpan('streams-create-file-stream');
         streamName.setText(this.stream.name);
         
-        // Date
+        // Date with more prominence - no calendar icon
         const dateEl = container.createDiv('streams-create-file-date');
-        dateEl.setText(this.formatDate(this.date));
         
-        // File path
-        const pathEl = container.createDiv('streams-create-file-path');
-        pathEl.setText(this.filePath);
+        // Log the date to help with debugging
+        this.log.debug(`Date for formatting: ${this.date.toISOString()}`);
+        
+        // Make sure we have a valid date object
+        if (!(this.date instanceof Date) || isNaN(this.date.getTime())) {
+            this.log.error("Invalid date object, creating a new one");
+            this.extractDateFromFilename();
+        }
+        
+        const formattedDate = this.formatDate(this.date);
+        this.log.debug(`Formatted date for display: ${formattedDate}`);
+        dateEl.setText(formattedDate);
         
         // Create button
         const buttonContainer = container.createDiv('streams-create-file-button-container');
         const createButton = buttonContainer.createEl('button', {
-            cls: 'mod-cta streams-create-file-button'
-        });
-        
-        // Add text and icon to button
-        const buttonContent = createButton.createSpan({
+            cls: 'mod-cta streams-create-file-button',
             text: 'Create file'
         });
-        buttonContent.addClass('streams-create-file-button-text');
-        
-        // Add file-plus icon if available
-        try {
-            setIcon(createButton, 'file-plus');
-        } catch (e) {
-            // Fallback if icon not available
-            this.log.debug('Could not set icon:', e);
-        }
         
         createButton.addEventListener('click', async () => {
             await this.createAndOpenFile();
@@ -101,12 +183,19 @@ export class CreateFileView extends ItemView {
     }
     
     private formatDate(date: Date): string {
-        return date.toLocaleDateString('en-US', { 
-            weekday: 'long',
-            year: 'numeric', 
-            month: 'long', 
-            day: 'numeric' 
-        });
+        this.log.debug(`Formatting date: ${date.toISOString()}`);
+        
+        try {
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'long',
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+        } catch (error) {
+            this.log.error(`Error formatting date: ${error}`);
+            return "Invalid Date";
+        }
     }
     
     private async createAndOpenFile(): Promise<void> {
@@ -139,5 +228,11 @@ export class CreateFileView extends ItemView {
 
     async onClose(): Promise<void> {
         this.contentEl.empty();
+    }
+
+    private async refreshView(): Promise<void> {
+        // Force a refresh of the view content
+        this.contentEl.empty();
+        await this.onOpen();
     }
 } 

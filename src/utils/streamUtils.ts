@@ -137,7 +137,7 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                 date: date.toISOString() 
             }
         });
-        log.debug(`Set view state with date: ${date.toISOString()}`);
+        log.debug(`Set view state with date: ${date.toISOString()} for file: ${filePath}`);
         
         app.workspace.setActiveLeaf(leaf, { focus: true });
         log.debug(`==== OPEN STREAM DATE END (create view) ====`);
