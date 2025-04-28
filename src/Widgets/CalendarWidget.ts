@@ -86,9 +86,29 @@ export class CalendarWidget {
         const streamLabel = collapsedView.createDiv('stream-calendar-label');
         streamLabel.setText(this.selectedStream.name);
 
-        const todayButton = collapsedView.createDiv('stream-calendar-today-button');
+        // Create navigation controls container
+        const navControls = collapsedView.createDiv('stream-calendar-nav-controls');
+        
+        // Add previous day button
+        const prevDayButton = navControls.createDiv('stream-calendar-day-nav prev-day');
+        prevDayButton.setText('←');
+        prevDayButton.addEventListener('click', async (e) => {
+            e.stopPropagation(); // Prevent toggle expansion
+            await this.navigateToAdjacentDay(-1);
+        });
+        
+        // Add today button (between navigation buttons)
+        const todayButton = navControls.createDiv('stream-calendar-today-button');
         this.todayButton = todayButton; // Store reference
         this.updateTodayButton(); // Use new method
+        
+        // Add next day button
+        const nextDayButton = navControls.createDiv('stream-calendar-day-nav next-day');
+        nextDayButton.setText('→');
+        nextDayButton.addEventListener('click', async (e) => {
+            e.stopPropagation(); // Prevent toggle expansion
+            await this.navigateToAdjacentDay(1);
+        });
 
         // Create expanded view
         const expandedView = this.widget.createDiv('stream-calendar-expanded');
@@ -371,6 +391,48 @@ export class CalendarWidget {
         
         if (this.widget && this.widget.parentElement) {
             this.widget.remove();
+        }
+    }
+
+    /**
+     * Navigate to the previous or next day relative to the currently viewed date
+     * @param offset Number of days to offset (negative for previous, positive for next)
+     */
+    private async navigateToAdjacentDay(offset: number): Promise<void> {
+        if (!this.currentViewedDate) {
+            // If no current date, use today
+            const today = new Date();
+            today.setDate(today.getDate() + offset);
+            this.currentViewedDate = today.toISOString().split('T')[0];
+        } else {
+            // Parse the current viewed date
+            const [year, month, day] = this.currentViewedDate.split('-').map(Number);
+            const currentDate = new Date(year, month - 1, day); // month is 0-based in JS Date
+            
+            // Add the offset
+            currentDate.setDate(currentDate.getDate() + offset);
+            
+            // Update the current viewed date
+            this.currentViewedDate = currentDate.toISOString().split('T')[0];
+        }
+        
+        // Parse the date from the updated currentViewedDate
+        const [year, month, day] = this.currentViewedDate.split('-').map(Number);
+        const newDate = new Date(year, month - 1, day);
+        
+        // Update the current date for the calendar view
+        this.currentDate = new Date(year, month - 1, 1); // First day of the month
+        
+        // Navigate to the new date
+        const command = new OpenStreamDateCommand(this.app, this.selectedStream, newDate);
+        await command.execute();
+        
+        // Update the display
+        this.updateTodayButton();
+        
+        // If the calendar is expanded, update its display
+        if (this.expanded && this.grid) {
+            this.updateCalendarGrid(this.grid);
         }
     }
 } 

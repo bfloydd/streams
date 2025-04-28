@@ -163,3 +163,38 @@ If your plugin does not need CSS, delete this file.
     white-space: nowrap;
     pointer-events: none;
 }
+
+.stream-calendar-nav-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 4px;
+}
+
+.stream-calendar-day-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: background-color 0.2s ease;
+}
+
+.stream-calendar-day-nav:hover {
+    background-color: var(--background-modifier-hover);
+    color: var(--text-normal);
+}
+
+.stream-calendar-day-nav:active {
+    background-color: var(--background-modifier-active);
+}
+
+.stream-calendar-today-button {
+    white-space: nowrap;
+    pointer-events: none;
+    flex: 1;
+    text-align: center;
+}
