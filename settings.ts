@@ -63,6 +63,9 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setValue(stream.name)
                 .onChange(async (value) => {
                     stream.name = value;
+                    
+                    this.plugin.addStreamViewCommand(stream);
+                    
                     await this.plugin.saveSettings();
                 }));
 

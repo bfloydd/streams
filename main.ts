@@ -8,6 +8,8 @@ import { Logger } from './src/utils/Logger';
 import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
 import { StreamSelectionModal } from './src/modals/StreamSelectionModal';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from './src/Widgets/CreateFileView';
+import { STREAM_VIEW_TYPE, StreamViewWidget } from './src/Widgets/StreamViewWidget';
+import { OpenStreamViewCommand } from './src/commands/OpenStreamViewCommand';
 
 // Add this type for Lucide icon names
 type LucideIcon =
@@ -56,6 +58,7 @@ export default class StreamsPlugin extends Plugin {
 	settings: StreamsSettings;
 	ribbonIconsByStreamId: Map<string, HTMLElement> = new Map();
 	commandsByStreamId: Map<string, string> = new Map();
+	viewCommandsByStreamId: Map<string, string> = new Map();
 	calendarWidgets: Map<string, CalendarWidget> = new Map();
 	private log: Logger = new Logger();
 
@@ -74,10 +77,47 @@ export default class StreamsPlugin extends Plugin {
 			(leaf) => new CreateFileView(leaf, this.app, "", { id: "", name: "", folder: "", icon: "calendar", showInRibbon: false, addCommand: false }, new Date())
 		);
 		
+		// Register StreamViewWidget
+		this.registerView(
+			STREAM_VIEW_TYPE,
+			(leaf) => {
+				// Find the stream based on state
+				const state = leaf.getViewState();
+				const streamId = state?.state?.streamId;
+				let stream = this.settings.streams.find(s => s.id === streamId);
+				
+				// Fallback to first stream if none found
+				if (!stream && this.settings.streams.length > 0) {
+					stream = this.settings.streams[0];
+				} else if (!stream) {
+					// Create a dummy stream if none exist
+					stream = {
+						id: "default",
+						name: "Default Stream",
+						folder: "",
+						icon: "file-text",
+						showInRibbon: false,
+						addCommand: false
+					};
+				}
+				
+				return new StreamViewWidget(leaf, this.app, stream);
+			}
+		);
+		
 		// Initialize ribbon icons
 		this.settings.streams
 			.filter(stream => stream.showInRibbon)
 			.forEach(stream => this.addRibbonIconForStream(stream));
+
+		// Initialize commands for streams that have it enabled
+		this.settings.streams
+			.filter(stream => stream.addCommand)
+			.forEach(stream => this.addStreamCommand(stream));
+			
+		// Initialize view commands for all streams
+		this.settings.streams
+			.forEach(stream => this.addStreamViewCommand(stream));
 
 		// Register event for active leaf changes
 		this.registerEvent(
@@ -88,6 +128,18 @@ export default class StreamsPlugin extends Plugin {
 				} else if (leaf?.view.getViewType() === CREATE_FILE_VIEW_TYPE) {
 					// Also show calendar widget in the create file view
 					this.updateCalendarWidgetForCreateView(leaf);
+				}
+			})
+		);
+
+		// Listen for CreateFileView state changes and update calendar widget accordingly
+		this.registerEvent(
+			// Use 'on' directly on app.workspace without type checking
+			// @ts-ignore - Custom event not in type definitions
+			this.app.workspace.on('streams-create-file-state-changed', (view: any) => {
+				this.log.debug('Create file state changed, updating calendar widget');
+				if (view && view.leaf) {
+					this.updateCalendarWidgetForCreateView(view.leaf);
 				}
 			})
 		);
@@ -126,23 +178,6 @@ export default class StreamsPlugin extends Plugin {
 		if (activeLeaf) {
 			this.updateCalendarWidget(activeLeaf);
 		}
-
-		// Initialize commands for streams that have it enabled
-		this.settings.streams
-			.filter(stream => stream.addCommand)
-			.forEach(stream => this.addStreamCommand(stream));
-
-		// Listen for CreateFileView state changes and update calendar widget accordingly
-		this.registerEvent(
-			// Use 'on' directly on app.workspace without type checking
-			// @ts-ignore - Custom event not in type definitions
-			this.app.workspace.on('streams-create-file-state-changed', (view: any) => {
-				this.log.debug('Create file state changed, updating calendar widget');
-				if (view && view.leaf) {
-					this.updateCalendarWidgetForCreateView(view.leaf);
-				}
-			})
-		);
 	}
 
 	private loadStyles() {
@@ -326,6 +361,7 @@ export default class StreamsPlugin extends Plugin {
 		this.ribbonIconsByStreamId.clear();
 
 		this.commandsByStreamId.clear();
+		this.viewCommandsByStreamId.clear();
 	}
 
 	async loadSettings() {
@@ -384,6 +420,9 @@ export default class StreamsPlugin extends Plugin {
 		} else {
 			this.removeStreamCommand(stream.id);
 		}
+		
+		// Always refresh the view command
+		this.addStreamViewCommand(stream);
 	}
 
 	private addStreamCommand(stream: Stream) {
@@ -511,6 +550,36 @@ export default class StreamsPlugin extends Plugin {
 			}
 		} catch (error) {
 			this.log.error('Error setting up calendar widget for create view:', error);
+		}
+	}
+
+	// Add a new method for adding stream view commands
+	public addStreamViewCommand(stream: Stream) {
+		const commandId = `streams-plugin:view-${stream.id}`;
+		
+		// Remove existing command if any
+		this.removeStreamViewCommand(stream.id);
+
+		// Add new command
+		const command = this.addCommand({
+			id: commandId,
+			name: `${stream.name}: Full stream view`,
+			callback: async () => {
+				const command = new OpenStreamViewCommand(this.app, stream);
+				await command.execute();
+			}
+		});
+
+		// Store command ID for later removal
+		this.viewCommandsByStreamId.set(stream.id, commandId);
+	}
+
+	private removeStreamViewCommand(streamId: string) {
+		const commandId = this.viewCommandsByStreamId.get(streamId);
+		if (commandId) {
+			// Remove command from Obsidian
+			this.removeCommand(commandId);
+			this.viewCommandsByStreamId.delete(streamId);
 		}
 	}
 }
