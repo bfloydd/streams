@@ -65,12 +65,23 @@ export default class StreamsPlugin extends Plugin {
 	async onload() {
 		this.log.info('Loading Streams plugin...');
 		
-		// Load styles first
-		this.loadStyles();
-		
+		// Load settings and styles
 		await this.loadSettings();
+		this.loadStyles();
 		this.addSettingTab(new StreamsSettingTab(this.app, this));
 		
+		// Register components and initialize
+		this.registerPluginViews();
+		this.initializeStreams();
+		this.registerEventHandlers();
+		this.initializeMobileIntegration();
+		this.initializeActiveView();
+	}
+	
+	/**
+	 * Register all plugin views
+	 */
+	private registerPluginViews(): void {
 		// Register CreateFileView
 		this.registerView(
 			CREATE_FILE_VIEW_TYPE,
@@ -80,31 +91,40 @@ export default class StreamsPlugin extends Plugin {
 		// Register StreamViewWidget
 		this.registerView(
 			STREAM_VIEW_TYPE,
-			(leaf) => {
-				// Find the stream based on state
-				const state = leaf.getViewState();
-				const streamId = state?.state?.streamId;
-				let stream = this.settings.streams.find(s => s.id === streamId);
-				
-				// Fallback to first stream if none found
-				if (!stream && this.settings.streams.length > 0) {
-					stream = this.settings.streams[0];
-				} else if (!stream) {
-					// Create a dummy stream if none exist
-					stream = {
-						id: "default",
-						name: "Default Stream",
-						folder: "",
-						icon: "file-text",
-						showInRibbon: false,
-						addCommand: false
-					};
-				}
-				
-				return new StreamViewWidget(leaf, this.app, stream);
-			}
+			(leaf) => this.createStreamViewFromState(leaf)
 		);
+	}
+	
+	/**
+	 * Create a stream view from a leaf's state
+	 */
+	private createStreamViewFromState(leaf: WorkspaceLeaf): StreamViewWidget {
+		const state = leaf.getViewState();
+		const streamId = state?.state?.streamId;
+		let stream = this.settings.streams.find(s => s.id === streamId);
 		
+		// Fallback to first stream if none found
+		if (!stream && this.settings.streams.length > 0) {
+			stream = this.settings.streams[0];
+		} else if (!stream) {
+			// Create a dummy stream if none exist
+			stream = {
+				id: "default",
+				name: "Default Stream",
+				folder: "",
+				icon: "file-text",
+				showInRibbon: false,
+				addCommand: false
+			};
+		}
+		
+		return new StreamViewWidget(leaf, this.app, stream);
+	}
+	
+	/**
+	 * Initialize stream-related features (ribbon icons, commands)
+	 */
+	private initializeStreams(): void {
 		// Initialize ribbon icons
 		this.settings.streams
 			.filter(stream => stream.showInRibbon)
@@ -118,7 +138,12 @@ export default class StreamsPlugin extends Plugin {
 		// Initialize view commands for all streams
 		this.settings.streams
 			.forEach(stream => this.addStreamViewCommand(stream));
-
+	}
+	
+	/**
+	 * Register all event handlers
+	 */
+	private registerEventHandlers(): void {
 		// Register event for active leaf changes
 		this.registerEvent(
 			this.app.workspace.on('active-leaf-change', (leaf) => {
@@ -143,14 +168,13 @@ export default class StreamsPlugin extends Plugin {
 				}
 			})
 		);
-
-		/**
-		 * 
-		 * TESTING
-		 * >>>
-		 * 
-		 */
-		// Register mobile share handler
+	}
+	
+	/**
+	 * Initialize mobile-specific features
+	 */
+	private initializeMobileIntegration(): void {
+		// Mobile share handler (for Android)
 		if (Platform.isAndroidApp) {
 			this.registerEvent(
 				this.app.workspace.on('file-menu', (menu, file) => {
@@ -167,20 +191,22 @@ export default class StreamsPlugin extends Plugin {
 				})
 			);
 		}
-		/**
-		 * 
-		 * <<<
-		 * 
-		 */
-
-		// Initial setup
+	}
+	
+	/**
+	 * Initialize the active view's calendar widget
+	 */
+	private initializeActiveView(): void {
 		const activeLeaf = this.app.workspace.getActiveViewOfType(MarkdownView)?.leaf;
 		if (activeLeaf) {
 			this.updateCalendarWidget(activeLeaf);
 		}
 	}
 
-	private loadStyles() {
+	/**
+	 * Load and inject CSS styles for the plugin
+	 */
+	private loadStyles(): void {
 		// Add a style element to the document head
 		const styleEl = document.createElement('style');
 		styleEl.id = 'streams-calendar-styles';
@@ -346,7 +372,13 @@ export default class StreamsPlugin extends Plugin {
 
 	onunload() {
 		this.log.debug('Unloading Streams plugin...');
-		
+		this.cleanupResources();
+	}
+	
+	/**
+	 * Clean up all resources when plugin is unloaded
+	 */
+	private cleanupResources(): void {
 		// Clean up styles
 		document.getElementById('streams-calendar-styles')?.remove();
 		
