@@ -412,6 +412,34 @@ svg.svg-icon.lucide-calendar {
     border-left: 2px solid var(--background-modifier-border);
 }
 
+.stream-view-date-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    margin: 8px 0;
+}
+
+.stream-view-date-content .internal-embed {
+    margin: 12px 0;
+}
+
+.stream-view-date-content .internal-embed.is-loaded {
+    display: block;
+    max-width: 100%;
+}
+
+/* Make images responsive on mobile */
+.is-mobile .stream-view-date-content img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Don't let embeds break the mobile layout */
+.is-phone .stream-view-date-content .internal-embed {
+    max-width: calc(100vw - 40px);
+    overflow-x: auto;
+}
+
 .stream-view-load-more {
     display: flex;
     justify-content: center;

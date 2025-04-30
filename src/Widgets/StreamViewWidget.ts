@@ -248,8 +248,52 @@ export class StreamViewWidget extends ItemView {
         // Create content container with markdown rendering
         const contentContainer = dateSection.createDiv('stream-view-date-content');
         
-        // Use the Obsidian markdown renderer for proper rendering
-        MarkdownRenderer.renderMarkdown(content, contentContainer, `${this.stream.folder}/${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}.md`, this);
+        // Format the source path
+        const sourcePath = `${this.stream.folder}/${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}.md`;
+        
+        // Use the Obsidian markdown renderer with proper context
+        MarkdownRenderer.renderMarkdown(
+            content, 
+            contentContainer, 
+            sourcePath,
+            this
+        );
+        
+        // Process embedded content (like images)
+        this.processEmbeds(contentContainer, sourcePath);
+    }
+    
+    /**
+     * Process embedded content like images for proper rendering
+     */
+    private processEmbeds(contentEl: HTMLElement, sourcePath: string): void {
+        // Process image embeds
+        const imageEmbeds = contentEl.querySelectorAll('.internal-embed[src]');
+        imageEmbeds.forEach(async (el) => {
+            const src = el.getAttribute('src');
+            if (!src) return;
+            
+            try {
+                // Try to find the file in the vault
+                const file = this.app.metadataCache.getFirstLinkpathDest(
+                    src, 
+                    sourcePath
+                );
+                
+                if (file && file.extension && ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'].includes(file.extension.toLowerCase())) {
+                    // It's an image, render it
+                    el.empty();
+                    el.addClass('is-loaded');
+                    
+                    // Create image element
+                    const img = document.createElement('img');
+                    img.src = this.app.vault.getResourcePath(file);
+                    el.appendChild(img);
+                }
+            } catch (error) {
+                console.error('Error processing embed:', error);
+            }
+        });
     }
 
     renderEmptyState(): void {
