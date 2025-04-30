@@ -328,16 +328,6 @@ If your plugin does not need CSS, delete this file.
     font-size: 1.5em;
 }
 
-/* Hide the calendar icon */
-svg.svg-icon.lucide-calendar {
-    display: none;
-}
-
-/* Alternative way to hide it if the above doesn't work */
-[data-icon="calendar"] {
-    display: none;
-}
-
 /* Calendar grid fixes */
 .stream-calendar-grid {
     display: grid !important;
