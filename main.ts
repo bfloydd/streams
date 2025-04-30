@@ -416,7 +416,7 @@ export default class StreamsPlugin extends Plugin {
 		// Create new icon with unique tooltip
 		const ribbonIcon = this.addRibbonIcon(
 			stream.icon,
-			`Stream: ${stream.name} (${stream.id})`,
+			`${stream.name}`,
 			async () => {
 				const command = new OpenTodayStreamCommand(this.app, stream);
 				await command.execute();
