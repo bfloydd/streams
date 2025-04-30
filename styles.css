@@ -362,40 +362,59 @@ svg.svg-icon.lucide-calendar {
 .stream-view-container {
     display: flex;
     flex-direction: column;
-    padding: 12px;
+    padding: 12px 8px;
     height: 100%;
     overflow-y: auto;
+    background-color: var(--background-primary-alt);
 }
 
 .stream-view-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid var(--background-modifier-border);
+    padding: 10px 12px;
     margin-bottom: 16px;
+    border-radius: 6px;
+    background-color: var(--background-secondary);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stream-view-header h2 {
+    margin: 0;
+    font-size: 1.8em;
+    color: var(--text-normal);
 }
 
 .stream-view-content {
     display: flex;
     flex-direction: column;
-    gap: 32px;
-    padding: 0 16px;
+    gap: 16px;
+    padding: 0;
 }
 
 .stream-view-date-section {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding-bottom: 32px;
-    border-bottom: 1px solid var(--background-modifier-border);
+    gap: 8px;
+    padding: 12px 10px;
+    margin-bottom: 16px;
+    border-radius: 6px;
+    background-color: var(--background-secondary);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.stream-view-date-section:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .stream-view-date-header {
     cursor: pointer;
-    padding: 8px 0;
+    padding: 4px 0 8px;
     margin-bottom: 8px;
     transition: color 0.2s ease;
+    border-bottom: 1px solid var(--background-modifier-border);
 }
 
 .stream-view-date-header:hover {
@@ -404,12 +423,16 @@ svg.svg-icon.lucide-calendar {
 
 .stream-view-date-header h3 {
     margin: 0;
-    font-size: 1.4em;
+    font-size: 1.5em;
+    font-weight: 600;
+    color: var(--text-accent);
 }
 
 .stream-view-date-content {
-    padding-left: 16px;
-    border-left: 2px solid var(--background-modifier-border);
+    padding: 4px 8px;
+    border-left: 3px solid var(--background-modifier-border);
+    background-color: var(--background-primary);
+    border-radius: 0 4px 4px 0;
 }
 
 .stream-view-date-content img {
@@ -509,17 +532,37 @@ svg.svg-icon.lucide-calendar {
 
 /* Mobile responsive adjustments */
 .is-mobile .stream-view-container {
+    padding: 8px 4px;
+}
+
+.is-mobile .stream-view-date-section {
+    padding: 10px 8px;
+    margin-bottom: 12px;
+}
+
+.is-mobile .stream-view-header {
     padding: 8px;
+    margin-bottom: 12px;
 }
 
-.is-mobile .stream-view-content {
-    padding: 0 8px;
+.is-mobile .stream-view-header h2 {
+    font-size: 1.5em;
 }
 
-.is-mobile .stream-view-date-header h3 {
-    font-size: 1.2em;
+.is-mobile .stream-view-date-content {
+    padding: 6px 12px;
 }
 
 .is-phone .stream-view-container {
-    padding: 4px;
+    padding: 6px 2px;
+}
+
+.is-phone .stream-view-date-section {
+    padding: 8px 6px;
+    margin-bottom: 8px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.is-phone .stream-view-date-header h3 {
+    font-size: 1.3em;
 }
