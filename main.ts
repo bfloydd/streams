@@ -466,7 +466,7 @@ export default class StreamsPlugin extends Plugin {
 		// Add new command
 		const command = this.addCommand({
 			id: commandId,
-			name: `Open Today's Note: ${stream.name}`,
+			name: `${stream.name}: Open Today`,
 			callback: async () => {
 				const command = new OpenTodayStreamCommand(this.app, stream);
 				await command.execute();
@@ -595,7 +595,7 @@ export default class StreamsPlugin extends Plugin {
 		// Add new command
 		const command = this.addCommand({
 			id: commandId,
-			name: `${stream.name}: Full stream view`,
+			name: `${stream.name}: View Full Stream`,
 			callback: async () => {
 				const command = new OpenStreamViewCommand(this.app, stream);
 				await command.execute();
