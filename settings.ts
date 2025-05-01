@@ -31,7 +31,9 @@ export class StreamsSettingTab extends PluginSettingTab {
                         folder: '',
                         icon: 'file-text' as LucideIcon,
                         showInRibbon: true,
-                        addCommand: false
+                        showViewInRibbon: false,
+                        addCommand: false,
+                        addViewCommand: false
                     };
                     this.plugin.settings.streams.push(newStream);
                     await this.plugin.saveSettings();
@@ -92,7 +94,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(card)
-            .setName('Show in Ribbon')
+            .setName('Show in Ribbon: Open Today')
             .addToggle(toggle => toggle
                 .setValue(stream.showInRibbon)
                 .onChange(async (value) => {
@@ -102,13 +104,34 @@ export class StreamsSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(card)
-            .setName('Add Command')
+            .setName('Show in Ribbon: View Full Stream')
+            .addToggle(toggle => toggle
+                .setValue(stream.showViewInRibbon ?? false)
+                .onChange(async (value) => {
+                    stream.showViewInRibbon = value;
+                    this.plugin.toggleViewRibbonIcon(stream);
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(card)
+            .setName('Add command: Open Today')
             .setDesc('Add this stream to the command palette')
             .addToggle(toggle => toggle
                 .setValue(stream.addCommand ?? false)
                 .onChange(async (value) => {
                     stream.addCommand = value;
                     this.plugin.toggleStreamCommand(stream);
+                    await this.plugin.saveSettings();
+                }));
+
+        new Setting(card)
+            .setName('Add command: View Full Stream')
+            .setDesc('Add a view command to the command palette')
+            .addToggle(toggle => toggle
+                .setValue(stream.addViewCommand ?? false)
+                .onChange(async (value) => {
+                    stream.addViewCommand = value;
+                    this.plugin.toggleStreamViewCommand(stream);
                     await this.plugin.saveSettings();
                 }));
 

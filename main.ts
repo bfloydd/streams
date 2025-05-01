@@ -61,6 +61,7 @@ export default class StreamsPlugin extends Plugin {
 	viewCommandsByStreamId: Map<string, string> = new Map();
 	calendarWidgets: Map<string, CalendarWidget> = new Map();
 	private log: Logger = new Logger();
+	ribbonViewIconsByStreamId: Map<string, HTMLElement> = new Map();
 
 	async onload() {
 		this.log.info('Loading Streams plugin...');
@@ -85,7 +86,7 @@ export default class StreamsPlugin extends Plugin {
 		// Register CreateFileView
 		this.registerView(
 			CREATE_FILE_VIEW_TYPE,
-			(leaf) => new CreateFileView(leaf, this.app, "", { id: "", name: "", folder: "", icon: "calendar", showInRibbon: false, addCommand: false }, new Date())
+			(leaf) => new CreateFileView(leaf, this.app, "", { id: "", name: "", folder: "", icon: "calendar", showInRibbon: false, showViewInRibbon: false, addCommand: false, addViewCommand: false }, new Date())
 		);
 		
 		// Register StreamViewWidget
@@ -114,7 +115,9 @@ export default class StreamsPlugin extends Plugin {
 				folder: "",
 				icon: "file-text",
 				showInRibbon: false,
-				addCommand: false
+				showViewInRibbon: false,
+				addCommand: false,
+				addViewCommand: false
 			};
 		}
 		
@@ -130,13 +133,19 @@ export default class StreamsPlugin extends Plugin {
 			.filter(stream => stream.showInRibbon)
 			.forEach(stream => this.addRibbonIconForStream(stream));
 
+		// Initialize view ribbon icons
+		this.settings.streams
+			.filter(stream => stream.showViewInRibbon)
+			.forEach(stream => this.addViewRibbonIconForStream(stream));
+
 		// Initialize commands for streams that have it enabled
 		this.settings.streams
 			.filter(stream => stream.addCommand)
 			.forEach(stream => this.addStreamCommand(stream));
 			
-		// Initialize view commands for all streams
+		// Initialize view commands for streams that have it enabled
 		this.settings.streams
+			.filter(stream => stream.addViewCommand)
 			.forEach(stream => this.addStreamViewCommand(stream));
 	}
 	
@@ -392,6 +401,10 @@ export default class StreamsPlugin extends Plugin {
 		this.ribbonIconsByStreamId.forEach(icon => icon.remove());
 		this.ribbonIconsByStreamId.clear();
 
+		// Clean up view ribbon icons
+		this.ribbonViewIconsByStreamId.forEach(icon => icon.remove());
+		this.ribbonViewIconsByStreamId.clear();
+
 		this.commandsByStreamId.clear();
 		this.viewCommandsByStreamId.clear();
 	}
@@ -446,15 +459,28 @@ export default class StreamsPlugin extends Plugin {
 		}
 	}
 
+	public toggleViewRibbonIcon(stream: Stream) {
+		if (stream.showViewInRibbon) {
+			this.addViewRibbonIconForStream(stream);
+		} else {
+			this.removeViewRibbonIconForStream(stream.id);
+		}
+	}
+
 	public toggleStreamCommand(stream: Stream) {
 		if (stream.addCommand) {
 			this.addStreamCommand(stream);
 		} else {
 			this.removeStreamCommand(stream.id);
 		}
-		
-		// Always refresh the view command
-		this.addStreamViewCommand(stream);
+	}
+
+	public toggleStreamViewCommand(stream: Stream) {
+		if (stream.addViewCommand) {
+			this.addStreamViewCommand(stream);
+		} else {
+			this.removeStreamViewCommand(stream.id);
+		}
 	}
 
 	private addStreamCommand(stream: Stream) {
@@ -612,6 +638,40 @@ export default class StreamsPlugin extends Plugin {
 			// Remove command from Obsidian
 			this.removeCommand(commandId);
 			this.viewCommandsByStreamId.delete(streamId);
+		}
+	}
+
+	// Methods for handling view ribbon icons
+	public addViewRibbonIconForStream(stream: Stream) {
+		// Remove existing icon if any
+		const existingIcon = this.ribbonViewIconsByStreamId.get(stream.id);
+		if (existingIcon) {
+			existingIcon.remove();
+			this.ribbonViewIconsByStreamId.delete(stream.id);
+		}
+
+		// Create new icon with unique tooltip
+		const ribbonIcon = this.addRibbonIcon(
+			stream.icon,
+			`${stream.name}: View Full Stream`,
+			async () => {
+				const command = new OpenStreamViewCommand(this.app, stream);
+				await command.execute();
+			}
+		);
+
+		// Store reference with stream ID
+		this.ribbonViewIconsByStreamId.set(stream.id, ribbonIcon);
+		
+		this.log.debug(`Added view icon for stream ${stream.id}`);
+	}
+
+	public removeViewRibbonIconForStream(streamId: string) {
+		const icon = this.ribbonViewIconsByStreamId.get(streamId);
+		if (icon) {
+			icon.remove();
+			this.ribbonViewIconsByStreamId.delete(streamId);
+			this.log.debug(`Removed view icon for stream ${streamId}`);
 		}
 	}
 }
