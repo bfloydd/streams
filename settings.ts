@@ -168,7 +168,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         const iconSetting = new Setting(card);
         iconSetting
             .setName('Icon')
-            .setDesc('Icon used for the Open Today ribbon button')
+            .setDesc('Open Today ribbon button')
             .addDropdown(dropdown => {
                 const iconCategories = {
                     'Files & Documents': ['file-text', 'file', 'files', 'folder', 'book', 'notebook', 'diary'],
@@ -273,7 +273,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         const viewIconSetting = new Setting(card);
         viewIconSetting
             .setName('View Icon')
-            .setDesc('Icon used for the View Full Stream ribbon button')
+            .setDesc('View Full Stream ribbon button')
             .addDropdown(dropdown => {
                 const iconCategories = {
                     'Files & Documents': ['file-text', 'file', 'files', 'folder', 'book', 'notebook', 'diary'],
