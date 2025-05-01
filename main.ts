@@ -76,6 +76,9 @@ export default class StreamsPlugin extends Plugin {
 		// Initialize ribbon icons based on settings
 		this.initializeAllRibbonIcons();
 		
+		// Log the current state of all streams for debugging
+		this.logInitialState();
+		
 		// Add settings tab
 		this.addSettingTab(new StreamsSettingTab(this.app, this));
 		
@@ -85,6 +88,17 @@ export default class StreamsPlugin extends Plugin {
 		this.initializeActiveView();
 		
 		this.log.info('Streams plugin loaded successfully');
+	}
+	
+	/**
+	 * Log the initial state of all streams for debugging
+	 */
+	private logInitialState(): void {
+		console.log("=== INITIAL STREAM RIBBON STATES ===");
+		this.settings.streams.forEach(stream => {
+			console.log(`Stream ${stream.id} (${stream.name}): Today=${stream.showTodayInRibbon}, View=${stream.showFullStreamInRibbon}`);
+		});
+		console.log("===================================");
 	}
 	
 	/**
@@ -170,6 +184,8 @@ export default class StreamsPlugin extends Plugin {
 		
 		// Create Today icon if not already created
 		if (!streamIcons.today) {
+			console.log(`Creating Today icon for stream ${stream.id}, initial visibility: ${stream.showTodayInRibbon}`);
+			
 			streamIcons.today = this.addRibbonIcon(
 				stream.icon,
 				`Today: ${stream.name}`,
@@ -184,12 +200,14 @@ export default class StreamsPlugin extends Plugin {
 			streamIcons.today.setAttribute('data-icon-type', 'today');
 			streamIcons.today.addClass('stream-today-icon');
 			
-			// Hide by default - will show based on settings
-			streamIcons.today.style.display = 'none';
+			// Set initial visibility based on settings
+			this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
 		}
 		
 		// Create View icon if not already created
 		if (!streamIcons.view) {
+			console.log(`Creating View icon for stream ${stream.id}, initial visibility: ${stream.showFullStreamInRibbon}`);
+			
 			streamIcons.view = this.addRibbonIcon(
 				stream.viewIcon || stream.icon,
 				`View: ${stream.name}`,
@@ -204,8 +222,8 @@ export default class StreamsPlugin extends Plugin {
 			streamIcons.view.setAttribute('data-icon-type', 'view');
 			streamIcons.view.addClass('stream-view-icon');
 			
-			// Hide by default - will show based on settings
-			streamIcons.view.style.display = 'none';
+			// Set initial visibility based on settings
+			this.updateIconVisibility(streamIcons.view, stream.showFullStreamInRibbon);
 		}
 	}
 	
@@ -219,20 +237,54 @@ export default class StreamsPlugin extends Plugin {
 	}
 	
 	/**
+	 * Update an icon's visibility with multiple approaches to ensure it sticks
+	 */
+	private updateIconVisibility(icon: HTMLElement, visible: boolean): void {
+		// Log before state
+		const wasVisible = icon.style.display !== 'none' && !icon.classList.contains('is-hidden');
+		console.log(`Updating icon visibility: was ${wasVisible ? 'visible' : 'hidden'}, will be ${visible ? 'visible' : 'hidden'}`);
+		
+		if (visible) {
+			// Show the icon
+			icon.classList.remove('is-hidden');
+			icon.style.cssText = ''; // Remove any inline styles
+			icon.style.display = 'flex';
+			
+			// Ensure it's in the DOM
+			if (!document.body.contains(icon)) {
+				const ribbon = this.app.workspace.containerEl.querySelector(".side-dock-ribbon");
+				if (ribbon) {
+					ribbon.appendChild(icon);
+				}
+			}
+		} else {
+			// Completely hide the icon
+			icon.style.display = 'none';
+			icon.classList.add('is-hidden');
+		}
+		
+		// Log after state
+		const isNowVisible = icon.style.display !== 'none' && !icon.classList.contains('is-hidden');
+		console.log(`Icon visibility updated: now ${isNowVisible ? 'visible' : 'hidden'}`);
+	}
+	
+	/**
 	 * Update a single stream's icon visibility based on its settings
 	 */
 	private updateStreamIconVisibility(stream: Stream): void {
 		const streamIcons = this.ribbonIconsByStream.get(stream.id);
 		if (!streamIcons) return;
 		
+		console.log(`Updating visibility for stream ${stream.id}: Today=${stream.showTodayInRibbon}, View=${stream.showFullStreamInRibbon}`);
+		
 		// Update Today icon visibility
 		if (streamIcons.today) {
-			streamIcons.today.style.display = stream.showTodayInRibbon ? 'flex' : 'none';
+			this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
 		}
 		
 		// Update View icon visibility
 		if (streamIcons.view) {
-			streamIcons.view.style.display = stream.showFullStreamInRibbon ? 'flex' : 'none';
+			this.updateIconVisibility(streamIcons.view, stream.showFullStreamInRibbon);
 		}
 	}
 	
@@ -240,13 +292,15 @@ export default class StreamsPlugin extends Plugin {
 	 * Update a stream's Today icon
 	 */
 	public updateStreamTodayIcon(stream: Stream): void {
+		console.log(`Toggle Today icon for stream ${stream.id} to ${stream.showTodayInRibbon}`);
+		
 		// Create icons if needed
 		this.createStreamIcons(stream);
 		
 		// Update visibility
 		const streamIcons = this.ribbonIconsByStream.get(stream.id);
 		if (streamIcons?.today) {
-			streamIcons.today.style.display = stream.showTodayInRibbon ? 'flex' : 'none';
+			this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
 		}
 	}
 	
@@ -254,13 +308,15 @@ export default class StreamsPlugin extends Plugin {
 	 * Update a stream's View icon
 	 */
 	public updateStreamViewIcon(stream: Stream): void {
+		console.log(`Toggle View icon for stream ${stream.id} to ${stream.showFullStreamInRibbon}`);
+		
 		// Create icons if needed
 		this.createStreamIcons(stream);
 		
 		// Update visibility
 		const streamIcons = this.ribbonIconsByStream.get(stream.id);
 		if (streamIcons?.view) {
-			streamIcons.view.style.display = stream.showFullStreamInRibbon ? 'flex' : 'none';
+			this.updateIconVisibility(streamIcons.view, stream.showFullStreamInRibbon);
 		}
 	}
 	
@@ -688,9 +744,9 @@ export default class StreamsPlugin extends Plugin {
 		if (!streamIcons) return;
 		
 		if (type === 'today' && streamIcons.today) {
-			streamIcons.today.style.display = enabled ? 'flex' : 'none';
+			this.updateIconVisibility(streamIcons.today, enabled);
 		} else if (type === 'view' && streamIcons.view) {
-			streamIcons.view.style.display = enabled ? 'flex' : 'none';
+			this.updateIconVisibility(streamIcons.view, enabled);
 		}
 	}
 
@@ -732,13 +788,20 @@ export default class StreamsPlugin extends Plugin {
 	}
 
 	/**
-	 * Save settings and optionally refresh UI
+	 * Save settings
 	 */
 	async saveSettings(refreshUI: boolean = false) {
 		console.log("Saving settings...");
 		try {
 			await this.saveData(this.settings);
 			console.log("Settings saved successfully");
+			
+			// Log the currently saved state
+			console.log("=== SAVED STREAM STATES ===");
+			this.settings.streams.forEach(stream => {
+				console.log(`Stream ${stream.id} (${stream.name}): Today=${stream.showTodayInRibbon}, View=${stream.showFullStreamInRibbon}`);
+			});
+			console.log("==========================");
 			
 			// Update visibility based on current settings
 			this.updateAllIconVisibility();
