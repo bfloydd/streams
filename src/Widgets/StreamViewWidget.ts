@@ -27,7 +27,7 @@ export class StreamViewWidget extends ItemView {
     }
 
     getDisplayText(): string {
-        return `${this.stream.name} Stream`;
+        return `Streams: ${this.stream.name}, Full`;
     }
 
     getIcon(): string {

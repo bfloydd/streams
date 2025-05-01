@@ -188,7 +188,7 @@ export default class StreamsPlugin extends Plugin {
 			
 			streamIcons.today = this.addRibbonIcon(
 				stream.icon,
-				`Today: ${stream.name}`,
+				`Streams: ${stream.name}, Today`,
 				() => {
 					const command = new OpenTodayStreamCommand(this.app, stream);
 					command.execute();
@@ -210,7 +210,7 @@ export default class StreamsPlugin extends Plugin {
 			
 			streamIcons.view = this.addRibbonIcon(
 				stream.viewIcon || stream.icon,
-				`View: ${stream.name}`,
+				`Streams: ${stream.name}, Full`,
 				() => {
 					const command = new OpenStreamViewCommand(this.app, stream);
 					command.execute();
@@ -689,7 +689,7 @@ export default class StreamsPlugin extends Plugin {
 		// Add new command
 		const command = this.addCommand({
 			id: commandId,
-			name: `${stream.name}: View Full Stream`,
+			name: `Streams: ${stream.name}, Full`,
 			callback: async () => {
 				const command = new OpenStreamViewCommand(this.app, stream);
 				await command.execute();
@@ -846,7 +846,7 @@ export default class StreamsPlugin extends Plugin {
 		// Add new command
 		const command = this.addCommand({
 			id: commandId,
-			name: `${stream.name}: Open Today`,
+			name: `Streams: ${stream.name}, Today`,
 			callback: async () => {
 				const command = new OpenTodayStreamCommand(this.app, stream);
 				await command.execute();

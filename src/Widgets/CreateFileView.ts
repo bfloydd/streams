@@ -48,9 +48,9 @@ export class CreateFileView extends ItemView {
                         year: 'numeric'
                     });
                     
-                    // Return a title like "Work Notes: Apr 27, 2025"
+                    // Return a title like "Streams: Work Notes, Today - Apr 27, 2025"
                     if (this.stream && this.stream.name) {
-                        return `${this.stream.name}: ${dateString}`;
+                        return `Streams: ${this.stream.name}, Today - ${dateString}`;
                     }
                     
                     return dateString;
