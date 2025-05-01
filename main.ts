@@ -56,7 +56,8 @@ const DEFAULT_SETTINGS: StreamsSettings = {
 
 export default class StreamsPlugin extends Plugin {
 	settings: StreamsSettings;
-	customIconContainer: HTMLElement | null = null; // Custom container for our icons
+	// Store icons by stream ID and type
+	private ribbonIconsByStream: Map<string, {today?: HTMLElement, view?: HTMLElement}> = new Map();
 	commandsByStreamId: Map<string, string> = new Map();
 	viewCommandsByStreamId: Map<string, string> = new Map();
 	calendarWidgets: Map<string, CalendarWidget> = new Map();
@@ -69,14 +70,11 @@ export default class StreamsPlugin extends Plugin {
 		await this.loadSettings();
 		this.loadStyles();
 		
-		// Remove any existing ribbon icons using the previous approach
-		this.cleanupLegacyRibbonIcons();
-		
 		// Register plugin components
 		this.registerPluginViews();
 		
-		// Initialize our custom icon system
-		this.initializeCustomIconSystem();
+		// Initialize ribbon icons based on settings
+		this.initializeAllRibbonIcons();
 		
 		// Add settings tab
 		this.addSettingTab(new StreamsSettingTab(this.app, this));
@@ -85,9 +83,6 @@ export default class StreamsPlugin extends Plugin {
 		this.registerEventHandlers();
 		this.initializeMobileIntegration();
 		this.initializeActiveView();
-		
-		// Create a MutationObserver to watch for changes to the ribbon
-		this.watchForRibbonChanges();
 		
 		this.log.info('Streams plugin loaded successfully');
 	}
@@ -149,217 +144,136 @@ export default class StreamsPlugin extends Plugin {
 	}
 	
 	/**
-	 * Clean up old ribbon icons
+	 * Initialize all icons for all streams
+	 * Creates the icons in hidden state, then shows if enabled
 	 */
-	private cleanupLegacyRibbonIcons(): void {
-		const ribbonEl = this.app.workspace.containerEl.querySelector(".side-dock-ribbon");
-		if (ribbonEl) {
-			// Look for any icon with our patterns
-			const allRibbonIcons = ribbonEl.querySelectorAll(".side-dock-ribbon-action");
-			allRibbonIcons.forEach(icon => {
-				const iconEl = icon as HTMLElement;
-				const tooltip = iconEl.getAttribute("aria-label") || "";
-				
-				// Check tooltip text for our patterns (both today and view patterns)
-				if (tooltip.includes("Today:") || tooltip.includes("View:")) {
-					try { iconEl.remove(); } catch(e) { }
+	private initializeAllRibbonIcons(): void {
+		// First, make sure all streams have their icons created (even if hidden)
+		this.settings.streams.forEach(stream => {
+			this.createStreamIcons(stream);
+		});
+		
+		// Then update visibility based on settings
+		this.updateAllIconVisibility();
+	}
+	
+	/**
+	 * Create ribbon icons for a stream (but don't show them yet)
+	 */
+	private createStreamIcons(stream: Stream): void {
+		// Get or create entry for this stream
+		let streamIcons = this.ribbonIconsByStream.get(stream.id);
+		if (!streamIcons) {
+			streamIcons = {};
+			this.ribbonIconsByStream.set(stream.id, streamIcons);
+		}
+		
+		// Create Today icon if not already created
+		if (!streamIcons.today) {
+			streamIcons.today = this.addRibbonIcon(
+				stream.icon,
+				`Today: ${stream.name}`,
+				() => {
+					const command = new OpenTodayStreamCommand(this.app, stream);
+					command.execute();
 				}
-			});
-		}
-	}
-	
-	/**
-	 * Initialize our custom icon system
-	 */
-	private initializeCustomIconSystem(): void {
-		// Find or create our container
-		this.createCustomIconContainer();
-		
-		// Render icons based on current settings
-		this.renderCustomIcons();
-		
-		// Watch for ribbon changes to ensure our container stays in place
-		this.registerInterval(window.setInterval(() => {
-			if (!document.body.contains(this.customIconContainer)) {
-				this.createCustomIconContainer();
-				this.renderCustomIcons();
-			}
-		}, 1000));
-	}
-	
-	/**
-	 * Create a container for our custom icons
-	 */
-	private createCustomIconContainer(): void {
-		// Remove existing container if any
-		if (this.customIconContainer) {
-			this.customIconContainer.remove();
-		}
-		
-		// Find the ribbon container
-		const ribbonEl = this.app.workspace.containerEl.querySelector(".side-dock-ribbon");
-		if (!ribbonEl) return;
-		
-		// Create our custom container
-		this.customIconContainer = document.createElement('div');
-		this.customIconContainer.addClass('streams-custom-icon-container');
-		this.customIconContainer.setAttribute('data-streams-icon-container', 'true');
-		
-		// Insert it into the ribbon (safer approach)
-		try {
-			// First try to find direct children of the ribbon
-			const allDirectChildren = Array.from(ribbonEl.children);
-			const firstRibbonIcon = allDirectChildren.find(child => 
-				child.hasClass('side-dock-ribbon-action')
 			);
 			
-			if (firstRibbonIcon && ribbonEl.contains(firstRibbonIcon)) {
-				ribbonEl.insertBefore(this.customIconContainer, firstRibbonIcon);
-			} else {
-				// Fallback to appending at the top
-				const firstChild = ribbonEl.firstChild;
-				if (firstChild) {
-					ribbonEl.insertBefore(this.customIconContainer, firstChild);
-				} else {
-					// Last resort: append to the ribbon
-					ribbonEl.appendChild(this.customIconContainer);
-				}
-			}
-		} catch (error) {
-			console.error("Error inserting custom icon container:", error);
-			// Final fallback: just append
-			try {
-				ribbonEl.appendChild(this.customIconContainer);
-			} catch (e) {
-				console.error("Failed to add custom icon container:", e);
-			}
-		}
-	}
-	
-	/**
-	 * Watch for changes to the ribbon
-	 */
-	private watchForRibbonChanges(): void {
-		const observer = new MutationObserver((mutations) => {
-			// If our container was removed, re-add it
-			if (!document.body.contains(this.customIconContainer)) {
-				this.createCustomIconContainer();
-				this.renderCustomIcons();
-			}
-		});
-		
-		// Watch the ribbon for changes
-		const ribbonEl = this.app.workspace.containerEl.querySelector(".side-dock-ribbon");
-		if (ribbonEl) {
-			observer.observe(ribbonEl, { 
-				childList: true,
-				subtree: true
-			});
-		}
-	}
-	
-	/**
-	 * Render all custom icons based on current settings
-	 */
-	private renderCustomIcons(): void {
-		// Make sure we have a container
-		if (!this.customIconContainer) return;
-		
-		// Clear existing icons
-		this.customIconContainer.empty();
-		
-		// Add icons based on settings
-		this.settings.streams.forEach(stream => {
-			// Add Today icon if enabled
-			if (stream.showTodayInRibbon) {
-				this.addCustomTodayIcon(stream);
-			}
+			// Add attributes and styling
+			streamIcons.today.setAttribute('data-stream-id', stream.id);
+			streamIcons.today.setAttribute('data-icon-type', 'today');
+			streamIcons.today.addClass('stream-today-icon');
 			
-			// Add View icon if enabled
-			if (stream.showFullStreamInRibbon) {
-				this.addCustomViewIcon(stream);
-			}
+			// Hide by default - will show based on settings
+			streamIcons.today.style.display = 'none';
+		}
+		
+		// Create View icon if not already created
+		if (!streamIcons.view) {
+			streamIcons.view = this.addRibbonIcon(
+				stream.viewIcon || stream.icon,
+				`View: ${stream.name}`,
+				() => {
+					const command = new OpenStreamViewCommand(this.app, stream);
+					command.execute();
+				}
+			);
+			
+			// Add attributes and styling
+			streamIcons.view.setAttribute('data-stream-id', stream.id);
+			streamIcons.view.setAttribute('data-icon-type', 'view');
+			streamIcons.view.addClass('stream-view-icon');
+			
+			// Hide by default - will show based on settings
+			streamIcons.view.style.display = 'none';
+		}
+	}
+	
+	/**
+	 * Update visibility of all icons based on current settings
+	 */
+	private updateAllIconVisibility(): void {
+		this.settings.streams.forEach(stream => {
+			this.updateStreamIconVisibility(stream);
 		});
 	}
 	
 	/**
-	 * Add a Today icon to our custom container
+	 * Update a single stream's icon visibility based on its settings
 	 */
-	private addCustomTodayIcon(stream: Stream): void {
-		if (!this.customIconContainer) return;
+	private updateStreamIconVisibility(stream: Stream): void {
+		const streamIcons = this.ribbonIconsByStream.get(stream.id);
+		if (!streamIcons) return;
 		
-		// Create icon element
-		const iconWrapper = document.createElement('div');
-		iconWrapper.addClass('streams-custom-icon');
-		iconWrapper.addClass('streams-today-icon');
-		iconWrapper.setAttribute('data-stream-id', stream.id);
-		iconWrapper.setAttribute('data-icon-type', 'today');
-		iconWrapper.setAttribute('aria-label', `Today: ${stream.name}`);
-		iconWrapper.setAttribute('aria-label-position', 'right');
+		// Update Today icon visibility
+		if (streamIcons.today) {
+			streamIcons.today.style.display = stream.showTodayInRibbon ? 'flex' : 'none';
+		}
 		
-		// Set up icon
-		const iconEl = document.createElement('div');
-		iconEl.addClass('streams-icon-inner');
-		// Set icon using setIcon to use Obsidian's icon system
-		setIcon(iconEl, stream.icon);
-		
-		// Add click handler
-		iconWrapper.addEventListener('click', () => {
-			const command = new OpenTodayStreamCommand(this.app, stream);
-			command.execute();
-		});
-		
-		// Add to container
-		iconWrapper.appendChild(iconEl);
-		this.customIconContainer.appendChild(iconWrapper);
-	}
-	
-	/**
-	 * Add a View icon to our custom container
-	 */
-	private addCustomViewIcon(stream: Stream): void {
-		if (!this.customIconContainer) return;
-		
-		// Create icon element
-		const iconWrapper = document.createElement('div');
-		iconWrapper.addClass('streams-custom-icon');
-		iconWrapper.addClass('streams-view-icon');
-		iconWrapper.setAttribute('data-stream-id', stream.id);
-		iconWrapper.setAttribute('data-icon-type', 'view');
-		iconWrapper.setAttribute('aria-label', `View: ${stream.name}`);
-		iconWrapper.setAttribute('aria-label-position', 'right');
-		
-		// Set up icon
-		const iconEl = document.createElement('div');
-		iconEl.addClass('streams-icon-inner');
-		// Set icon using setIcon to use Obsidian's icon system
-		setIcon(iconEl, stream.viewIcon || stream.icon);
-		
-		// Add click handler
-		iconWrapper.addEventListener('click', () => {
-			const command = new OpenStreamViewCommand(this.app, stream);
-			command.execute();
-		});
-		
-		// Add to container
-		iconWrapper.appendChild(iconEl);
-		this.customIconContainer.appendChild(iconWrapper);
+		// Update View icon visibility
+		if (streamIcons.view) {
+			streamIcons.view.style.display = stream.showFullStreamInRibbon ? 'flex' : 'none';
+		}
 	}
 	
 	/**
 	 * Update a stream's Today icon
 	 */
 	public updateStreamTodayIcon(stream: Stream): void {
-		// Just re-render all icons
-		this.renderCustomIcons();
+		// Create icons if needed
+		this.createStreamIcons(stream);
+		
+		// Update visibility
+		const streamIcons = this.ribbonIconsByStream.get(stream.id);
+		if (streamIcons?.today) {
+			streamIcons.today.style.display = stream.showTodayInRibbon ? 'flex' : 'none';
+		}
 	}
 	
 	/**
 	 * Update a stream's View icon
 	 */
 	public updateStreamViewIcon(stream: Stream): void {
-		// Just re-render all icons
-		this.renderCustomIcons();
+		// Create icons if needed
+		this.createStreamIcons(stream);
+		
+		// Update visibility
+		const streamIcons = this.ribbonIconsByStream.get(stream.id);
+		if (streamIcons?.view) {
+			streamIcons.view.style.display = stream.showFullStreamInRibbon ? 'flex' : 'none';
+		}
+	}
+	
+	/**
+	 * Clean up all icons 
+	 */
+	private removeAllRibbonIcons(): void {
+		// Let Obsidian handle proper cleanup of each icon
+		this.ribbonIconsByStream.forEach((icons) => {
+			if (icons.today) icons.today.detach();
+			if (icons.view) icons.view.detach();
+		});
+		this.ribbonIconsByStream.clear();
 	}
 	
 	onunload() {
@@ -380,14 +294,8 @@ export default class StreamsPlugin extends Plugin {
 		});
 		this.calendarWidgets.clear();
 		
-		// Clean up custom icon container
-		if (this.customIconContainer) {
-			this.customIconContainer.remove();
-			this.customIconContainer = null;
-		}
-		
-		// Clean up legacy icons (just in case)
-		this.cleanupLegacyRibbonIcons();
+		// Clean up ribbon icons
+		this.removeAllRibbonIcons();
 		
 		this.commandsByStreamId.clear();
 		this.viewCommandsByStreamId.clear();
@@ -710,7 +618,7 @@ export default class StreamsPlugin extends Plugin {
 				const widgetId = 'create-file-view-' + stream.id;
 				this.calendarWidgets.set(widgetId, widget);
 			}
-		} catch (error) {
+			} catch (error) {
 			this.log.error('Error setting up calendar widget for create view:', error);
 		}
 	}
@@ -751,59 +659,19 @@ export default class StreamsPlugin extends Plugin {
 
 	/**
 	 * Completely reset and rebuild all ribbon icons based on current settings
-	 * This is a nuclear approach to ensure the UI state matches the settings
 	 */
 	public forceRebuildAllIcons(): void {
 		console.log("=== FORCE REBUILDING ALL RIBBON ICONS ===");
 		
-		// First completely remove all existing icons
-		this.forceRemoveAllRibbonIcons();
-		
-		// Now add back only the icons that should be enabled
+		// First, ensure all icons are created
 		this.settings.streams.forEach(stream => {
-			console.log(`Checking stream ${stream.id}: Today=${stream.showTodayInRibbon}, View=${stream.showFullStreamInRibbon}`);
-			
-			// Add Today icon if enabled in settings
-			if (stream.showTodayInRibbon) {
-				console.log(`Adding Today icon for ${stream.id}`);
-				this.addCustomTodayIcon(stream);
-			}
-			
-			// Add View icon if enabled in settings
-			if (stream.showFullStreamInRibbon) {
-				console.log(`Adding View icon for ${stream.id}`);
-				this.addCustomViewIcon(stream);
-			}
+			this.createStreamIcons(stream);
 		});
+		
+		// Then update their visibility
+		this.updateAllIconVisibility();
 		
 		console.log("=== FORCE REBUILD COMPLETE ===");
-	}
-
-	/**
-	 * Aggressively remove ALL ribbon icons related to streams
-	 */
-	public forceRemoveAllRibbonIcons(): void {
-		console.log("Forcefully removing ALL ribbon icons");
-		
-		// Remove all stream icons by selecting them directly from the DOM
-		document.querySelectorAll('[data-stream-id]').forEach(icon => {
-			try { icon.remove(); } catch(e) { /* ignore */ }
-		});
-		
-		// Also try to remove by class
-		document.querySelectorAll('.streams-custom-icon').forEach(icon => {
-			try { icon.remove(); } catch(e) { /* ignore */ }
-		});
-		
-		// Also try to find by specific IDs
-		document.querySelectorAll('.side-dock-ribbon-action').forEach(icon => {
-			const iconEl = icon as HTMLElement;
-			if (iconEl.id && (iconEl.id.startsWith('stream-today-') || iconEl.id.startsWith('stream-view-'))) {
-				try { iconEl.remove(); } catch(e) { /* ignore */ }
-			}
-		});
-		
-		console.log("Force removal complete");
 	}
 
 	/**
@@ -812,115 +680,17 @@ export default class StreamsPlugin extends Plugin {
 	public directlyToggleSpecificRibbonIcon(type: 'today' | 'view', stream: Stream, enabled: boolean): void {
 		console.log(`Directly toggling ${type} icon for ${stream.id} to ${enabled}`);
 		
-		// Step 1: Perform targeted removal first
-		if (type === 'today') {
-			// Find and remove by ID
-			const iconById = document.getElementById(`stream-today-${stream.id}`);
-			if (iconById) {
-				try { iconById.remove(); } catch(e) { /* ignore */ }
-			}
-			
-			// Find and remove by query selector
-			document.querySelectorAll(`[data-stream-id="${stream.id}"][data-icon-type="today"]`).forEach(icon => {
-				try { icon.remove(); } catch(e) { /* ignore */ }
-			});
-		} else {
-			// Find and remove by ID
-			const iconById = document.getElementById(`stream-view-${stream.id}`);
-			if (iconById) {
-				try { iconById.remove(); } catch(e) { /* ignore */ }
-			}
-			
-			// Find and remove by query selector
-			document.querySelectorAll(`[data-stream-id="${stream.id}"][data-icon-type="view"]`).forEach(icon => {
-				try { icon.remove(); } catch(e) { /* ignore */ }
-			});
-		}
+		// Create icons if needed
+		this.createStreamIcons(stream);
 		
-		// Step 2: Add icon if enabled
-		if (enabled) {
-			if (type === 'today') {
-				this.addCustomTodayIcon(stream);
-			} else {
-				this.addCustomViewIcon(stream);
-			}
-		}
+		// Update visibility
+		const streamIcons = this.ribbonIconsByStream.get(stream.id);
+		if (!streamIcons) return;
 		
-		// Step 3: Force a complete rebuild to ensure consistency
-		setTimeout(() => {
-			this.forceRebuildAllIcons();
-		}, 50);
-	}
-
-	/**
-	 * Verify that the ribbon state matches the settings and fix if not
-	 */
-	private verifyRibbonStateMatchesSettings(): void {
-		// Create sets of stream IDs that should have icons
-		const shouldHaveTodayIcon = new Set<string>();
-		const shouldHaveViewIcon = new Set<string>();
-		
-		// Determine which streams should have icons based on settings
-		this.settings.streams.forEach(stream => {
-			if (stream.showTodayInRibbon) {
-				shouldHaveTodayIcon.add(stream.id);
-			}
-			if (stream.showFullStreamInRibbon) {
-				shouldHaveViewIcon.add(stream.id);
-			}
-		});
-		
-		// Check existing today icons
-		let needsRebuild = false;
-		
-		// Check all ribbon icons in the DOM
-		document.querySelectorAll('.side-dock-ribbon-action').forEach(icon => {
-			const iconEl = icon as HTMLElement;
-			
-			// Check for today icons
-			if (iconEl.id && iconEl.id.startsWith('stream-today-')) {
-				const streamId = iconEl.id.replace('stream-today-', '');
-				if (!shouldHaveTodayIcon.has(streamId)) {
-					console.log(`Found unauthorized Today icon for stream ${streamId}, removing`);
-					try { iconEl.remove(); } catch(e) { /* ignore */ }
-					needsRebuild = true;
-				}
-			}
-			
-			// Check for view icons
-			if (iconEl.id && iconEl.id.startsWith('stream-view-')) {
-				const streamId = iconEl.id.replace('stream-view-', '');
-				if (!shouldHaveViewIcon.has(streamId)) {
-					console.log(`Found unauthorized View icon for stream ${streamId}, removing`);
-					try { iconEl.remove(); } catch(e) { /* ignore */ }
-					needsRebuild = true;
-				}
-			}
-		});
-		
-		// Check if any icons are missing that should be there
-		this.settings.streams.forEach(stream => {
-			if (stream.showTodayInRibbon) {
-				const iconEl = document.getElementById(`stream-today-${stream.id}`);
-				if (!iconEl) {
-					console.log(`Missing Today icon for stream ${stream.id}, will rebuild`);
-					needsRebuild = true;
-				}
-			}
-			
-			if (stream.showFullStreamInRibbon) {
-				const iconEl = document.getElementById(`stream-view-${stream.id}`);
-				if (!iconEl) {
-					console.log(`Missing View icon for stream ${stream.id}, will rebuild`);
-					needsRebuild = true;
-				}
-			}
-		});
-		
-		// If there's any inconsistency, force a complete rebuild
-		if (needsRebuild) {
-			console.log("Inconsistency detected between settings and ribbon state, forcing rebuild");
-			this.forceRebuildAllIcons();
+		if (type === 'today' && streamIcons.today) {
+			streamIcons.today.style.display = enabled ? 'flex' : 'none';
+		} else if (type === 'view' && streamIcons.view) {
+			streamIcons.view.style.display = enabled ? 'flex' : 'none';
 		}
 	}
 
@@ -960,19 +730,18 @@ export default class StreamsPlugin extends Plugin {
 			}
 		});
 	}
-	
+
 	/**
 	 * Save settings and optionally refresh UI
 	 */
 	async saveSettings(refreshUI: boolean = false) {
-		// First save the data
 		console.log("Saving settings...");
 		try {
 			await this.saveData(this.settings);
 			console.log("Settings saved successfully");
 			
-			// Always re-render our custom icons when settings change
-			this.renderCustomIcons();
+			// Update visibility based on current settings
+			this.updateAllIconVisibility();
 		} catch (error) {
 			console.error("Error saving settings:", error);
 		}
@@ -1004,7 +773,7 @@ export default class StreamsPlugin extends Plugin {
 		
 		this.log.debug(`Toggled View Full Stream command for stream ${stream.id} to ${stream.addViewCommand}`);
 	}
-	
+
 	private addStreamCommand(stream: Stream) {
 		const commandId = `streams-plugin:open-${stream.id}`;
 		
@@ -1024,7 +793,7 @@ export default class StreamsPlugin extends Plugin {
 		// Store command ID for later removal
 		this.commandsByStreamId.set(stream.id, commandId);
 	}
-	
+
 	/**
 	 * Remove the "Open Today" command
 	 */
