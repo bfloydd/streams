@@ -6,7 +6,7 @@ export type LucideIcon =
     // Time & Planning
     | 'alarm-check' | 'calendar' | 'clock' | 'timer' | 'history'
     // UI Elements
-    | 'home' | 'settings' | 'search' | 'bookmark' | 'star' | 'heart'
+    | 'home' | 'settings' | 'search' | 'bookmark' | 'star' | 'heart' | 'layout-dashboard'
     // Content
     | 'text' | 'edit' | 'pencil' | 'pen' | 'list' | 'check-square'
     // Media
@@ -21,8 +21,9 @@ export interface Stream {
     name: string;
     folder: string;
     icon: LucideIcon;
-    showInRibbon: boolean;
-    showViewInRibbon: boolean;
+    viewIcon: LucideIcon;
+    showTodayInRibbon: boolean;
+    showFullStreamInRibbon: boolean;
     addCommand: boolean;
     addViewCommand: boolean;
 }

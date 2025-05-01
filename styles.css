@@ -447,27 +447,21 @@ If your plugin does not need CSS, delete this file.
     overflow-x: auto;
 }
 
-.stream-view-load-more {
-    display: flex;
-    justify-content: center;
-    padding: 32px 0;
+/* Replace the load more button styles with a hidden scroll trigger */
+.stream-view-scroll-trigger {
+    height: 50px;
+    width: 100%;
+    opacity: 0;
+    margin: 20px 0 100px 0; /* Extra margin at the bottom for comfortable scrolling */
 }
 
-.stream-view-load-more-button {
-    padding: 8px 16px;
-    background-color: var(--interactive-normal);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.stream-view-load-more-button:hover {
-    background-color: var(--interactive-hover);
-}
-
-.stream-view-no-more {
+.stream-view-end-marker {
+    margin-top: 20px;
+    margin-bottom: 100px;
+    text-align: center;
     color: var(--text-muted);
-    cursor: default;
+    font-size: 0;
+    opacity: 0;
 }
 
 .stream-view-empty {
@@ -549,4 +543,261 @@ If your plugin does not need CSS, delete this file.
 
 .is-phone .stream-view-date-header h3 {
     font-size: 1.3em;
+}
+
+/* Remove border from connected settings */
+.setting-item.no-border-top {
+    border-top: none !important;
+    margin-top: -10px;
+}
+
+/* Specific isolation for stream toggle components to prevent visual interference */
+.stream-card .setting-item[data-stream-toggle-type] {
+    position: relative;
+    z-index: 1;
+    overflow: visible;
+}
+
+.stream-card .setting-item[data-stream-toggle-type="today"] {
+    z-index: 10;
+}
+
+.stream-card .setting-item[data-stream-toggle-type="view"] {
+    z-index: 9;
+}
+
+/* Ensure toggles are completely isolated from each other */
+.stream-card .setting-item[data-stream-toggle-type] .checkbox-container {
+    isolation: isolate;
+}
+
+/* Force-fix visual glitches in toggle state */
+.stream-card .setting-item[data-stream-toggle-type] .checkbox-container.is-enabled {
+    background-color: var(--interactive-accent) !important;
+}
+
+.stream-card .setting-item[data-stream-toggle-type] .checkbox-container:not(.is-enabled) {
+    background-color: var(--background-modifier-border) !important;
+}
+
+/* Add a small invisible barrier between toggles */
+.stream-card .setting-item[data-stream-toggle-type]::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+}
+
+/* Custom toggle button styles */
+.custom-toggle-button {
+    display: inline-block;
+    width: 40px;
+    height: 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 22px;
+    transition: all 0.3s ease;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.custom-toggle-button.is-enabled {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-accent);
+}
+
+.custom-toggle-button.is-disabled {
+    background-color: var(--background-modifier-border);
+    color: var(--text-muted);
+}
+
+/* Make sure the toggle containers look like regular setting items */
+.custom-toggle-container {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-top: 1px solid var(--background-modifier-border);
+}
+
+.custom-toggle-container:first-child {
+    border-top: none;
+}
+
+.setting-item-info {
+    flex: 1;
+}
+
+.setting-item-control {
+    display: flex;
+    align-items: center;
+}
+
+/* === ISOLATED TOGGLE CONTROLS === */
+/* Completely redesigned with absolute separation */
+
+.ribbon-toggle-section {
+    margin: 20px 0;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: var(--background-secondary-alt);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    isolation: isolate;
+}
+
+.today-toggle-section {
+    z-index: 10;
+    border-left: 4px solid var(--text-accent);
+}
+
+.view-toggle-section {
+    z-index: 5;
+    border-left: 4px solid var(--text-success);
+}
+
+.toggle-section-heading {
+    margin: 0 0 10px 0;
+    padding: 0 0 5px 0;
+    border-bottom: 1px solid var(--background-modifier-border);
+    font-size: 1em;
+    color: var(--text-normal);
+}
+
+.toggle-state-indicator {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.85em;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.toggle-state-indicator.is-enabled {
+    background-color: var(--interactive-success);
+    color: var(--text-on-accent);
+}
+
+.toggle-state-indicator.is-disabled {
+    background-color: var(--background-modifier-border);
+    color: var(--text-muted);
+}
+
+.toggle-button-container {
+    display: flex;
+    gap: 10px;
+}
+
+.toggle-action-button {
+    flex: 1;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid var(--background-modifier-border);
+    background-color: var(--background-secondary);
+}
+
+.toggle-action-button:hover {
+    filter: brightness(1.1);
+}
+
+.toggle-action-button.enable-button.is-active {
+    background-color: var(--interactive-success);
+    color: var(--text-on-accent);
+    border-color: var(--interactive-success);
+}
+
+.toggle-action-button.disable-button.is-active {
+    background-color: var(--text-faint);
+    color: var(--text-on-accent);
+    border-color: var(--text-faint);
+}
+
+.settings-separator {
+    margin: 20px 0;
+    border: none;
+    height: 1px;
+    background-color: var(--background-modifier-border);
+}
+
+/* Force icons to be distinct */
+.side-dock-ribbon-action[data-icon-type="today"] {
+    border-left: 2px solid var(--text-accent);
+}
+
+.side-dock-ribbon-action[data-icon-type="view"] {
+    border-left: 2px solid var(--text-success);
+}
+
+/* Custom Icon Container Styles */
+.streams-custom-icon-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 8px 0;
+    padding-left: 4px;
+}
+
+.streams-custom-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--icon-color);
+    background-color: transparent;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.streams-custom-icon:hover {
+    color: var(--text-accent);
+    background-color: var(--background-modifier-hover);
+}
+
+.streams-custom-icon:active {
+    background-color: var(--background-modifier-active);
+}
+
+.streams-icon-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+/* Keep individual icon borders */
+.streams-today-icon {
+    border-left: 2px solid var(--text-accent);
+}
+
+.streams-view-icon {
+    border-left: 2px solid var(--text-success);
+}
+
+/* Show tooltips on hover */
+.streams-custom-icon:hover::after {
+    content: attr(aria-label);
+    position: absolute;
+    right: 40px;
+    background-color: var(--background-secondary);
+    color: var(--text-normal);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }

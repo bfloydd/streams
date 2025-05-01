@@ -13,6 +13,7 @@ export class StreamViewWidget extends ItemView {
     private loadMoreTrigger: HTMLElement;
     private loadMoreButton: HTMLButtonElement;
     private noMoreContent: boolean = false;
+    private observer: IntersectionObserver | null = null;
 
     constructor(leaf: WorkspaceLeaf, app: App, stream: Stream) {
         super(leaf);
@@ -30,7 +31,7 @@ export class StreamViewWidget extends ItemView {
     }
 
     getIcon(): string {
-        return this.stream.icon;
+        return this.stream.viewIcon || this.stream.icon;
     }
 
     async onOpen(): Promise<void> {
@@ -49,33 +50,45 @@ export class StreamViewWidget extends ItemView {
         // Load initial content (today)
         await this.loadInitialContent();
         
-        // Create load more trigger
-        this.loadMoreTrigger = container.createDiv('stream-view-load-more');
-        this.loadMoreButton = this.loadMoreTrigger.createEl('button', { 
-            text: 'Load more', 
-            cls: 'stream-view-load-more-button' 
-        });
+        // Create invisible scroll trigger for infinite scroll
+        this.loadMoreTrigger = container.createDiv('stream-view-scroll-trigger');
         
-        this.loadMoreButton.addEventListener('click', async () => {
-            if (!this.isLoading && !this.noMoreContent) {
-                await this.loadMoreContent();
-            }
-        });
-
         // Set up intersection observer for infinite scroll
         this.setupInfiniteScroll();
     }
 
     private setupInfiniteScroll() {
-        const observer = new IntersectionObserver((entries) => {
+        // Clean up any previous observer
+        if (this.observer) {
+            this.observer.disconnect();
+        }
+        
+        // Create a new observer with very low threshold to detect earlier
+        this.observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting && !this.isLoading && !this.noMoreContent) {
                     this.loadMoreContent();
                 }
             });
-        }, { threshold: 0.5 });
+        }, { 
+            threshold: 0.01, // Very sensitive - 1% visibility triggers loading
+            rootMargin: '200px 0px' // Load when within 200px of viewport
+        });
 
-        observer.observe(this.loadMoreTrigger);
+        this.observer.observe(this.loadMoreTrigger);
+        
+        // Also add scroll event as backup
+        this.registerDomEvent(window, 'scroll', () => {
+            if (this.isLoading || this.noMoreContent) return;
+            
+            const rect = this.loadMoreTrigger.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+            
+            // If the trigger is within 300px of the viewport, load more
+            if (rect.top < windowHeight + 300) {
+                this.loadMoreContent();
+            }
+        });
     }
 
     async loadInitialContent(): Promise<void> {
@@ -140,7 +153,6 @@ export class StreamViewWidget extends ItemView {
         if (this.isLoading || this.noMoreContent) return;
         
         this.isLoading = true;
-        this.loadMoreButton.textContent = 'Loading...';
         
         try {
             // Get the last date we loaded
@@ -166,17 +178,18 @@ export class StreamViewWidget extends ItemView {
                     this.renderDateContent(fileInfo.date, content);
                     this.olderDates.push(fileInfo.date);
                 }
-                
-                this.loadMoreButton.textContent = 'Load more';
             } else {
                 // No more files to load
                 this.noMoreContent = true;
-                this.loadMoreButton.textContent = 'No more content';
-                this.loadMoreTrigger.classList.add('stream-view-no-more');
+                
+                // Add an invisible element to indicate no more content
+                const endMarker = this.streamContentEl.createDiv('stream-view-end-marker');
+                endMarker.textContent = 'End of stream';
+                endMarker.style.opacity = '0';
+                endMarker.style.height = '1px';
             }
         } catch (error) {
             console.error('Error loading more content:', error);
-            this.loadMoreButton.textContent = 'Error loading content';
         }
         
         this.isLoading = false;
@@ -359,10 +372,22 @@ export class StreamViewWidget extends ItemView {
             if (plugin && plugin.settings && plugin.settings.streams) {
                 const newStream = plugin.settings.streams.find((s: Stream) => s.id === state.streamId);
                 if (newStream) {
+                    // Ensure backward compatibility with older stream objects
+                    if (!newStream.viewIcon) {
+                        newStream.viewIcon = newStream.icon;
+                    }
                     this.stream = newStream;
                     await this.onOpen();
                 }
             }
+        }
+    }
+
+    async onClose() {
+        // Clean up observers
+        if (this.observer) {
+            this.observer.disconnect();
+            this.observer = null;
         }
     }
 } 
