@@ -131,16 +131,7 @@ export class StreamViewWidget extends ItemView {
                 f.date.getDate() === today.getDate()
             );
             
-            if (!hasTodayFile) {
-                const createTodayButton = this.streamContentEl.createEl('button', {
-                    text: 'Create Today\'s Note',
-                    cls: 'stream-view-create-today-button'
-                });
-                
-                createTodayButton.addEventListener('click', () => {
-                    this.createTodayFile();
-                });
-            }
+            // Removed "Create Today's Note" button section
         } catch (error) {
             console.error('Error loading initial content:', error);
             this.renderEmptyState();
@@ -313,15 +304,7 @@ export class StreamViewWidget extends ItemView {
         const emptyState = this.streamContentEl.createDiv('stream-view-empty');
         emptyState.createEl('p', { text: 'No content found for this stream.' });
         
-        // Add button to create today's note
-        const createButton = emptyState.createEl('button', {
-            text: 'Create Today\'s Note',
-            cls: 'stream-view-create-button'
-        });
-        
-        createButton.addEventListener('click', () => {
-            this.createTodayFile();
-        });
+        // Removed "Create Today's Note" button
     }
 
     async openDateFile(date: Date): Promise<void> {
@@ -339,23 +322,9 @@ export class StreamViewWidget extends ItemView {
         }
     }
 
+    // Keep the method for backward compatibility but make it do nothing
     async createTodayFile(): Promise<void> {
-        // Format today's date
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
-        const fileName = `${year}-${month}-${day}.md`;
-        const streamPath = `${this.stream.folder}/${fileName}`;
-
-        // Create file if it doesn't exist
-        const file = this.app.vault.getAbstractFileByPath(streamPath);
-        if (!file) {
-            await this.app.vault.create(streamPath, '');
-            await this.app.workspace.openLinkText(streamPath, '', false);
-        } else if (file instanceof TFile) {
-            await this.app.workspace.openLinkText(streamPath, '', false);
-        }
+        // Method intentionally left empty as the "Create Today's Note" functionality has been removed
     }
 
     getState(): any {
