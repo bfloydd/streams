@@ -16,7 +16,6 @@ export class StreamsSettingTab extends PluginSettingTab {
 
         containerEl.createEl('h2', { text: 'Streams Settings' });
 
-        // Add new stream button
         new Setting(containerEl)
             .setName('Add Stream')
             .setDesc('Create a new note stream')
@@ -40,11 +39,10 @@ export class StreamsSettingTab extends PluginSettingTab {
                         viewBorderColor: 'var(--text-success)'
                     };
                     this.plugin.settings.streams.push(newStream);
-                    await this.plugin.saveSettings(true); // Force UI refresh
+                    await this.plugin.saveSettings(true);
                     this.display();
                 }));
 
-        // Stream cards
         const streamsContainer = containerEl.createDiv('streams-container');
         streamsContainer.addClass('streams-grid');
 
@@ -61,24 +59,20 @@ export class StreamsSettingTab extends PluginSettingTab {
     }
 
     private addStreamSettings(card: HTMLElement, stream: Stream, index: number) {
-        // Stream name setting
         new Setting(card)
             .setName('Name')
             .addText(text => text
                 .setValue(stream.name)
                 .onChange(async (value) => {
-                    // Only update local value without saving settings
                     stream.name = value;
                 })
                 .then(textComponent => {
-                    // Save settings only when focus is lost
                     textComponent.inputEl.addEventListener('blur', async () => {
                         this.plugin.addStreamViewCommand(stream);
                         await this.plugin.saveSettings();
                     });
                 }));
 
-        // Folder setting
         new Setting(card)
             .setName('Folder')
             .addText(text => text
@@ -87,30 +81,20 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     const normalizedPath = value.split(/[/\\]/).filter(Boolean).join('/');
                     
-                    // Just update the local path for validation without saving
-                    // This prevents triggering all the ribbon updates while typing
-                    
-                    // Validate path
                     const pathExists = await this.validateFolderPath(normalizedPath);
                     
-                    // Remove existing validation classes
                     text.inputEl.removeClass('stream-folder-valid');
                     text.inputEl.removeClass('stream-folder-invalid');
                     
-                    // Update input styling based on validation
                     if (value === '') {
-                        // Reset to default styling for empty input
-                        // No class needed
+                        // Empty input, no styling needed
                     } else if (pathExists) {
-                        // Valid path - add valid class
                         text.inputEl.addClass('stream-folder-valid');
                     } else {
-                        // Invalid path - add invalid class
                         text.inputEl.addClass('stream-folder-invalid');
                     }
                 })
                 .then(textComponent => {
-                    // Save settings only when focus is lost
                     textComponent.inputEl.addEventListener('blur', async () => {
                         const value = textComponent.getValue();
                         const normalizedPath = value.split(/[/\\]/).filter(Boolean).join('/');
@@ -119,10 +103,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                     });
                 }));
 
-        // ===== RIBBON SECTION =====
         card.createEl('h4', { text: 'Ribbon Controls', cls: 'setting-header' });
 
-        // Open Today ribbon
         new Setting(card)
             .setName('Open Today in Ribbon')
             .setDesc('Show the "Open Today" button in the sidebar ribbon')
@@ -134,7 +116,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
-        // Today Icon
         new Setting(card)
             .setName('Today Icon')
             .setDesc('Icon for the "Open Today" ribbon button')
@@ -149,7 +130,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                     });
             });
 
-        // Today Border Toggle
         new Setting(card)
             .setName('Show Today Border')
             .setDesc('Display a colored border on the left side of the Today icon')
@@ -161,11 +141,9 @@ export class StreamsSettingTab extends PluginSettingTab {
                     this.plugin.updateStreamTodayIcon(stream);
                     await this.plugin.saveSettings();
                     
-                    // Re-render the settings to show/hide the color option immediately
                     this.display();
                 }));
 
-        // Today Border Color
         if (stream.showTodayBorder) {
             new Setting(card)
                 .setName('Border Color')
@@ -174,11 +152,9 @@ export class StreamsSettingTab extends PluginSettingTab {
                     .setValue(stream.todayBorderColor ?? 'var(--text-accent)')
                     .setPlaceholder('var(--text-accent)')
                     .onChange(async (value) => {
-                        // Only update local value without saving settings
                         stream.todayBorderColor = value;
                     })
                     .then(textComponent => {
-                        // Save settings only when focus is lost
                         textComponent.inputEl.addEventListener('blur', async () => {
                             this.plugin.updateStreamTodayIcon(stream);
                             await this.plugin.saveSettings();
@@ -186,7 +162,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                     }));
         }
 
-        // View Stream ribbon
         new Setting(card)
             .setName('View Full Stream in Ribbon')
             .setDesc('Show the "View Full Stream" button in the sidebar ribbon')
@@ -198,7 +173,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
                 
-        // View Icon
         new Setting(card)
             .setName('View Icon')
             .setDesc('Icon for the "View Full Stream" ribbon button')
@@ -213,7 +187,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                     });
             });
 
-        // View Border Toggle
         new Setting(card)
             .setName('Show View Border')
             .setDesc('Display a colored border on the left side of the View icon')
@@ -225,11 +198,9 @@ export class StreamsSettingTab extends PluginSettingTab {
                     this.plugin.updateStreamViewIcon(stream);
                     await this.plugin.saveSettings();
                     
-                    // Re-render the settings to show/hide the color option immediately
                     this.display();
                 }));
 
-        // View Border Color
         if (stream.showViewBorder) {
             new Setting(card)
                 .setName('Border Color')
@@ -238,11 +209,9 @@ export class StreamsSettingTab extends PluginSettingTab {
                     .setValue(stream.viewBorderColor ?? 'var(--text-success)')
                     .setPlaceholder('var(--text-success)')
                     .onChange(async (value) => {
-                        // Only update local value without saving settings
                         stream.viewBorderColor = value;
                     })
                     .then(textComponent => {
-                        // Save settings only when focus is lost
                         textComponent.inputEl.addEventListener('blur', async () => {
                             this.plugin.updateStreamViewIcon(stream);
                             await this.plugin.saveSettings();
@@ -250,10 +219,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                     }));
         }
 
-        // ===== COMMANDS SECTION =====
-        card.createEl('h4', { text: 'Command Palette', cls: 'setting-header' });
-
-        // Command palette integration
         new Setting(card)
             .setName('Add command: Open Today')
             .setDesc('Add this stream to the command palette')
@@ -263,12 +228,9 @@ export class StreamsSettingTab extends PluginSettingTab {
                     stream.addCommand = value;
                     this.plugin.toggleStreamCommand(stream);
                     
-                    // Force commands to re-register if enabling
                     if (value) {
-                        // Small delay to ensure the command is properly registered
                         setTimeout(() => {
                             this.plugin.initializeStreamCommands();
-                            // Show a notice to confirm the command was added
                             new Notice(`Added "${stream.name}, Today" to command palette`);
                         }, 100);
                     }
@@ -285,12 +247,9 @@ export class StreamsSettingTab extends PluginSettingTab {
                     stream.addViewCommand = value;
                     this.plugin.toggleStreamViewCommand(stream);
                     
-                    // Force commands to re-register if enabling
                     if (value) {
-                        // Small delay to ensure the command is properly registered
                         setTimeout(() => {
                             this.plugin.initializeStreamCommands();
-                            // Show a notice to confirm the command was added
                             new Notice(`Added "${stream.name}, Full Stream" to command palette`);
                         }, 100);
                     }
@@ -298,7 +257,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
-        // ===== DELETE SECTION =====
         new Setting(card)
             .setName('Delete Stream')
             .setDesc('Permanently remove this stream')
@@ -306,20 +264,15 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setButtonText('Delete')
                 .setWarning()
                 .onClick(async () => {
-                    // Remove all UI elements for this stream
                     this.plugin.log.debug(`Deleting stream ${stream.id} (${stream.name})`);
                     
-                    // Remove from settings
                     this.plugin.settings.streams.splice(index, 1);
                     
-                    // Save settings with UI refresh
                     await this.plugin.saveSettings(true);
                     
-                    // Clean up commands
                     this.plugin.removeStreamCommand(stream.id);
                     this.plugin.removeStreamViewCommand(stream.id);
                     
-                    // Redisplay the settings tab
                     this.display();
                 }));
     }
@@ -337,7 +290,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         } as const;
 
         Object.entries(iconCategories).forEach(([category, icons]) => {
-            dropdown.addOption(`---${category}---`, category); // Add category header
+            dropdown.addOption(`---${category}---`, category);
             icons.forEach(icon => dropdown.addOption(icon, icon));
         });
     }
@@ -346,13 +299,10 @@ export class StreamsSettingTab extends PluginSettingTab {
         if (!path) return false;
         
         try {
-            // Check if the folder exists in the vault
             const folder = this.app.vault.getAbstractFileByPath(path);
             const folderExists = folder instanceof TFolder;
             
-            // If it's not found directly, check if a parent folder exists that we can potentially create this in
             if (!folderExists) {
-                // Try parent path
                 const parentPath = path.split('/').slice(0, -1).join('/');
                 if (parentPath) {
                     const parentFolder = this.app.vault.getAbstractFileByPath(parentPath);

@@ -17,10 +17,10 @@ export class CalendarWidget {
     private selectedStream: Stream;
     private app: App;
     private log: Logger = new Logger();
-    private grid: HTMLElement | null = null;  // Store grid reference
-    private fileModifyHandler: () => void;    // Store handler for cleanup
+    private grid: HTMLElement | null = null;
+    private fileModifyHandler: () => void;
     private currentViewedDate: string | null = null;
-    private todayButton: HTMLElement; // Add this property to store reference
+    private todayButton: HTMLElement;
 
     constructor(leaf: WorkspaceLeaf, stream: Stream, app: App) {
         this.log.debug('Creating calendar widget for stream:', stream.name);
@@ -30,19 +30,15 @@ export class CalendarWidget {
         this.widget = document.createElement('div');
         this.widget.addClass('stream-calendar-widget');
         
-        // Find the content container based on view type
         let contentContainer: HTMLElement | null = null;
-        
-        // Handle different view types
         const viewType = leaf.view.getViewType();
         this.log.debug(`Creating calendar widget for view type: ${viewType}`);
         
         if (viewType === 'markdown') {
-            // For markdown views
             const markdownView = leaf.view as MarkdownView;
             contentContainer = markdownView.contentEl;
             
-            // Get current file's date if it exists
+            // Extract date from current file
             const currentFile = markdownView.file;
             if (currentFile) {
                 const match = currentFile.basename.match(/^\d{4}-\d{2}-\d{2}/);
@@ -51,15 +47,12 @@ export class CalendarWidget {
                 }
             }
         } else if (viewType === CREATE_FILE_VIEW_TYPE) {
-            // For create file views
             contentContainer = (leaf.view as any).contentEl;
             
-            // Try to get the date from the view's state
             try {
                 const state = leaf.view.getState();
                 if (state && state.date) {
                     const dateString = state.date as string;
-                    // Extract date string in YYYY-MM-DD format for currentViewedDate
                     this.currentViewedDate = dateString.split('T')[0];
                     this.log.debug(`Set currentViewedDate from state: ${this.currentViewedDate}`);
                 }
@@ -67,7 +60,6 @@ export class CalendarWidget {
                 this.log.error('Error getting date from CreateFileView state:', error);
             }
         } else {
-            // For other view types
             contentContainer = (leaf.view as any).contentEl;
         }
         
@@ -76,13 +68,9 @@ export class CalendarWidget {
             return;
         }
 
-        // Make the content container relative for absolute positioning
         contentContainer.style.position = 'relative';
-        
-        // Append to the content container
         contentContainer.appendChild(this.widget);
         
-        // Add file modification listener
         this.fileModifyHandler = this.handleFileModify.bind(this);
         this.app.vault.on('modify', this.fileModifyHandler);
 
@@ -91,7 +79,6 @@ export class CalendarWidget {
     }
 
     private handleFileModify(file: TFile) {
-        // Only update if the file is in our stream's folder
         const streamPath = this.selectedStream.folder.split(/[/\\]/).filter(Boolean);
         const filePath = file.path.split(/[/\\]/).filter(Boolean);
         
@@ -99,55 +86,47 @@ export class CalendarWidget {
         
         if (isInStream && this.grid) {
             this.updateCalendarGrid(this.grid);
-            this.updateTodayButton(); // Update button when files change
+            this.updateTodayButton();
         }
     }
 
     private initializeWidget() {
-        // Create collapsed view
         const collapsedView = this.widget.createDiv('stream-calendar-collapsed');
         collapsedView.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleExpanded(collapsedView, expandedView);
         });
 
-        // Add stream name above the date
         const streamLabel = collapsedView.createDiv('stream-calendar-label');
         streamLabel.setText(this.selectedStream.name);
 
-        // Create navigation controls container
         const navControls = collapsedView.createDiv('stream-calendar-nav-controls');
         
-        // Add previous day button (LEFT ARROW)
         const prevDayButton = navControls.createDiv('stream-calendar-day-nav prev-day');
         prevDayButton.setText('←');
         prevDayButton.setAttribute('aria-label', 'Previous Day');
         prevDayButton.addEventListener('click', async (e) => {
-            e.stopPropagation(); // Prevent toggle expansion
+            e.stopPropagation();
             this.log.debug("LEFT ARROW CLICKED - Going to PREVIOUS day");
             await this.navigateToAdjacentDay(-1);
         });
         
-        // Add today button (between navigation buttons)
         const todayButton = navControls.createDiv('stream-calendar-today-button');
-        this.todayButton = todayButton; // Store reference
-        this.updateTodayButton(); // Use new method
+        this.todayButton = todayButton;
+        this.updateTodayButton();
         
-        // Add next day button (RIGHT ARROW)
         const nextDayButton = navControls.createDiv('stream-calendar-day-nav next-day');
         nextDayButton.setText('→');
         nextDayButton.setAttribute('aria-label', 'Next Day');
         nextDayButton.addEventListener('click', async (e) => {
-            e.stopPropagation(); // Prevent toggle expansion
+            e.stopPropagation();
             this.log.debug("RIGHT ARROW CLICKED - Going to NEXT day");
             await this.navigateToAdjacentDay(1);
         });
 
-        // Create expanded view
         const expandedView = this.widget.createDiv('stream-calendar-expanded');
         expandedView.style.display = 'none';
 
-        // Create top navigation bar with reversed positions
         const topNav = expandedView.createDiv('stream-calendar-top-nav');
         const todayNavButton = topNav.createDiv('stream-calendar-today-nav');
         todayNavButton.setText('TODAY');
@@ -156,7 +135,6 @@ export class CalendarWidget {
         const backButton = topNav.createDiv('stream-calendar-back');
         backButton.setText('→');
 
-        // Create calendar header
         const header = expandedView.createDiv('stream-calendar-header');
         const prevButton = header.createDiv('stream-calendar-nav');
         prevButton.setText('←');
@@ -165,12 +143,11 @@ export class CalendarWidget {
         const nextButton = header.createDiv('stream-calendar-nav');
         nextButton.setText('→');
 
-        // Create calendar grid
         const grid = expandedView.createDiv('stream-calendar-grid');
-        this.grid = grid;  // Store reference
+        this.grid = grid;
         this.updateCalendarGrid(grid);
 
-        // Event listeners
+        // Set up event listeners
         prevButton.addEventListener('click', () => {
             this.currentDate.setMonth(this.currentDate.getMonth() - 1);
             dateDisplay.setText(this.formatMonthYear(this.currentDate));
@@ -248,12 +225,9 @@ export class CalendarWidget {
             return { exists: false, size: 'small' };
         }
 
-        // Use file.stat.size instead of reading contents
         const fileSize = file.stat.size;
 
         let size: 'small' | 'medium' | 'large';
-        // Adjust these thresholds based on typical markdown file sizes
-        // Current thresholds: 1KB and 5KB
         if (fileSize < 1024) {
             size = 'small';
         } else if (fileSize < 5120) {
@@ -266,20 +240,17 @@ export class CalendarWidget {
     }
 
     private async updateCalendarGrid(grid: HTMLElement) {
-        // Make sure the grid is completely empty before starting
         grid.empty();
-        grid.style.display = 'grid'; // Ensure grid display is set
+        grid.style.display = 'grid';
         
         this.log.debug(`Updating calendar grid for ${this.formatMonthYear(this.currentDate)}`);
         
-        // Add day headers
         const days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
         days.forEach(day => {
             const dayHeader = grid.createDiv('calendar-day-header');
             dayHeader.setText(day);
         });
 
-        // Get first day of month and total days
         const firstDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1);
         const lastDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0);
         const totalDays = lastDay.getDate();
@@ -287,30 +258,24 @@ export class CalendarWidget {
         
         this.log.debug(`Month: ${this.currentDate.getMonth() + 1}, First day: ${startingDay}, Total days: ${totalDays}`);
 
-        // Add blank spaces for days before start of month
         for (let i = 0; i < startingDay; i++) {
             grid.createDiv('calendar-day empty');
         }
 
-        // Add days of month
         for (let day = 1; day <= totalDays; day++) {
             const dayEl = grid.createDiv('calendar-day');
-            // Use a single text node for the date number to avoid duplicate elements
             const dateContainer = dayEl.createDiv('date-container');
             dateContainer.setText(String(day));
             
             const dotContainer = dayEl.createDiv('dot-container');
             
-            // Format date for comparison
             const currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
             const dateString = currentDate.toISOString().split('T')[0];
             
-            // Add viewed class if this is the current file's date
             if (dateString === this.currentViewedDate) {
                 dayEl.addClass('viewed');
             }
             
-            // Check content for this day
             const content = await this.getContentIndicator(currentDate);
             
             if (content.exists) {
@@ -358,7 +323,6 @@ export class CalendarWidget {
 
     private async selectDate(day: number) {
         const selectedDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-        // Update currentViewedDate before executing command
         this.currentViewedDate = selectedDate.toISOString().split('T')[0];
         const command = new OpenStreamDateCommand(this.app, this.selectedStream, selectedDate);
         await command.execute();
@@ -370,12 +334,9 @@ export class CalendarWidget {
         expandedView.style.display = this.expanded ? 'block' : 'none';
         collapsedView.toggleClass('today-button-expanded', this.expanded);
         
-        // Slight delay before adding the expanded class to ensure proper animation
         if (this.expanded) {
-            // If expanding, make sure the calendar grid is up to date
             const grid = this.grid;
             if (grid) {
-                // Force a complete rebuild of the calendar grid when expanding
                 setTimeout(() => {
                     this.updateCalendarGrid(grid);
                     expandedView.toggleClass('calendar-expanded', true);
@@ -449,7 +410,6 @@ export class CalendarWidget {
 
     public destroy() {
         this.log.debug('Destroying calendar widget');
-        // Remove event listener
         this.app.vault.off('modify', this.fileModifyHandler);
         
         if (this.widget && this.widget.parentElement) {
@@ -459,24 +419,19 @@ export class CalendarWidget {
 
     /**
      * Navigate to a day that is offset by a given number of days
-     * @param offset Number of days to offset (positive for future, negative for past)
      */
     private async navigateToAdjacentDay(offset: number): Promise<void> {
-        // Direct navigation using explicit manual date calculation
         if (this.currentViewedDate) {
             const currentDate = this.parseViewedDate(this.currentViewedDate);
             this.log.debug(`Current date before navigation: ${currentDate.toISOString()}`);
             
-            // Create a new date object for the target day
             const targetDate = new Date(currentDate);
             targetDate.setDate(targetDate.getDate() + offset);
             this.log.debug(`Target date: ${targetDate.toISOString()}`);
             
-            // Navigate to the target day
             const command = new OpenStreamDateCommand(this.app, this.selectedStream, targetDate);
             await command.execute();
         } else {
-            // If no current date, use relative to today
             const targetDate = new Date();
             targetDate.setDate(targetDate.getDate() + offset);
             const direction = offset > 0 ? "tomorrow" : "yesterday";
@@ -491,13 +446,11 @@ export class CalendarWidget {
         this.log.debug(`Setting currentViewedDate explicitly to: ${dateString}`);
         this.currentViewedDate = dateString;
         
-        // Also update the month view to the correct month
         if (dateString) {
             const [year, month, day] = dateString.split('-').map(n => parseInt(n, 10));
-            this.currentDate = new Date(year, month - 1, 1); // First day of month for calendar view
+            this.currentDate = new Date(year, month - 1, 1);
         }
         
-        // Update the UI to reflect the new date
         this.updateTodayButton();
         
         if (this.grid) {
@@ -506,10 +459,10 @@ export class CalendarWidget {
     }
 
     /**
-     * Parse a YYYY-MM-DD date string into a Date object, handling timezone issues
+     * Parse a YYYY-MM-DD date string into a Date object
      */
     private parseViewedDate(dateString: string): Date {
         const [year, month, day] = dateString.split('-').map(n => parseInt(n, 10));
-        return new Date(year, month - 1, day); // month is 0-based in Date constructor
+        return new Date(year, month - 1, day);
     }
 } 

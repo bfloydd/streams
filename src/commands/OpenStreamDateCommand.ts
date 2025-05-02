@@ -16,22 +16,19 @@ export class OpenStreamDateCommand implements Command {
     async execute(): Promise<void> {
         log.debug(`Opening ${this.date.toDateString()} for stream: ${this.stream.name}`);
         
-        // Validate we're using a proper date object
         if (!(this.date instanceof Date) || isNaN(this.date.getTime())) {
             log.error(`Invalid date provided: ${this.date}`);
             return;
         }
         
-        // Format the date for debugging
         const formatted = this.formatDateForLogging(this.date);
-        
         log.debug(`Formatted date for stream: ${formatted}`);
         
         await openStreamDate(this.app, this.stream, this.date);
     }
     
     /**
-     * Format a date as YYYY-MM-DD for logging purposes
+     * Format a date as YYYY-MM-DD for logging
      */
     private formatDateForLogging(date: Date): string {
         const year = date.getFullYear();

@@ -204,19 +204,16 @@ export default class StreamsPlugin extends Plugin {
 				}
 			);
 			
-			// Add attributes and styling
-			streamIcons.today.setAttribute('data-stream-id', stream.id);
-			streamIcons.today.setAttribute('data-icon-type', 'today');
-			streamIcons.today.addClass('stream-today-icon');
+			// Hide initially, then update based on settings later
+			this.updateIconVisibility(streamIcons.today, false);
 			
-			// Apply custom border styling based on stream settings
-			this.applyTodayIconStyles(streamIcons.today, stream);
-			
-			// Set initial visibility based on settings
-			this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
+			// Apply custom border styling if enabled
+			if (stream.showTodayBorder) {
+				this.applyTodayIconStyles(streamIcons.today, stream);
+			}
 		}
 		
-		// Create View icon if not already created
+		// Create Full Stream View icon if not already created
 		if (!streamIcons.view) {
 			this.log.debug(`Creating View icon for stream ${stream.id}, initial visibility: ${stream.showFullStreamInRibbon}`);
 			
@@ -229,77 +226,62 @@ export default class StreamsPlugin extends Plugin {
 				}
 			);
 			
-			// Add attributes and styling
-			streamIcons.view.setAttribute('data-stream-id', stream.id);
-			streamIcons.view.setAttribute('data-icon-type', 'view');
-			streamIcons.view.addClass('stream-view-icon');
+			// Hide initially, then update based on settings later
+			this.updateIconVisibility(streamIcons.view, false);
 			
-			// Apply custom border styling based on stream settings
-			this.applyViewIconStyles(streamIcons.view, stream);
-			
-			// Set initial visibility based on settings
-			this.updateIconVisibility(streamIcons.view, stream.showFullStreamInRibbon);
+			// Apply custom border styling if enabled
+			if (stream.showViewBorder) {
+				this.applyViewIconStyles(streamIcons.view, stream);
+			}
 		}
 	}
 	
 	/**
-	 * Apply custom styling to Today icon based on stream settings
+	 * Apply styling to the Today icon based on stream settings
 	 */
 	private applyTodayIconStyles(icon: HTMLElement, stream: Stream): void {
-		this.log.debug(`Applying Today icon styles for stream ${stream.id}. Border: ${stream.showTodayBorder}, Color: ${stream.todayBorderColor}`);
+		if (!icon) return;
 		
-		// Remove existing CSS classes that might affect border styling
-		icon.removeClass('stream-today-icon');
-		
-		// Reset all borders first to ensure clean slate
-		icon.style.borderTop = 'none';
-		icon.style.borderRight = 'none';
-		icon.style.borderBottom = 'none';
-		icon.style.borderLeft = 'none';
-		
-		// Apply border if enabled with !important to ensure it takes precedence
-		if (stream.showTodayBorder) {
-			const color = stream.todayBorderColor || 'var(--text-accent)';
-			icon.style.setProperty('border-left', `2px solid ${color}`, 'important');
-			// Add data attribute for debugging
-			icon.setAttribute('data-border-enabled', 'true');
-		} else {
-			icon.style.setProperty('border-left', 'none', 'important');
-			// Add data attribute for debugging
-			icon.setAttribute('data-border-enabled', 'false');
+		try {
+			const iconInner = icon.querySelector('.svg-icon') as HTMLElement;
+			if (iconInner) {
+				// Add border class for targeting in CSS
+				iconInner.classList.add('streams-today-icon-border');
+				
+				// Add custom color if specified
+				if (stream.todayBorderColor && stream.todayBorderColor !== 'default') {
+					iconInner.style.setProperty('--stream-today-border-color', stream.todayBorderColor);
+				}
+			}
+		} catch (error) {
+			this.log.error('Error applying today icon styles:', error);
 		}
 	}
 	
 	/**
-	 * Apply custom styling to View icon based on stream settings
+	 * Apply styling to the View icon based on stream settings
 	 */
 	private applyViewIconStyles(icon: HTMLElement, stream: Stream): void {
-		this.log.debug(`Applying View icon styles for stream ${stream.id}. Border: ${stream.showViewBorder}, Color: ${stream.viewBorderColor}`);
+		if (!icon) return;
 		
-		// Remove existing CSS classes that might affect border styling
-		icon.removeClass('stream-view-icon');
-		
-		// Reset all borders first to ensure clean slate
-		icon.style.borderTop = 'none';
-		icon.style.borderRight = 'none';
-		icon.style.borderBottom = 'none';
-		icon.style.borderLeft = 'none';
-		
-		// Apply border if enabled with !important to ensure it takes precedence
-		if (stream.showViewBorder) {
-			const color = stream.viewBorderColor || 'var(--text-success)';
-			icon.style.setProperty('border-left', `2px solid ${color}`, 'important');
-			// Add data attribute for debugging
-			icon.setAttribute('data-border-enabled', 'true');
-		} else {
-			icon.style.setProperty('border-left', 'none', 'important');
-			// Add data attribute for debugging
-			icon.setAttribute('data-border-enabled', 'false');
+		try {
+			const iconInner = icon.querySelector('.svg-icon') as HTMLElement;
+			if (iconInner) {
+				// Add border class for targeting in CSS
+				iconInner.classList.add('streams-view-icon-border');
+				
+				// Add custom color if specified
+				if (stream.viewBorderColor && stream.viewBorderColor !== 'default') {
+					iconInner.style.setProperty('--stream-view-border-color', stream.viewBorderColor);
+				}
+			}
+		} catch (error) {
+			this.log.error('Error applying view icon styles:', error);
 		}
 	}
-	
+
 	/**
-	 * Update visibility of all icons based on current settings
+	 * Update the visibility of all stream icons based on current settings
 	 */
 	private updateAllIconVisibility(): void {
 		this.settings.streams.forEach(stream => {
@@ -308,66 +290,65 @@ export default class StreamsPlugin extends Plugin {
 	}
 	
 	/**
-	 * Update a single stream's icon visibility based on its settings
+	 * Update the visibility of icons for a specific stream
 	 */
 	private updateStreamIconVisibility(stream: Stream): void {
 		const streamIcons = this.ribbonIconsByStream.get(stream.id);
-		if (!streamIcons) return;
-		
-		this.log.debug(`Updating visibility for stream ${stream.id}: Today=${stream.showTodayInRibbon}, View=${stream.showFullStreamInRibbon}`);
-		
-		// Update Today icon visibility
-		if (streamIcons.today) {
-			this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
-		}
-		
-		// Update View icon visibility
-		if (streamIcons.view) {
-			this.updateIconVisibility(streamIcons.view, stream.showFullStreamInRibbon);
+		if (streamIcons) {
+			// Update Today icon visibility
+			if (streamIcons.today) {
+				this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
+			}
+			
+			// Update View icon visibility
+			if (streamIcons.view) {
+				this.updateIconVisibility(streamIcons.view, stream.showFullStreamInRibbon);
+			}
 		}
 	}
 	
 	/**
-	 * Update a stream's Today icon
+	 * Update the styles of a stream's Today icon
 	 */
 	public updateStreamTodayIcon(stream: Stream): void {
-		this.log.debug(`Toggle Today icon for stream ${stream.id} to ${stream.showTodayInRibbon}`);
-		
-		// Create icons if needed
-		this.createStreamIcons(stream);
-		
-		// Update visibility
 		const streamIcons = this.ribbonIconsByStream.get(stream.id);
-		if (streamIcons?.today) {
-			this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
-			// Update styling
-			this.applyTodayIconStyles(streamIcons.today, stream);
+		if (streamIcons && streamIcons.today) {
+			// First, remove any existing border
+			const iconInner = streamIcons.today.querySelector('.svg-icon') as HTMLElement;
+			if (iconInner) {
+				iconInner.classList.toggle('streams-today-icon-border', stream.showTodayBorder);
+			}
+			
+			// Then apply new styling if enabled
+			if (stream.showTodayBorder) {
+				this.applyTodayIconStyles(streamIcons.today, stream);
+			}
 		}
 	}
 	
 	/**
-	 * Update a stream's View icon
+	 * Update the styles of a stream's View icon
 	 */
 	public updateStreamViewIcon(stream: Stream): void {
-		this.log.debug(`Toggle View icon for stream ${stream.id} to ${stream.showFullStreamInRibbon}`);
-		
-		// Create icons if needed
-		this.createStreamIcons(stream);
-		
-		// Update visibility
 		const streamIcons = this.ribbonIconsByStream.get(stream.id);
-		if (streamIcons?.view) {
-			this.updateIconVisibility(streamIcons.view, stream.showFullStreamInRibbon);
-			// Update styling
-			this.applyViewIconStyles(streamIcons.view, stream);
+		if (streamIcons && streamIcons.view) {
+			// First, remove any existing border
+			const iconInner = streamIcons.view.querySelector('.svg-icon') as HTMLElement;
+			if (iconInner) {
+				iconInner.classList.toggle('streams-view-icon-border', stream.showViewBorder);
+			}
+			
+			// Then apply new styling if enabled
+			if (stream.showViewBorder) {
+				this.applyViewIconStyles(streamIcons.view, stream);
+			}
 		}
 	}
 	
 	/**
-	 * Clean up all icons 
+	 * Remove all ribbon icons
 	 */
 	private removeAllRibbonIcons(): void {
-		// Let Obsidian handle proper cleanup of each icon
 		this.ribbonIconsByStream.forEach((icons) => {
 			if (icons.today) icons.today.detach();
 			if (icons.view) icons.view.detach();
@@ -376,25 +357,25 @@ export default class StreamsPlugin extends Plugin {
 	}
 	
 	onunload() {
-		this.log.debug('Unloading Streams plugin...');
+		this.log.info('Unloading Streams plugin');
+		
 		this.cleanupResources();
+		
+		this.log.info('Streams plugin unloaded');
 	}
-	
+
 	/**
-	 * Clean up all resources when plugin is unloaded
+	 * Clean up resources when plugin is unloaded
 	 */
 	private cleanupResources(): void {
-		// Clean up styles
-		document.getElementById('streams-calendar-styles')?.remove();
+		// Remove all ribbon icons
+		this.removeAllRibbonIcons();
 		
-		// Clean up widgets
-		this.calendarWidgets.forEach((widget) => {
+		// Remove all calendar widgets
+		this.calendarWidgets.forEach(widget => {
 			widget.destroy();
 		});
 		this.calendarWidgets.clear();
-		
-		// Clean up ribbon icons
-		this.removeAllRibbonIcons();
 		
 		this.commandsByStreamId.clear();
 		this.viewCommandsByStreamId.clear();
