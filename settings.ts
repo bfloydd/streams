@@ -36,7 +36,11 @@ export class StreamsSettingTab extends PluginSettingTab {
                         showTodayInRibbon: true,
                         showFullStreamInRibbon: false,
                         addCommand: false,
-                        addViewCommand: false
+                        addViewCommand: false,
+                        showTodayBorder: true,
+                        showViewBorder: true,
+                        todayBorderColor: 'var(--text-accent)',
+                        viewBorderColor: 'var(--text-success)'
                     };
                     this.plugin.settings.streams.push(newStream);
                     await this.plugin.saveSettings(true); // Force UI refresh
@@ -124,6 +128,38 @@ export class StreamsSettingTab extends PluginSettingTab {
                     });
             });
 
+        // Today Border Toggle
+        new Setting(card)
+            .setName('Show Today Border')
+            .setDesc('Display a colored border on the left side of the Today icon')
+            .setClass('setting-indent')
+            .addToggle(toggle => toggle
+                .setValue(stream.showTodayBorder ?? true)
+                .onChange(async (value) => {
+                    stream.showTodayBorder = value;
+                    this.plugin.updateStreamTodayIcon(stream);
+                    await this.plugin.saveSettings();
+                    
+                    // Re-render the settings to show/hide the color option immediately
+                    this.display();
+                }));
+
+        // Today Border Color
+        if (stream.showTodayBorder) {
+            new Setting(card)
+                .setName('Border Color')
+                // .setDesc('Color for the left border of the Today icon')
+                .setClass('setting-double-indent')
+                .addText(text => text
+                    .setValue(stream.todayBorderColor ?? 'var(--text-accent)')
+                    .setPlaceholder('var(--text-accent)')
+                    .onChange(async (value) => {
+                        stream.todayBorderColor = value;
+                        this.plugin.updateStreamTodayIcon(stream);
+                        await this.plugin.saveSettings();
+                    }));
+        }
+
         // View Stream ribbon
         new Setting(card)
             .setName('View Full Stream in Ribbon')
@@ -150,6 +186,38 @@ export class StreamsSettingTab extends PluginSettingTab {
                         await this.plugin.saveSettings(true);
                     });
             });
+
+        // View Border Toggle
+        new Setting(card)
+            .setName('Show View Border')
+            .setDesc('Display a colored border on the left side of the View icon')
+            .setClass('setting-indent')
+            .addToggle(toggle => toggle
+                .setValue(stream.showViewBorder ?? true)
+                .onChange(async (value) => {
+                    stream.showViewBorder = value;
+                    this.plugin.updateStreamViewIcon(stream);
+                    await this.plugin.saveSettings();
+                    
+                    // Re-render the settings to show/hide the color option immediately
+                    this.display();
+                }));
+
+        // View Border Color
+        if (stream.showViewBorder) {
+            new Setting(card)
+                .setName('Border Color')
+                // .setDesc('Color for the left border of the View icon')
+                .setClass('setting-double-indent')
+                .addText(text => text
+                    .setValue(stream.viewBorderColor ?? 'var(--text-success)')
+                    .setPlaceholder('var(--text-success)')
+                    .onChange(async (value) => {
+                        stream.viewBorderColor = value;
+                        this.plugin.updateStreamViewIcon(stream);
+                        await this.plugin.saveSettings();
+                    }));
+        }
 
         // ===== COMMANDS SECTION =====
         card.createEl('h4', { text: 'Command Palette', cls: 'setting-header' });

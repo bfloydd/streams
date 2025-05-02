@@ -44,6 +44,13 @@ If your plugin does not need CSS, delete this file.
     padding-left: 10px;
 }
 
+/* Double-indented settings */
+.setting-double-indent {
+    margin-left: 40px;
+    border-left: 2px solid var(--background-modifier-border);
+    padding-left: 10px;
+}
+
 .stream-ribbon-icon {
     opacity: 0.8;
     transition: opacity 0.2s ease-in-out;
@@ -569,20 +576,20 @@ If your plugin does not need CSS, delete this file.
 
 /* Force icons to be distinct */
 .side-dock-ribbon-action[data-icon-type="today"] {
-    border-left: 2px solid var(--text-accent);
+    /* Border styling handled dynamically via JavaScript */
 }
 
 .side-dock-ribbon-action[data-icon-type="view"] {
-    border-left: 2px solid var(--text-success);
+    /* Border styling handled dynamically via JavaScript */
 }
 
 /* Keep individual icon borders */
 .streams-today-icon {
-    border-left: 2px solid var(--text-accent);
+    /* Border styling handled dynamically via JavaScript */
 }
 
 .streams-view-icon {
-    border-left: 2px solid var(--text-success);
+    /* Border styling handled dynamically via JavaScript */
 }
 
 /* Fix for hidden ribbon icons */

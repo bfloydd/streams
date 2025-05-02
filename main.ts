@@ -117,7 +117,11 @@ export default class StreamsPlugin extends Plugin {
 				showTodayInRibbon: false, 
 				showFullStreamInRibbon: false, 
 				addCommand: false, 
-				addViewCommand: false 
+				addViewCommand: false,
+				showTodayBorder: true,
+				showViewBorder: true,
+				todayBorderColor: "var(--text-accent)",
+				viewBorderColor: "var(--text-success)"
 			}, new Date())
 		);
 		
@@ -150,7 +154,11 @@ export default class StreamsPlugin extends Plugin {
 				showTodayInRibbon: false,
 				showFullStreamInRibbon: false,
 				addCommand: false,
-				addViewCommand: false
+				addViewCommand: false,
+				showTodayBorder: true,
+				showViewBorder: true,
+				todayBorderColor: "var(--text-accent)",
+				viewBorderColor: "var(--text-success)"
 			};
 		}
 		
@@ -200,6 +208,9 @@ export default class StreamsPlugin extends Plugin {
 			streamIcons.today.setAttribute('data-icon-type', 'today');
 			streamIcons.today.addClass('stream-today-icon');
 			
+			// Apply custom border styling based on stream settings
+			this.applyTodayIconStyles(streamIcons.today, stream);
+			
 			// Set initial visibility based on settings
 			this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
 		}
@@ -222,8 +233,67 @@ export default class StreamsPlugin extends Plugin {
 			streamIcons.view.setAttribute('data-icon-type', 'view');
 			streamIcons.view.addClass('stream-view-icon');
 			
+			// Apply custom border styling based on stream settings
+			this.applyViewIconStyles(streamIcons.view, stream);
+			
 			// Set initial visibility based on settings
 			this.updateIconVisibility(streamIcons.view, stream.showFullStreamInRibbon);
+		}
+	}
+	
+	/**
+	 * Apply custom styling to Today icon based on stream settings
+	 */
+	private applyTodayIconStyles(icon: HTMLElement, stream: Stream): void {
+		console.log(`Applying Today icon styles for stream ${stream.id}. Border: ${stream.showTodayBorder}, Color: ${stream.todayBorderColor}`);
+		
+		// Remove existing CSS classes that might affect border styling
+		icon.removeClass('stream-today-icon');
+		
+		// Reset all borders first to ensure clean slate
+		icon.style.borderTop = 'none';
+		icon.style.borderRight = 'none';
+		icon.style.borderBottom = 'none';
+		icon.style.borderLeft = 'none';
+		
+		// Apply border if enabled with !important to ensure it takes precedence
+		if (stream.showTodayBorder) {
+			const color = stream.todayBorderColor || 'var(--text-accent)';
+			icon.style.setProperty('border-left', `2px solid ${color}`, 'important');
+			// Add data attribute for debugging
+			icon.setAttribute('data-border-enabled', 'true');
+		} else {
+			icon.style.setProperty('border-left', 'none', 'important');
+			// Add data attribute for debugging
+			icon.setAttribute('data-border-enabled', 'false');
+		}
+	}
+	
+	/**
+	 * Apply custom styling to View icon based on stream settings
+	 */
+	private applyViewIconStyles(icon: HTMLElement, stream: Stream): void {
+		console.log(`Applying View icon styles for stream ${stream.id}. Border: ${stream.showViewBorder}, Color: ${stream.viewBorderColor}`);
+		
+		// Remove existing CSS classes that might affect border styling
+		icon.removeClass('stream-view-icon');
+		
+		// Reset all borders first to ensure clean slate
+		icon.style.borderTop = 'none';
+		icon.style.borderRight = 'none';
+		icon.style.borderBottom = 'none';
+		icon.style.borderLeft = 'none';
+		
+		// Apply border if enabled with !important to ensure it takes precedence
+		if (stream.showViewBorder) {
+			const color = stream.viewBorderColor || 'var(--text-success)';
+			icon.style.setProperty('border-left', `2px solid ${color}`, 'important');
+			// Add data attribute for debugging
+			icon.setAttribute('data-border-enabled', 'true');
+		} else {
+			icon.style.setProperty('border-left', 'none', 'important');
+			// Add data attribute for debugging
+			icon.setAttribute('data-border-enabled', 'false');
 		}
 	}
 	
@@ -234,38 +304,6 @@ export default class StreamsPlugin extends Plugin {
 		this.settings.streams.forEach(stream => {
 			this.updateStreamIconVisibility(stream);
 		});
-	}
-	
-	/**
-	 * Update an icon's visibility with multiple approaches to ensure it sticks
-	 */
-	private updateIconVisibility(icon: HTMLElement, visible: boolean): void {
-		// Log before state
-		const wasVisible = icon.style.display !== 'none' && !icon.classList.contains('is-hidden');
-		console.log(`Updating icon visibility: was ${wasVisible ? 'visible' : 'hidden'}, will be ${visible ? 'visible' : 'hidden'}`);
-		
-		if (visible) {
-			// Show the icon
-			icon.classList.remove('is-hidden');
-			icon.style.cssText = ''; // Remove any inline styles
-			icon.style.display = 'flex';
-			
-			// Ensure it's in the DOM
-			if (!document.body.contains(icon)) {
-				const ribbon = this.app.workspace.containerEl.querySelector(".side-dock-ribbon");
-				if (ribbon) {
-					ribbon.appendChild(icon);
-				}
-			}
-		} else {
-			// Completely hide the icon
-			icon.style.display = 'none';
-			icon.classList.add('is-hidden');
-		}
-		
-		// Log after state
-		const isNowVisible = icon.style.display !== 'none' && !icon.classList.contains('is-hidden');
-		console.log(`Icon visibility updated: now ${isNowVisible ? 'visible' : 'hidden'}`);
 	}
 	
 	/**
@@ -301,6 +339,8 @@ export default class StreamsPlugin extends Plugin {
 		const streamIcons = this.ribbonIconsByStream.get(stream.id);
 		if (streamIcons?.today) {
 			this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
+			// Update styling
+			this.applyTodayIconStyles(streamIcons.today, stream);
 		}
 	}
 	
@@ -317,6 +357,8 @@ export default class StreamsPlugin extends Plugin {
 		const streamIcons = this.ribbonIconsByStream.get(stream.id);
 		if (streamIcons?.view) {
 			this.updateIconVisibility(streamIcons.view, stream.showFullStreamInRibbon);
+			// Update styling
+			this.applyViewIconStyles(streamIcons.view, stream);
 		}
 	}
 	
@@ -784,6 +826,23 @@ export default class StreamsPlugin extends Plugin {
 			if (stream.showFullStreamInRibbon === undefined) {
 				stream.showFullStreamInRibbon = false;
 			}
+
+			// Set defaults for new styling options
+			if (stream.showTodayBorder === undefined) {
+				stream.showTodayBorder = true;
+			}
+			
+			if (stream.showViewBorder === undefined) {
+				stream.showViewBorder = true;
+			}
+			
+			if (stream.todayBorderColor === undefined) {
+				stream.todayBorderColor = 'var(--text-accent)';
+			}
+			
+			if (stream.viewBorderColor === undefined) {
+				stream.viewBorderColor = 'var(--text-success)';
+			}
 		});
 	}
 
@@ -868,5 +927,55 @@ export default class StreamsPlugin extends Plugin {
 			this.commandsByStreamId.delete(streamId);
 			this.log.debug(`Removed Open Today command for stream ${streamId}`);
 		}
+	}
+
+	/**
+	 * Update an icon's visibility with multiple approaches to ensure it sticks
+	 */
+	private updateIconVisibility(icon: HTMLElement, visible: boolean): void {
+		// Log before state
+		const wasVisible = icon.style.display !== 'none' && !icon.classList.contains('is-hidden');
+		console.log(`Updating icon visibility: was ${wasVisible ? 'visible' : 'hidden'}, will be ${visible ? 'visible' : 'hidden'}`);
+		
+		// Capture the stream ID and icon type for later reapplying styles
+		const streamId = icon.getAttribute('data-stream-id');
+		const iconType = icon.getAttribute('data-icon-type');
+		
+		if (visible) {
+			// Show the icon
+			icon.classList.remove('is-hidden');
+			
+			// Preserve custom styling by not completely resetting inline styles
+			// Only change display property
+			icon.style.display = 'flex';
+			
+			// Ensure it's in the DOM
+			if (!document.body.contains(icon)) {
+				const ribbon = this.app.workspace.containerEl.querySelector(".side-dock-ribbon");
+				if (ribbon) {
+					ribbon.appendChild(icon);
+				}
+			}
+			
+			// Reapply custom styling if needed
+			if (streamId) {
+				const stream = this.settings.streams.find(s => s.id === streamId);
+				if (stream) {
+					if (iconType === 'today') {
+						this.applyTodayIconStyles(icon, stream);
+					} else if (iconType === 'view') {
+						this.applyViewIconStyles(icon, stream);
+					}
+				}
+			}
+		} else {
+			// Completely hide the icon
+			icon.style.display = 'none';
+			icon.classList.add('is-hidden');
+		}
+		
+		// Log after state
+		const isNowVisible = icon.style.display !== 'none' && !icon.classList.contains('is-hidden');
+		console.log(`Icon visibility updated: now ${isNowVisible ? 'visible' : 'hidden'}`);
 	}
 }

@@ -26,6 +26,11 @@ export interface Stream {
     showFullStreamInRibbon: boolean;
     addCommand: boolean;
     addViewCommand: boolean;
+    // Ribbon icon styling options
+    showTodayBorder: boolean;
+    showViewBorder: boolean;
+    todayBorderColor: string;
+    viewBorderColor: string;
 }
 
 export interface StreamsSettings {
