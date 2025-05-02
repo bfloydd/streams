@@ -1,3 +1,7 @@
+/*********************************************************
+ * LAYOUT & CONTAINER STYLES
+ *********************************************************/
+
 .streams-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -19,29 +23,6 @@
     padding-bottom: 10px;
 }
 
-/* Settings headers */
-.setting-header {
-    margin: 20px 0 10px;
-    padding-bottom: 5px;
-    border-bottom: none;
-    font-size: 1em;
-    color: var(--text-normal);
-}
-
-/* Indented settings */
-.setting-indent {
-    margin-left: 20px;
-    border-left: 2px solid var(--background-modifier-border);
-    padding-left: 10px;
-}
-
-/* Double-indented settings */
-.setting-double-indent {
-    margin-left: 40px;
-    border-left: 2px solid var(--background-modifier-border);
-    padding-left: 10px;
-}
-
 .stream-ribbon-icon {
     opacity: 0.8;
     transition: opacity 0.2s ease-in-out;
@@ -50,6 +31,51 @@
 .stream-ribbon-icon:hover {
     opacity: 1;
 }
+
+/*********************************************************
+ * SETTINGS UI STYLES
+ *********************************************************/
+
+.setting-header {
+    margin: 20px 0 10px;
+    padding-bottom: 5px;
+    border-bottom: none;
+    font-size: 1em;
+    color: var(--text-normal);
+}
+
+.setting-indent {
+    margin-left: 20px;
+    border-left: 2px solid var(--background-modifier-border);
+    padding-left: 10px;
+}
+
+.setting-double-indent {
+    margin-left: 40px;
+    border-left: 2px solid var(--background-modifier-border);
+    padding-left: 10px;
+}
+
+.setting-item.no-border-top {
+    border-top: none !important;
+    margin-top: -10px;
+}
+
+.stream-folder-valid {
+    border-color: var(--text-success) !important;
+    background-color: rgba(0, 200, 0, 0.05) !important;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.stream-folder-invalid {
+    border-color: var(--text-error) !important;
+    background-color: rgba(200, 0, 0, 0.05) !important;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/*********************************************************
+ * CALENDAR WIDGET STYLES
+ *********************************************************/
 
 .stream-calendar-top-nav {
     display: flex;
@@ -85,7 +111,6 @@
     color: var(--text-normal);
 }
 
-/* Update existing calendar styles for better spacing */
 .stream-calendar-widget {
     position: absolute;
     top: 32px;
@@ -95,7 +120,6 @@
     margin-right: 8px;
 }
 
-/* Special positioning for calendar in create file view */
 .streams-create-file-container .stream-calendar-widget {
     position: fixed;
     top: 80px;
@@ -173,16 +197,11 @@
     background-color: transparent;
 }
 
-.calendar-day-header {
+.stream-calendar-day-header {
     padding: 6px;
     color: var(--text-muted);
     font-size: 12px;
     text-align: center;
-}
-
-.stream-calendar-today-button {
-    white-space: nowrap;
-    pointer-events: none;
 }
 
 .stream-calendar-nav-controls {
@@ -220,7 +239,26 @@
     text-align: center;
 }
 
-/* Styles for the Create File view */
+.stream-calendar-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+    width: 100%;
+    min-width: 200px;
+}
+
+.date-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    line-height: 1;
+}
+
+/*********************************************************
+ * CREATE FILE VIEW STYLES
+ *********************************************************/
+
 .streams-create-file-container {
     display: flex;
     justify-content: center;
@@ -330,37 +368,8 @@
     height: 18px;
 }
 
-/* Mobile adjustments */
-.is-mobile .streams-create-file-content {
-    width: 100%;
-    max-width: none;
-    padding: 30px 20px;
-    border-radius: 8px;
-}
-
-.is-phone .streams-create-file-date {
-    font-size: 1.5em;
-}
-
-/* Calendar grid fixes */
-.stream-calendar-grid {
-    display: grid !important;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 4px;
-    width: 100%;
-    min-width: 200px;
-}
-
-.date-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 12px;
-    line-height: 1;
-}
-
 /*********************************************************
- * Stream full view styles 
+ * STREAM VIEW STYLES
  *********************************************************/
  
 .stream-view-container {
@@ -449,24 +458,11 @@
     max-width: 100%;
 }
 
-/* Make images responsive on mobile */
-.is-mobile .stream-view-date-content img {
-    max-width: 100%;
-    height: auto;
-}
-
-/* Don't let embeds break the mobile layout */
-.is-phone .stream-view-date-content .internal-embed {
-    max-width: calc(100vw - 40px);
-    overflow-x: auto;
-}
-
-/* Replace the load more button styles with a hidden scroll trigger */
 .stream-view-scroll-trigger {
     height: 50px;
     width: 100%;
     opacity: 0;
-    margin: 20px 0 100px 0; /* Extra margin at the bottom for comfortable scrolling */
+    margin: 20px 0 100px 0;
 }
 
 .stream-view-end-marker {
@@ -522,7 +518,21 @@
     transform: translateY(0);
 }
 
-/* Mobile responsive adjustments */
+/*********************************************************
+ * RESPONSIVE STYLES
+ *********************************************************/
+
+.is-mobile .streams-create-file-content {
+    width: 100%;
+    max-width: none;
+    padding: 30px 20px;
+    border-radius: 8px;
+}
+
+.is-phone .streams-create-file-date {
+    font-size: 1.5em;
+}
+
 .is-mobile .stream-view-container {
     padding: 8px 4px;
 }
@@ -545,6 +555,11 @@
     padding: 6px 12px;
 }
 
+.is-mobile .stream-view-date-content img {
+    max-width: 100%;
+    height: auto;
+}
+
 .is-phone .stream-view-container {
     padding: 6px 2px;
 }
@@ -559,13 +574,15 @@
     font-size: 1.3em;
 }
 
-/* Remove border from connected settings */
-.setting-item.no-border-top {
-    border-top: none !important;
-    margin-top: -10px;
+.is-phone .stream-view-date-content .internal-embed {
+    max-width: calc(100vw - 40px);
+    overflow-x: auto;
 }
 
-/* Fix for hidden ribbon icons */
+/*********************************************************
+ * UTILITY STYLES
+ *********************************************************/
+
 .is-hidden.side-dock-ribbon-action {
     display: none !important;
     margin: 0 !important;
@@ -577,17 +594,4 @@
     position: absolute !important;
     overflow: hidden !important;
     clip: rect(0, 0, 0, 0) !important;
-}
-
-/* Folder path validation styling */
-.stream-folder-valid {
-    border-color: var(--text-success) !important;
-    background-color: rgba(0, 200, 0, 0.05) !important;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-.stream-folder-invalid {
-    border-color: var(--text-error) !important;
-    background-color: rgba(200, 0, 0, 0.05) !important;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
