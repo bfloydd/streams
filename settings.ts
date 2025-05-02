@@ -70,9 +70,15 @@ export class StreamsSettingTab extends PluginSettingTab {
             .addText(text => text
                 .setValue(stream.name)
                 .onChange(async (value) => {
+                    // Only update local value without saving settings
                     stream.name = value;
-                    this.plugin.addStreamViewCommand(stream);
-                    await this.plugin.saveSettings();
+                })
+                .then(textComponent => {
+                    // Save settings only when focus is lost
+                    textComponent.inputEl.addEventListener('blur', async () => {
+                        this.plugin.addStreamViewCommand(stream);
+                        await this.plugin.saveSettings();
+                    });
                 }));
 
         // Folder setting
@@ -83,7 +89,9 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setPlaceholder('folder/path')
                 .onChange(async (value) => {
                     const normalizedPath = value.split(/[/\\]/).filter(Boolean).join('/');
-                    stream.folder = normalizedPath;
+                    
+                    // Just update the local path for validation without saving
+                    // This prevents triggering all the ribbon updates while typing
                     
                     // Validate path
                     const pathExists = await this.validateFolderPath(normalizedPath);
@@ -103,8 +111,15 @@ export class StreamsSettingTab extends PluginSettingTab {
                         // Invalid path - add invalid class
                         text.inputEl.addClass('stream-folder-invalid');
                     }
-                    
-                    await this.plugin.saveSettings();
+                })
+                .then(textComponent => {
+                    // Save settings only when focus is lost
+                    textComponent.inputEl.addEventListener('blur', async () => {
+                        const value = textComponent.getValue();
+                        const normalizedPath = value.split(/[/\\]/).filter(Boolean).join('/');
+                        stream.folder = normalizedPath;
+                        await this.plugin.saveSettings();
+                    });
                 }));
 
         // ===== RIBBON SECTION =====
@@ -157,15 +172,20 @@ export class StreamsSettingTab extends PluginSettingTab {
         if (stream.showTodayBorder) {
             new Setting(card)
                 .setName('Border Color')
-                // .setDesc('Color for the left border of the Today icon')
                 .setClass('setting-double-indent')
                 .addText(text => text
                     .setValue(stream.todayBorderColor ?? 'var(--text-accent)')
                     .setPlaceholder('var(--text-accent)')
                     .onChange(async (value) => {
+                        // Only update local value without saving settings
                         stream.todayBorderColor = value;
-                        this.plugin.updateStreamTodayIcon(stream);
-                        await this.plugin.saveSettings();
+                    })
+                    .then(textComponent => {
+                        // Save settings only when focus is lost
+                        textComponent.inputEl.addEventListener('blur', async () => {
+                            this.plugin.updateStreamTodayIcon(stream);
+                            await this.plugin.saveSettings();
+                        });
                     }));
         }
 
@@ -216,15 +236,20 @@ export class StreamsSettingTab extends PluginSettingTab {
         if (stream.showViewBorder) {
             new Setting(card)
                 .setName('Border Color')
-                // .setDesc('Color for the left border of the View icon')
                 .setClass('setting-double-indent')
                 .addText(text => text
                     .setValue(stream.viewBorderColor ?? 'var(--text-success)')
                     .setPlaceholder('var(--text-success)')
                     .onChange(async (value) => {
+                        // Only update local value without saving settings
                         stream.viewBorderColor = value;
-                        this.plugin.updateStreamViewIcon(stream);
-                        await this.plugin.saveSettings();
+                    })
+                    .then(textComponent => {
+                        // Save settings only when focus is lost
+                        textComponent.inputEl.addEventListener('blur', async () => {
+                            this.plugin.updateStreamViewIcon(stream);
+                            await this.plugin.saveSettings();
+                        });
                     }));
         }
 
