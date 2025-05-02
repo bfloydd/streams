@@ -243,15 +243,12 @@ export default class StreamsPlugin extends Plugin {
 		if (!icon) return;
 		
 		try {
-			const iconInner = icon.querySelector('.svg-icon') as HTMLElement;
-			if (iconInner) {
-				// Add border class for targeting in CSS
-				iconInner.classList.add('streams-today-icon-border');
-				
-				// Add custom color if specified
-				if (stream.todayBorderColor && stream.todayBorderColor !== 'default') {
-					iconInner.style.setProperty('--stream-today-border-color', stream.todayBorderColor);
-				}
+			// Apply border to the icon container itself instead of the inner SVG
+			icon.classList.add('streams-today-icon-border');
+			
+			// Add custom color if specified
+			if (stream.todayBorderColor && stream.todayBorderColor !== 'default') {
+				icon.style.setProperty('--stream-today-border-color', stream.todayBorderColor);
 			}
 		} catch (error) {
 			this.log.error('Error applying today icon styles:', error);
@@ -265,15 +262,12 @@ export default class StreamsPlugin extends Plugin {
 		if (!icon) return;
 		
 		try {
-			const iconInner = icon.querySelector('.svg-icon') as HTMLElement;
-			if (iconInner) {
-				// Add border class for targeting in CSS
-				iconInner.classList.add('streams-view-icon-border');
-				
-				// Add custom color if specified
-				if (stream.viewBorderColor && stream.viewBorderColor !== 'default') {
-					iconInner.style.setProperty('--stream-view-border-color', stream.viewBorderColor);
-				}
+			// Apply border to the icon container itself instead of the inner SVG
+			icon.classList.add('streams-view-icon-border');
+			
+			// Add custom color if specified
+			if (stream.viewBorderColor && stream.viewBorderColor !== 'default') {
+				icon.style.setProperty('--stream-view-border-color', stream.viewBorderColor);
 			}
 		} catch (error) {
 			this.log.error('Error applying view icon styles:', error);
@@ -313,11 +307,8 @@ export default class StreamsPlugin extends Plugin {
 	public updateStreamTodayIcon(stream: Stream): void {
 		const streamIcons = this.ribbonIconsByStream.get(stream.id);
 		if (streamIcons && streamIcons.today) {
-			// First, remove any existing border
-			const iconInner = streamIcons.today.querySelector('.svg-icon') as HTMLElement;
-			if (iconInner) {
-				iconInner.classList.toggle('streams-today-icon-border', stream.showTodayBorder);
-			}
+			// Toggle the border class on the icon container itself
+			streamIcons.today.classList.toggle('streams-today-icon-border', stream.showTodayBorder);
 			
 			// Then apply new styling if enabled
 			if (stream.showTodayBorder) {
@@ -332,11 +323,8 @@ export default class StreamsPlugin extends Plugin {
 	public updateStreamViewIcon(stream: Stream): void {
 		const streamIcons = this.ribbonIconsByStream.get(stream.id);
 		if (streamIcons && streamIcons.view) {
-			// First, remove any existing border
-			const iconInner = streamIcons.view.querySelector('.svg-icon') as HTMLElement;
-			if (iconInner) {
-				iconInner.classList.toggle('streams-view-icon-border', stream.showViewBorder);
-			}
+			// Toggle the border class on the icon container itself
+			streamIcons.view.classList.toggle('streams-view-icon-border', stream.showViewBorder);
 			
 			// Then apply new styling if enabled
 			if (stream.showViewBorder) {
@@ -498,7 +486,16 @@ export default class StreamsPlugin extends Plugin {
 				transform: scale(1);
 			}
 
-			/* Rest of your existing calendar grid styles */
+			/* Icon borders */
+			.streams-today-icon-border {
+				border-left: 2px solid var(--stream-today-border-color, var(--text-accent));
+			}
+
+			.streams-view-icon-border {
+				border-left: 2px solid var(--stream-view-border-color, var(--text-success));
+			}
+
+			/* Calendar styles */
 			.stream-calendar-header {
 				display: flex;
 				justify-content: space-between;
