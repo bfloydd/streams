@@ -76,6 +76,9 @@ export default class StreamsPlugin extends Plugin {
 		// Initialize ribbon icons based on settings
 		this.initializeAllRibbonIcons();
 		
+		// Initialize commands for streams that have them enabled
+		this.initializeStreamCommands();
+		
 		// Log the current state of all streams for debugging
 		this.logInitialState();
 		
@@ -731,7 +734,7 @@ export default class StreamsPlugin extends Plugin {
 		// Add new command
 		const command = this.addCommand({
 			id: commandId,
-			name: `Streams: ${stream.name}, Full`,
+			name: `${stream.name}, Full`,
 			callback: async () => {
 				const command = new OpenStreamViewCommand(this.app, stream);
 				await command.execute();
@@ -905,7 +908,7 @@ export default class StreamsPlugin extends Plugin {
 		// Add new command
 		const command = this.addCommand({
 			id: commandId,
-			name: `Streams: ${stream.name}, Today`,
+			name: `${stream.name}, Today`,
 			callback: async () => {
 				const command = new OpenTodayStreamCommand(this.app, stream);
 				await command.execute();
@@ -977,5 +980,26 @@ export default class StreamsPlugin extends Plugin {
 		// Log after state
 		const isNowVisible = icon.style.display !== 'none' && !icon.classList.contains('is-hidden');
 		console.log(`Icon visibility updated: now ${isNowVisible ? 'visible' : 'hidden'}`);
+	}
+
+	/**
+	 * Initialize commands for streams that have them enabled
+	 */
+	private initializeStreamCommands(): void {
+		this.log.debug('Initializing stream commands...');
+		
+		this.settings.streams.forEach(stream => {
+			// Initialize "Open Today" command if enabled
+			if (stream.addCommand) {
+				this.addStreamCommand(stream);
+				this.log.debug(`Added Open Today command for stream ${stream.name}`);
+			}
+			
+			// Initialize "View Full Stream" command if enabled
+			if (stream.addViewCommand) {
+				this.addStreamViewCommand(stream);
+				this.log.debug(`Added View Full Stream command for stream ${stream.name}`);
+			}
+		});
 	}
 }

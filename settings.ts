@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting } from 'obsidian';
+import { App, PluginSettingTab, Setting, Notice } from 'obsidian';
 import StreamsPlugin from './main';
 import { Stream, StreamsSettings, LucideIcon } from './types';
 import { getFolderSuggestions } from './src/utils/streamUtils';
@@ -231,6 +231,17 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     stream.addCommand = value;
                     this.plugin.toggleStreamCommand(stream);
+                    
+                    // Force commands to re-register if enabling
+                    if (value) {
+                        // Small delay to ensure the command is properly registered
+                        setTimeout(() => {
+                            this.plugin.initializeStreamCommands();
+                            // Show a notice to confirm the command was added
+                            new Notice(`Added "${stream.name}, Today" to command palette`);
+                        }, 100);
+                    }
+                    
                     await this.plugin.saveSettings();
                 }));
 
@@ -242,6 +253,17 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     stream.addViewCommand = value;
                     this.plugin.toggleStreamViewCommand(stream);
+                    
+                    // Force commands to re-register if enabling
+                    if (value) {
+                        // Small delay to ensure the command is properly registered
+                        setTimeout(() => {
+                            this.plugin.initializeStreamCommands();
+                            // Show a notice to confirm the command was added
+                            new Notice(`Added "${stream.name}, Full Stream" to command palette`);
+                        }, 100);
+                    }
+                    
                     await this.plugin.saveSettings();
                 }));
 
