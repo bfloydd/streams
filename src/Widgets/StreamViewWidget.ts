@@ -1,6 +1,5 @@
 import { App, ItemView, MarkdownRenderer, TFile, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../types';
-import StreamsPlugin from '../../main';
 import { Logger } from '../utils/Logger';
 
 export const STREAM_VIEW_TYPE = 'streams-full-view';
@@ -8,7 +7,6 @@ export const STREAM_VIEW_TYPE = 'streams-full-view';
 export class StreamViewWidget extends ItemView {
     private stream: Stream;
     public app: App;
-    private plugin: StreamsPlugin;
     private streamContentEl: HTMLElement;
     private isLoading: boolean = false;
     private currentDate: Date;
@@ -20,14 +18,11 @@ export class StreamViewWidget extends ItemView {
     private lastScrollPosition: number = 0;
     private log: Logger;
 
-    constructor(leaf: WorkspaceLeaf, app: App, stream: Stream, plugin?: StreamsPlugin) {
+    constructor(leaf: WorkspaceLeaf, app: App, stream: Stream, plugin?: any) {
         super(leaf);
         this.app = app;
         this.stream = stream;
         this.currentDate = new Date();
-        
-        // Store the plugin if provided
-        this.plugin = plugin as StreamsPlugin;
         
         // Get logger singleton instance
         this.log = new Logger();

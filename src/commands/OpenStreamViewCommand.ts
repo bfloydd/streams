@@ -1,19 +1,16 @@
 import { App, Notice, TFile, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../types';
 import { STREAM_VIEW_TYPE, StreamViewWidget } from '../Widgets/StreamViewWidget';
-import StreamsPlugin from '../../main';
 import { Logger } from '../utils/Logger';
 
 export class OpenStreamViewCommand {
     private app: App;
     private stream: Stream;
-    private plugin?: StreamsPlugin;
     private log: Logger;
 
-    constructor(app: App, stream: Stream, plugin?: StreamsPlugin) {
+    constructor(app: App, stream: Stream, plugin?: any) {
         this.app = app;
         this.stream = stream;
-        this.plugin = plugin;
         this.log = new Logger(); // Get logger singleton instance
     }
 

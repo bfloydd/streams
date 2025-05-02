@@ -1,9 +1,7 @@
-import { App, Editor, MarkdownView, Modal, Notice, Plugin, PluginSettingTab, Setting, WorkspaceLeaf, Platform, Menu, TFile, setIcon } from 'obsidian';
+import { App, MarkdownView, Notice, Plugin, WorkspaceLeaf, Platform, TFile } from 'obsidian';
 import { StreamsSettingTab } from './settings';
 import { Stream, StreamsSettings } from './types';
-import { createDailyNote, openStreamDate } from './src/utils/streamUtils';
 import { CalendarWidget } from './src/Widgets/CalendarWidget';
-import { normalize } from 'path';
 import { Logger } from './src/utils/Logger';
 import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
 import { StreamSelectionModal } from './src/modals/StreamSelectionModal';

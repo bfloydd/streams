@@ -1,9 +1,6 @@
 import { App, PluginSettingTab, Setting, Notice, TFolder } from 'obsidian';
 import StreamsPlugin from './main';
 import { Stream, StreamsSettings, LucideIcon } from './types';
-import { getFolderSuggestions } from './src/utils/streamUtils';
-import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
-import { OpenStreamViewCommand } from './src/commands/OpenStreamViewCommand';
 
 export class StreamsSettingTab extends PluginSettingTab {
     plugin: StreamsPlugin;
