@@ -310,7 +310,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setWarning()
                 .onClick(async () => {
                     // Remove all UI elements for this stream
-                    console.log(`Deleting stream ${stream.id} (${stream.name})`);
+                    this.plugin.log.debug(`Deleting stream ${stream.id} (${stream.name})`);
                     
                     // Remove from settings
                     this.plugin.settings.streams.splice(index, 1);
@@ -365,7 +365,7 @@ export class StreamsSettingTab extends PluginSettingTab {
             
             return folderExists;
         } catch (error) {
-            console.error('Error validating folder path:', error);
+            this.plugin.log.error('Error validating folder path:', error);
             return false;
         }
     }

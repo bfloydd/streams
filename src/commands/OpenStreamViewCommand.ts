@@ -1,14 +1,17 @@
 import { App, Notice, TFile, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../types';
 import { STREAM_VIEW_TYPE, StreamViewWidget } from '../Widgets/StreamViewWidget';
+import StreamsPlugin from '../../main';
 
 export class OpenStreamViewCommand {
     private app: App;
     private stream: Stream;
+    private plugin?: StreamsPlugin;
 
-    constructor(app: App, stream: Stream) {
+    constructor(app: App, stream: Stream, plugin?: StreamsPlugin) {
         this.app = app;
         this.stream = stream;
+        this.plugin = plugin;
     }
 
     async execute(): Promise<void> {
@@ -33,7 +36,7 @@ export class OpenStreamViewCommand {
             // Activate the leaf
             this.app.workspace.revealLeaf(leaf);
         } catch (error) {
-            console.error('Error opening stream view:', error);
+            this.plugin?.log.error('Error opening stream view:', error);
             new Notice('Failed to open stream view');
         }
     }

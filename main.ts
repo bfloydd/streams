@@ -61,7 +61,7 @@ export default class StreamsPlugin extends Plugin {
 	commandsByStreamId: Map<string, string> = new Map();
 	viewCommandsByStreamId: Map<string, string> = new Map();
 	calendarWidgets: Map<string, CalendarWidget> = new Map();
-	private log: Logger = new Logger();
+	public log: Logger = new Logger();
 
 	async onload() {
 		this.log.info('Loading Streams plugin...');
@@ -97,11 +97,11 @@ export default class StreamsPlugin extends Plugin {
 	 * Log the initial state of all streams for debugging
 	 */
 	private logInitialState(): void {
-		console.log("=== INITIAL STREAM RIBBON STATES ===");
+		this.log.debug("=== INITIAL STREAM RIBBON STATES ===");
 		this.settings.streams.forEach(stream => {
-			console.log(`Stream ${stream.id} (${stream.name}): Today=${stream.showTodayInRibbon}, View=${stream.showFullStreamInRibbon}`);
+			this.log.debug(`Stream ${stream.id} (${stream.name}): Today=${stream.showTodayInRibbon}, View=${stream.showFullStreamInRibbon}`);
 		});
-		console.log("===================================");
+		this.log.debug("===================================");
 	}
 	
 	/**
@@ -165,7 +165,7 @@ export default class StreamsPlugin extends Plugin {
 			};
 		}
 		
-		return new StreamViewWidget(leaf, this.app, stream);
+		return new StreamViewWidget(leaf, this.app, stream, this);
 	}
 	
 	/**
@@ -195,7 +195,7 @@ export default class StreamsPlugin extends Plugin {
 		
 		// Create Today icon if not already created
 		if (!streamIcons.today) {
-			console.log(`Creating Today icon for stream ${stream.id}, initial visibility: ${stream.showTodayInRibbon}`);
+			this.log.debug(`Creating Today icon for stream ${stream.id}, initial visibility: ${stream.showTodayInRibbon}`);
 			
 			streamIcons.today = this.addRibbonIcon(
 				stream.icon,
@@ -220,13 +220,13 @@ export default class StreamsPlugin extends Plugin {
 		
 		// Create View icon if not already created
 		if (!streamIcons.view) {
-			console.log(`Creating View icon for stream ${stream.id}, initial visibility: ${stream.showFullStreamInRibbon}`);
+			this.log.debug(`Creating View icon for stream ${stream.id}, initial visibility: ${stream.showFullStreamInRibbon}`);
 			
 			streamIcons.view = this.addRibbonIcon(
 				stream.viewIcon || stream.icon,
 				`Streams: ${stream.name}, Full`,
 				() => {
-					const command = new OpenStreamViewCommand(this.app, stream);
+					const command = new OpenStreamViewCommand(this.app, stream, this);
 					command.execute();
 				}
 			);
@@ -248,7 +248,7 @@ export default class StreamsPlugin extends Plugin {
 	 * Apply custom styling to Today icon based on stream settings
 	 */
 	private applyTodayIconStyles(icon: HTMLElement, stream: Stream): void {
-		console.log(`Applying Today icon styles for stream ${stream.id}. Border: ${stream.showTodayBorder}, Color: ${stream.todayBorderColor}`);
+		this.log.debug(`Applying Today icon styles for stream ${stream.id}. Border: ${stream.showTodayBorder}, Color: ${stream.todayBorderColor}`);
 		
 		// Remove existing CSS classes that might affect border styling
 		icon.removeClass('stream-today-icon');
@@ -276,7 +276,7 @@ export default class StreamsPlugin extends Plugin {
 	 * Apply custom styling to View icon based on stream settings
 	 */
 	private applyViewIconStyles(icon: HTMLElement, stream: Stream): void {
-		console.log(`Applying View icon styles for stream ${stream.id}. Border: ${stream.showViewBorder}, Color: ${stream.viewBorderColor}`);
+		this.log.debug(`Applying View icon styles for stream ${stream.id}. Border: ${stream.showViewBorder}, Color: ${stream.viewBorderColor}`);
 		
 		// Remove existing CSS classes that might affect border styling
 		icon.removeClass('stream-view-icon');
@@ -316,7 +316,7 @@ export default class StreamsPlugin extends Plugin {
 		const streamIcons = this.ribbonIconsByStream.get(stream.id);
 		if (!streamIcons) return;
 		
-		console.log(`Updating visibility for stream ${stream.id}: Today=${stream.showTodayInRibbon}, View=${stream.showFullStreamInRibbon}`);
+		this.log.debug(`Updating visibility for stream ${stream.id}: Today=${stream.showTodayInRibbon}, View=${stream.showFullStreamInRibbon}`);
 		
 		// Update Today icon visibility
 		if (streamIcons.today) {
@@ -333,7 +333,7 @@ export default class StreamsPlugin extends Plugin {
 	 * Update a stream's Today icon
 	 */
 	public updateStreamTodayIcon(stream: Stream): void {
-		console.log(`Toggle Today icon for stream ${stream.id} to ${stream.showTodayInRibbon}`);
+		this.log.debug(`Toggle Today icon for stream ${stream.id} to ${stream.showTodayInRibbon}`);
 		
 		// Create icons if needed
 		this.createStreamIcons(stream);
@@ -351,7 +351,7 @@ export default class StreamsPlugin extends Plugin {
 	 * Update a stream's View icon
 	 */
 	public updateStreamViewIcon(stream: Stream): void {
-		console.log(`Toggle View icon for stream ${stream.id} to ${stream.showFullStreamInRibbon}`);
+		this.log.debug(`Toggle View icon for stream ${stream.id} to ${stream.showFullStreamInRibbon}`);
 		
 		// Create icons if needed
 		this.createStreamIcons(stream);
@@ -736,7 +736,7 @@ export default class StreamsPlugin extends Plugin {
 			id: commandId,
 			name: `${stream.name}, Full`,
 			callback: async () => {
-				const command = new OpenStreamViewCommand(this.app, stream);
+				const command = new OpenStreamViewCommand(this.app, stream, this);
 				await command.execute();
 			}
 		});
@@ -762,7 +762,7 @@ export default class StreamsPlugin extends Plugin {
 	 * Completely reset and rebuild all ribbon icons based on current settings
 	 */
 	public forceRebuildAllIcons(): void {
-		console.log("=== FORCE REBUILDING ALL RIBBON ICONS ===");
+		this.log.debug("=== FORCE REBUILDING ALL RIBBON ICONS ===");
 		
 		// First, ensure all icons are created
 		this.settings.streams.forEach(stream => {
@@ -772,14 +772,14 @@ export default class StreamsPlugin extends Plugin {
 		// Then update their visibility
 		this.updateAllIconVisibility();
 		
-		console.log("=== FORCE REBUILD COMPLETE ===");
+		this.log.debug("=== FORCE REBUILD COMPLETE ===");
 	}
 
 	/**
 	 * Directly toggle a specific icon without affecting any other icons
 	 */
 	public directlyToggleSpecificRibbonIcon(type: 'today' | 'view', stream: Stream, enabled: boolean): void {
-		console.log(`Directly toggling ${type} icon for ${stream.id} to ${enabled}`);
+		this.log.debug(`Directly toggling ${type} icon for ${stream.id} to ${enabled}`);
 		
 		// Create icons if needed
 		this.createStreamIcons(stream);
@@ -853,22 +853,22 @@ export default class StreamsPlugin extends Plugin {
 	 * Save settings
 	 */
 	async saveSettings(refreshUI: boolean = false) {
-		console.log("Saving settings...");
+		this.log.debug("Saving settings...");
 		try {
 			await this.saveData(this.settings);
-			console.log("Settings saved successfully");
+			this.log.debug("Settings saved successfully");
 			
-			// Log the currently saved state
-			console.log("=== SAVED STREAM STATES ===");
+			// Log the currently saved state for debugging
+			this.log.debug("=== SAVED STREAM STATES ===");
 			this.settings.streams.forEach(stream => {
-				console.log(`Stream ${stream.id} (${stream.name}): Today=${stream.showTodayInRibbon}, View=${stream.showFullStreamInRibbon}`);
+				this.log.debug(`Stream ${stream.id} (${stream.name}): Today=${stream.showTodayInRibbon}, View=${stream.showFullStreamInRibbon}`);
 			});
-			console.log("==========================");
+			this.log.debug("==========================");
 			
 			// Update visibility based on current settings
 			this.updateAllIconVisibility();
 		} catch (error) {
-			console.error("Error saving settings:", error);
+			this.log.error("Error saving settings:", error);
 		}
 	}
 	
@@ -936,9 +936,8 @@ export default class StreamsPlugin extends Plugin {
 	 * Update an icon's visibility with multiple approaches to ensure it sticks
 	 */
 	private updateIconVisibility(icon: HTMLElement, visible: boolean): void {
-		// Log before state
+		// Log before and after state in a single message to reduce noise
 		const wasVisible = icon.style.display !== 'none' && !icon.classList.contains('is-hidden');
-		console.log(`Updating icon visibility: was ${wasVisible ? 'visible' : 'hidden'}, will be ${visible ? 'visible' : 'hidden'}`);
 		
 		// Capture the stream ID and icon type for later reapplying styles
 		const streamId = icon.getAttribute('data-stream-id');
@@ -977,9 +976,9 @@ export default class StreamsPlugin extends Plugin {
 			icon.classList.add('is-hidden');
 		}
 		
-		// Log after state
+		// Log visibility change once instead of before and after
 		const isNowVisible = icon.style.display !== 'none' && !icon.classList.contains('is-hidden');
-		console.log(`Icon visibility updated: now ${isNowVisible ? 'visible' : 'hidden'}`);
+		this.log.debug(`Icon visibility update: ${wasVisible ? 'visible' : 'hidden'} → ${isNowVisible ? 'visible' : 'hidden'}`);
 	}
 
 	/**
