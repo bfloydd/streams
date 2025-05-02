@@ -574,24 +574,6 @@ If your plugin does not need CSS, delete this file.
     margin-top: -10px;
 }
 
-/* Force icons to be distinct */
-.side-dock-ribbon-action[data-icon-type="today"] {
-    /* Border styling handled dynamically via JavaScript */
-}
-
-.side-dock-ribbon-action[data-icon-type="view"] {
-    /* Border styling handled dynamically via JavaScript */
-}
-
-/* Keep individual icon borders */
-.streams-today-icon {
-    /* Border styling handled dynamically via JavaScript */
-}
-
-.streams-view-icon {
-    /* Border styling handled dynamically via JavaScript */
-}
-
 /* Fix for hidden ribbon icons */
 .is-hidden.side-dock-ribbon-action {
     display: none !important;

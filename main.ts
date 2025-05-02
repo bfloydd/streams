@@ -985,7 +985,7 @@ export default class StreamsPlugin extends Plugin {
 	/**
 	 * Initialize commands for streams that have them enabled
 	 */
-	private initializeStreamCommands(): void {
+	public initializeStreamCommands(): void {
 		this.log.debug('Initializing stream commands...');
 		
 		this.settings.streams.forEach(stream => {
