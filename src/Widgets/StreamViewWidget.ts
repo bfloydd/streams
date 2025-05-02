@@ -1,6 +1,7 @@
 import { App, ItemView, MarkdownRenderer, TFile, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../types';
 import StreamsPlugin from '../../main';
+import { Logger } from '../utils/Logger';
 
 export const STREAM_VIEW_TYPE = 'streams-full-view';
 
@@ -17,6 +18,7 @@ export class StreamViewWidget extends ItemView {
     private observer: IntersectionObserver | null = null;
     private scrollTimeout: number | null = null;
     private lastScrollPosition: number = 0;
+    private log: Logger;
 
     constructor(leaf: WorkspaceLeaf, app: App, stream: Stream, plugin?: StreamsPlugin) {
         super(leaf);
@@ -24,8 +26,11 @@ export class StreamViewWidget extends ItemView {
         this.stream = stream;
         this.currentDate = new Date();
         
-        // Store the plugin if provided (for logging)
+        // Store the plugin if provided
         this.plugin = plugin as StreamsPlugin;
+        
+        // Get logger singleton instance
+        this.log = new Logger();
     }
 
     getViewType(): string {
@@ -41,7 +46,7 @@ export class StreamViewWidget extends ItemView {
     }
 
     async onOpen(): Promise<void> {
-        this.plugin?.log.debug(`Opening stream view for: ${this.stream.name}`);
+        this.log.debug(`Opening stream view for: ${this.stream.name}`);
         
         // Create the main container
         const container = this.containerEl.children[1];
@@ -72,7 +77,7 @@ export class StreamViewWidget extends ItemView {
     }
 
     private setupInfiniteScroll() {
-        this.plugin?.log.debug(`Setting up infinite scroll for: ${this.stream.name}`);
+        this.log.debug(`Setting up infinite scroll for: ${this.stream.name}`);
         
         // Clean up any previous observer
         if (this.observer) {
@@ -90,7 +95,7 @@ export class StreamViewWidget extends ItemView {
         this.observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    this.plugin?.log.debug(`Trigger element intersection detected: ${entry.intersectionRatio.toFixed(2)}`);
+                    this.log.debug(`Trigger element intersection detected: ${entry.intersectionRatio.toFixed(2)}`);
                     this.triggerLoadMore();
                 }
             });
@@ -101,7 +106,7 @@ export class StreamViewWidget extends ItemView {
 
         // Start observing the trigger element
         this.observer.observe(this.loadMoreTrigger);
-        this.plugin?.log.debug('Intersection observer started');
+        this.log.debug('Intersection observer started');
         
         // Also add scroll event as backup with debouncing
         this.registerDomEvent(window, 'scroll', () => {
@@ -122,7 +127,7 @@ export class StreamViewWidget extends ItemView {
                     
                     // If the trigger is within 300px of the viewport, load more
                     if (rect.top < windowHeight + 300) {
-                        this.plugin?.log.debug(`Scroll trigger detected, distance from viewport: ${(rect.top - windowHeight).toFixed(0)}px`);
+                        this.log.debug(`Scroll trigger detected, distance from viewport: ${(rect.top - windowHeight).toFixed(0)}px`);
                         this.triggerLoadMore();
                     }
                 }
@@ -136,13 +141,13 @@ export class StreamViewWidget extends ItemView {
             return;
         }
         
-        this.plugin?.log.debug('Triggering load more content');
+        this.log.debug('Triggering load more content');
         this.loadMoreContent();
     }
 
     async loadInitialContent(): Promise<void> {
         this.isLoading = true;
-        this.plugin?.log.debug(`Loading initial content for stream: ${this.stream.name}`);
+        this.log.debug(`Loading initial content for stream: ${this.stream.name}`);
 
         try {
             // Get today's date
@@ -153,7 +158,7 @@ export class StreamViewWidget extends ItemView {
             
             if (streamFiles.length === 0) {
                 // No files in the stream at all
-                this.plugin?.log.debug('No stream files found, showing empty state');
+                this.log.debug('No stream files found, showing empty state');
                 this.renderEmptyState();
                 this.isLoading = false;
                 return;
@@ -165,7 +170,7 @@ export class StreamViewWidget extends ItemView {
             // Take the first file (most recent)
             const latestFile = sortedFiles[0];
             
-            this.plugin?.log.debug(`Loading most recent file: ${latestFile.file.path}`);
+            this.log.debug(`Loading most recent file: ${latestFile.file.path}`);
             
             // Get content for the most recent file
             const content = await this.app.vault.read(latestFile.file);
@@ -186,12 +191,12 @@ export class StreamViewWidget extends ItemView {
             
             // Removed "Create Today's Note" button section
         } catch (error) {
-            this.plugin?.log.error('Error loading initial content:', error);
+            this.log.error('Error loading initial content:', error);
             this.renderEmptyState();
         }
         
         this.isLoading = false;
-        this.plugin?.log.debug('Initial content loading complete');
+        this.log.debug('Initial content loading complete');
         
         // Force check if we need to load more immediately
         // This helps when the content doesn't fill the viewport
@@ -201,7 +206,7 @@ export class StreamViewWidget extends ItemView {
             const contentHeight = this.streamContentEl.getBoundingClientRect().height;
             
             if (contentHeight < viewportHeight && !this.noMoreContent) {
-                this.plugin?.log.debug('Content does not fill viewport, loading more immediately');
+                this.log.debug('Content does not fill viewport, loading more immediately');
                 this.triggerLoadMore();
             }
         }, 100);
@@ -209,19 +214,19 @@ export class StreamViewWidget extends ItemView {
 
     async loadMoreContent(): Promise<void> {
         if (this.isLoading || this.noMoreContent) {
-            this.plugin?.log.debug(`Load more aborted: ${this.isLoading ? 'Already loading' : 'No more content'}`);
+            this.log.debug(`Load more aborted: ${this.isLoading ? 'Already loading' : 'No more content'}`);
             return;
         }
         
         this.isLoading = true;
-        this.plugin?.log.debug('Loading more content...');
+        this.log.debug('Loading more content...');
         
         try {
             // Get the last date we loaded
             const lastDate = this.olderDates[this.olderDates.length - 1];
             const lastTimestamp = lastDate.getTime();
             
-            this.plugin?.log.debug(`Looking for content older than: ${lastDate.toISOString()}`);
+            this.log.debug(`Looking for content older than: ${lastDate.toISOString()}`);
             
             // Scan the folder for all available files
             const streamFiles = await this.getStreamFiles();
@@ -232,7 +237,7 @@ export class StreamViewWidget extends ItemView {
             // Find files older than the last date we loaded
             const olderFiles = sortedFiles.filter(file => file.date.getTime() < lastTimestamp);
             
-            this.plugin?.log.debug(`Found ${olderFiles.length} older files to load`);
+            this.log.debug(`Found ${olderFiles.length} older files to load`);
             
             // Take the next batch (up to 5 files)
             const nextBatch = olderFiles.slice(0, 5);
@@ -240,7 +245,7 @@ export class StreamViewWidget extends ItemView {
             if (nextBatch.length > 0) {
                 // Load and render each file
                 for (const fileInfo of nextBatch) {
-                    this.plugin?.log.debug(`Loading file: ${fileInfo.file.path}`);
+                    this.log.debug(`Loading file: ${fileInfo.file.path}`);
                     const content = await this.app.vault.read(fileInfo.file);
                     this.renderDateContent(fileInfo.date, content);
                     this.olderDates.push(fileInfo.date);
@@ -250,7 +255,7 @@ export class StreamViewWidget extends ItemView {
                 this.noMoreContent = olderFiles.length <= nextBatch.length;
                 
                 if (this.noMoreContent) {
-                    this.plugin?.log.debug('No more content to load after this batch');
+                    this.log.debug('No more content to load after this batch');
                     // Add end marker
                     const endMarker = this.streamContentEl.createDiv('stream-view-end-marker');
                     endMarker.textContent = 'End of stream';
@@ -260,7 +265,7 @@ export class StreamViewWidget extends ItemView {
             } else {
                 // No more files to load
                 this.noMoreContent = true;
-                this.plugin?.log.debug('No more content to load');
+                this.log.debug('No more content to load');
                 
                 // Add an invisible element to indicate no more content
                 const endMarker = this.streamContentEl.createDiv('stream-view-end-marker');
@@ -269,11 +274,11 @@ export class StreamViewWidget extends ItemView {
                 endMarker.style.height = '1px';
             }
         } catch (error) {
-            this.plugin?.log.error('Error loading more content:', error);
+            this.log.error('Error loading more content:', error);
         } finally {
             // Always reset loading state, even after errors
             this.isLoading = false;
-            this.plugin?.log.debug('Loading more content complete');
+            this.log.debug('Loading more content complete');
             
             // Check if we need to load even more content
             setTimeout(() => {
@@ -282,7 +287,7 @@ export class StreamViewWidget extends ItemView {
                 const contentHeight = this.streamContentEl.getBoundingClientRect().height;
                 
                 if (contentHeight < viewportHeight && !this.noMoreContent) {
-                    this.plugin?.log.debug('Content still does not fill viewport, loading more');
+                    this.log.debug('Content still does not fill viewport, loading more');
                     this.triggerLoadMore();
                 }
             }, 100);
@@ -398,7 +403,7 @@ export class StreamViewWidget extends ItemView {
                     el.appendChild(img);
                 }
             } catch (error) {
-                this.plugin?.log.error('Error processing embed:', error);
+                this.log.error('Error processing embed:', error);
             }
         });
     }
@@ -439,7 +444,7 @@ export class StreamViewWidget extends ItemView {
     async setState(state: any): Promise<void> {
         // Update the view if the stream changes
         if (state.streamId !== this.stream.id) {
-            this.plugin?.log.debug(`Stream changed from ${this.stream.id} to ${state.streamId}`);
+            this.log.debug(`Stream changed from ${this.stream.id} to ${state.streamId}`);
             
             // Reset all internal state before switching streams
             this.isLoading = false;
@@ -470,7 +475,7 @@ export class StreamViewWidget extends ItemView {
                     this.stream = newStream;
                     
                     // Completely rebuild the UI
-                    this.plugin?.log.debug(`Rebuilding UI for stream: ${this.stream.name}`);
+                    this.log.debug(`Rebuilding UI for stream: ${this.stream.name}`);
                     
                     // Empty container first
                     const container = this.containerEl.children[1];
@@ -503,7 +508,7 @@ export class StreamViewWidget extends ItemView {
                         const contentHeight = this.streamContentEl.getBoundingClientRect().height;
                         
                         if (contentHeight < viewportHeight && !this.noMoreContent) {
-                            this.plugin?.log.debug('Content does not fill viewport after stream switch, loading more');
+                            this.log.debug('Content does not fill viewport after stream switch, loading more');
                             this.triggerLoadMore();
                         }
                     }, 300); // Slightly longer timeout to ensure rendering is complete
@@ -513,7 +518,7 @@ export class StreamViewWidget extends ItemView {
     }
 
     async onClose() {
-        this.plugin?.log.debug(`Closing stream view for: ${this.stream.name}`);
+        this.log.debug(`Closing stream view for: ${this.stream.name}`);
         
         // Clean up observers
         if (this.observer) {
