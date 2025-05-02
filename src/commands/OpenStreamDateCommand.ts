@@ -23,13 +23,20 @@ export class OpenStreamDateCommand implements Command {
         }
         
         // Format the date for debugging
-        const year = this.date.getFullYear();
-        const month = String(this.date.getMonth() + 1).padStart(2, '0');
-        const day = String(this.date.getDate()).padStart(2, '0');
-        const formatted = `${year}-${month}-${day}`;
+        const formatted = this.formatDateForLogging(this.date);
         
         log.debug(`Formatted date for stream: ${formatted}`);
         
         await openStreamDate(this.app, this.stream, this.date);
+    }
+    
+    /**
+     * Format a date as YYYY-MM-DD for logging purposes
+     */
+    private formatDateForLogging(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 } 

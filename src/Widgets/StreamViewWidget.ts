@@ -194,14 +194,7 @@ export class StreamViewWidget extends ItemView {
         // Force check if we need to load more immediately
         // This helps when the content doesn't fill the viewport
         setTimeout(() => {
-            // If content doesn't fill the viewport, trigger more loading
-            const viewportHeight = window.innerHeight;
-            const contentHeight = this.streamContentEl.getBoundingClientRect().height;
-            
-            if (contentHeight < viewportHeight && !this.noMoreContent) {
-                this.log.debug('Content does not fill viewport, loading more immediately');
-                this.triggerLoadMore();
-            }
+            this.checkIfViewportNeedsMoreContent();
         }, 100);
     }
 
@@ -249,22 +242,14 @@ export class StreamViewWidget extends ItemView {
                 
                 if (this.noMoreContent) {
                     this.log.debug('No more content to load after this batch');
-                    // Add end marker
-                    const endMarker = this.streamContentEl.createDiv('stream-view-end-marker');
-                    endMarker.textContent = 'End of stream';
-                    endMarker.style.opacity = '0';
-                    endMarker.style.height = '1px';
+                    this.addEndMarker();
                 }
             } else {
                 // No more files to load
                 this.noMoreContent = true;
                 this.log.debug('No more content to load');
                 
-                // Add an invisible element to indicate no more content
-                const endMarker = this.streamContentEl.createDiv('stream-view-end-marker');
-                endMarker.textContent = 'End of stream';
-                endMarker.style.opacity = '0';
-                endMarker.style.height = '1px';
+                this.addEndMarker();
             }
         } catch (error) {
             this.log.error('Error loading more content:', error);
@@ -275,16 +260,33 @@ export class StreamViewWidget extends ItemView {
             
             // Check if we need to load even more content
             setTimeout(() => {
-                // If content still doesn't fill the viewport and we have more to load
-                const viewportHeight = window.innerHeight;
-                const contentHeight = this.streamContentEl.getBoundingClientRect().height;
-                
-                if (contentHeight < viewportHeight && !this.noMoreContent) {
-                    this.log.debug('Content still does not fill viewport, loading more');
-                    this.triggerLoadMore();
-                }
+                this.checkIfViewportNeedsMoreContent();
             }, 100);
         }
+    }
+    
+    /**
+     * Checks if the viewport needs more content and triggers loading if needed
+     */
+    private checkIfViewportNeedsMoreContent(): void {
+        // If content doesn't fill the viewport, trigger more loading
+        const viewportHeight = window.innerHeight;
+        const contentHeight = this.streamContentEl.getBoundingClientRect().height;
+        
+        if (contentHeight < viewportHeight && !this.noMoreContent) {
+            this.log.debug('Content does not fill viewport, loading more');
+            this.triggerLoadMore();
+        }
+    }
+    
+    /**
+     * Adds an invisible end marker to the stream content
+     */
+    private addEndMarker(): void {
+        const endMarker = this.streamContentEl.createDiv('stream-view-end-marker');
+        endMarker.textContent = 'End of stream';
+        endMarker.style.opacity = '0';
+        endMarker.style.height = '1px';
     }
     
     /**
@@ -354,7 +356,7 @@ export class StreamViewWidget extends ItemView {
         const contentContainer = dateSection.createDiv('stream-view-date-content');
         
         // Format the source path
-        const sourcePath = `${this.stream.folder}/${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}.md`;
+        const sourcePath = `${this.stream.folder}/${this.formatDateForFilename(date)}.md`;
         
         // Use the Obsidian markdown renderer with proper context
         MarkdownRenderer.renderMarkdown(
@@ -410,10 +412,7 @@ export class StreamViewWidget extends ItemView {
 
     async openDateFile(date: Date): Promise<void> {
         // Format date as YYYY-MM-DD
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const fileName = `${year}-${month}-${day}.md`;
+        const fileName = `${this.formatDateForFilename(date)}.md`;
         const streamPath = `${this.stream.folder}/${fileName}`;
 
         // Check if file exists
@@ -524,5 +523,15 @@ export class StreamViewWidget extends ItemView {
             window.clearTimeout(this.scrollTimeout);
             this.scrollTimeout = null;
         }
+    }
+
+    /**
+     * Formats a date as YYYY-MM-DD for filenames
+     */
+    private formatDateForFilename(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 } 

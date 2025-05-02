@@ -10,6 +10,26 @@ function normalizePath(path: string): string {
     return path.replace(/\\/g, '/').replace(/\/+/g, '/');
 }
 
+/**
+ * Normalize folder path - convert backslashes to forward slashes and filter out empty segments
+ */
+export function normalizeFolderPath(folder: string): string {
+    return folder
+        .split(/[/\\]/)  // Split on both forward and back slashes
+        .filter(Boolean)
+        .join('/');      // Always join with forward slashes
+}
+
+/**
+ * Formats a date as YYYY-MM-DD for filenames
+ */
+export function formatDateToYYYYMMDD(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 export function getFolderSuggestions(app: App): string[] {
     const folders: string[] = [];
     
@@ -36,16 +56,10 @@ export function getFolderSuggestions(app: App): string[] {
 export async function createDailyNote(app: App, folder: string): Promise<TFile | null> {
     // Format today's date as YYYY-MM-DD
     const date = new Date();
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const fileName = `${year}-${month}-${day}.md`;
+    const fileName = `${formatDateToYYYYMMDD(date)}.md`;
 
     // Normalize folder path
-    const folderPath = folder
-        .split(/[/\\]/)
-        .filter(Boolean)
-        .join('/');
+    const folderPath = normalizeFolderPath(folder);
 
     // Construct the full file path
     const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
@@ -77,18 +91,12 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
     }
     
     // Format date as YYYY-MM-DD
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const fileName = `${year}-${month}-${day}.md`;
+    const fileName = `${formatDateToYYYYMMDD(date)}.md`;
     
-    log.debug(`Formatted date: ${year}-${month}-${day}`);
+    log.debug(`Formatted date: ${formatDateToYYYYMMDD(date)}`);
 
     // Normalize folder path - ensure forward slashes
-    const folderPath = stream.folder
-        .split(/[/\\]/)  // Split on both forward and back slashes
-        .filter(Boolean)
-        .join('/');      // Always join with forward slashes
+    const folderPath = normalizeFolderPath(stream.folder);
     
     const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
     log.debug(`Looking for file at path: ${filePath}`);

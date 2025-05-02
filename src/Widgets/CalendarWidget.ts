@@ -125,32 +125,7 @@ export class CalendarWidget {
         prevDayButton.addEventListener('click', async (e) => {
             e.stopPropagation(); // Prevent toggle expansion
             this.log.debug("LEFT ARROW CLICKED - Going to PREVIOUS day");
-            
-            // Direct navigation to previous day using explicit manual date calculation
-            if (this.currentViewedDate) {
-                const [year, month, day] = this.currentViewedDate.split('-').map(n => parseInt(n, 10));
-                
-                // Create a date object for the current day
-                const currentDate = new Date(year, month - 1, day);
-                this.log.debug(`Current date before navigation: ${currentDate.toISOString()}`);
-                
-                // Create a new date object for the day before
-                const previousDate = new Date(currentDate);
-                previousDate.setDate(previousDate.getDate() - 1);
-                this.log.debug(`Target previous date: ${previousDate.toISOString()}`);
-                
-                // Navigate to the previous day
-                const command = new OpenStreamDateCommand(this.app, this.selectedStream, previousDate);
-                await command.execute();
-            } else {
-                // If no current date, use yesterday
-                const yesterday = new Date();
-                yesterday.setDate(yesterday.getDate() - 1);
-                this.log.debug(`No current date, going to yesterday: ${yesterday.toISOString()}`);
-                
-                const command = new OpenStreamDateCommand(this.app, this.selectedStream, yesterday);
-                await command.execute();
-            }
+            await this.navigateToAdjacentDay(-1);
         });
         
         // Add today button (between navigation buttons)
@@ -165,32 +140,7 @@ export class CalendarWidget {
         nextDayButton.addEventListener('click', async (e) => {
             e.stopPropagation(); // Prevent toggle expansion
             this.log.debug("RIGHT ARROW CLICKED - Going to NEXT day");
-            
-            // Direct navigation to next day using explicit manual date calculation
-            if (this.currentViewedDate) {
-                const [year, month, day] = this.currentViewedDate.split('-').map(n => parseInt(n, 10));
-                
-                // Create a date object for the current day
-                const currentDate = new Date(year, month - 1, day);
-                this.log.debug(`Current date before navigation: ${currentDate.toISOString()}`);
-                
-                // Create a new date object for the next day
-                const nextDate = new Date(currentDate);
-                nextDate.setDate(nextDate.getDate() + 1);
-                this.log.debug(`Target next date: ${nextDate.toISOString()}`);
-                
-                // Navigate to the next day
-                const command = new OpenStreamDateCommand(this.app, this.selectedStream, nextDate);
-                await command.execute();
-            } else {
-                // If no current date, use tomorrow
-                const tomorrow = new Date();
-                tomorrow.setDate(tomorrow.getDate() + 1);
-                this.log.debug(`No current date, going to tomorrow: ${tomorrow.toISOString()}`);
-                
-                const command = new OpenStreamDateCommand(this.app, this.selectedStream, tomorrow);
-                await command.execute();
-            }
+            await this.navigateToAdjacentDay(1);
         });
 
         // Create expanded view
@@ -272,8 +222,7 @@ export class CalendarWidget {
             this.log.debug(`Current date is today, showing "TODAY"`);
         } else {
             // Explicitly parse date components to avoid timezone issues
-            const [year, month, day] = this.currentViewedDate.split('-').map(n => parseInt(n, 10));
-            const viewedDate = new Date(year, month - 1, day); // month is 0-based in Date constructor
+            const viewedDate = this.parseViewedDate(this.currentViewedDate);
             
             const formattedDate = this.formatDate(viewedDate);
             this.todayButton.setText(formattedDate);
@@ -509,64 +458,33 @@ export class CalendarWidget {
     }
 
     /**
-     * Navigate to the previous or next day relative to the currently viewed date
-     * @param offset Number of days to offset (negative for previous, positive for next)
+     * Navigate to a day that is offset by a given number of days
+     * @param offset Number of days to offset (positive for future, negative for past)
      */
     private async navigateToAdjacentDay(offset: number): Promise<void> {
-        this.log.debug(`==== NAVIGATION START ====`);
-        this.log.debug(`Current viewed date: ${this.currentViewedDate}`);
-        this.log.debug(`Offset: ${offset}`);
-        
-        // Create a new date from the current viewed date or today
-        let baseDate: Date;
-        
+        // Direct navigation using explicit manual date calculation
         if (this.currentViewedDate) {
-            // Split into components and create new date to avoid timezone issues
-            const [year, month, day] = this.currentViewedDate.split('-').map(n => parseInt(n, 10));
-            baseDate = new Date(year, month - 1, day);
-            this.log.debug(`Base date from current viewed: ${baseDate.toISOString()}`);
+            const currentDate = this.parseViewedDate(this.currentViewedDate);
+            this.log.debug(`Current date before navigation: ${currentDate.toISOString()}`);
+            
+            // Create a new date object for the target day
+            const targetDate = new Date(currentDate);
+            targetDate.setDate(targetDate.getDate() + offset);
+            this.log.debug(`Target date: ${targetDate.toISOString()}`);
+            
+            // Navigate to the target day
+            const command = new OpenStreamDateCommand(this.app, this.selectedStream, targetDate);
+            await command.execute();
         } else {
-            baseDate = new Date();
-            // Set to start of day to avoid time issues
-            baseDate.setHours(0, 0, 0, 0);
-            this.log.debug(`Base date from today: ${baseDate.toISOString()}`);
+            // If no current date, use relative to today
+            const targetDate = new Date();
+            targetDate.setDate(targetDate.getDate() + offset);
+            const direction = offset > 0 ? "tomorrow" : "yesterday";
+            this.log.debug(`No current date, going to ${direction}: ${targetDate.toISOString()}`);
+            
+            const command = new OpenStreamDateCommand(this.app, this.selectedStream, targetDate);
+            await command.execute();
         }
-        
-        // Clone the date to avoid mutation issues
-        const targetDate = new Date(baseDate.getTime());
-        
-        // Add the offset days
-        targetDate.setDate(targetDate.getDate() + offset);
-        this.log.debug(`Target date after adding offset: ${targetDate.toISOString()}`);
-        
-        // Format date parts manually to avoid timezone issues
-        const targetYear = targetDate.getFullYear();
-        const targetMonth = targetDate.getMonth() + 1; // JS months are 0-indexed
-        const targetDay = targetDate.getDate();
-        
-        // Format with proper zero-padding
-        const formattedDate = `${targetYear}-${String(targetMonth).padStart(2, '0')}-${String(targetDay).padStart(2, '0')}`;
-        this.log.debug(`Formatted target date: ${formattedDate}`);
-        
-        // Update state
-        this.currentViewedDate = formattedDate;
-        this.currentDate = new Date(targetYear, targetMonth - 1, 1); // First day of month for calendar
-        
-        this.log.debug(`Updated current date for month view: ${this.currentDate.toISOString()}`);
-        
-        // Navigate to the new date
-        this.log.debug(`Opening stream date: ${formattedDate}`);
-        const command = new OpenStreamDateCommand(this.app, this.selectedStream, targetDate);
-        await command.execute();
-        
-        // Update the UI
-        this.updateTodayButton();
-        
-        if (this.expanded && this.grid) {
-            this.updateCalendarGrid(this.grid);
-        }
-        
-        this.log.debug(`==== NAVIGATION END ====`);
     }
 
     public setCurrentViewedDate(dateString: string): void {
@@ -585,5 +503,13 @@ export class CalendarWidget {
         if (this.grid) {
             this.updateCalendarGrid(this.grid);
         }
+    }
+
+    /**
+     * Parse a YYYY-MM-DD date string into a Date object, handling timezone issues
+     */
+    private parseViewedDate(dateString: string): Date {
+        const [year, month, day] = dateString.split('-').map(n => parseInt(n, 10));
+        return new Date(year, month - 1, day); // month is 0-based in Date constructor
     }
 } 

@@ -801,53 +801,61 @@ export default class StreamsPlugin extends Plugin {
 		
 		// Ensure backward compatibility by adding viewIcon to any existing streams
 		this.settings.streams.forEach(stream => {
-			if (!stream.viewIcon) {
-				stream.viewIcon = stream.icon;
-			}
-			
-			// Migrate from old property names to new ones
-			// @ts-ignore - Accessing old property names for migration
-			if (stream['showInRibbon'] !== undefined && stream.showTodayInRibbon === undefined) {
-				// @ts-ignore - Accessing old property names for migration
-				stream.showTodayInRibbon = stream['showInRibbon'];
-				// @ts-ignore - Accessing old property names for migration
-				delete stream['showInRibbon'];
-			}
-			
-			// @ts-ignore - Accessing old property names for migration
-			if (stream['showViewInRibbon'] !== undefined && stream.showFullStreamInRibbon === undefined) {
-				// @ts-ignore - Accessing old property names for migration
-				stream.showFullStreamInRibbon = stream['showViewInRibbon'];
-				// @ts-ignore - Accessing old property names for migration
-				delete stream['showViewInRibbon'];
-			}
-			
-			// Set defaults if values are undefined
-			if (stream.showTodayInRibbon === undefined) {
-				stream.showTodayInRibbon = false;
-			}
-			
-			if (stream.showFullStreamInRibbon === undefined) {
-				stream.showFullStreamInRibbon = false;
-			}
-
-			// Set defaults for new styling options
-			if (stream.showTodayBorder === undefined) {
-				stream.showTodayBorder = true;
-			}
-			
-			if (stream.showViewBorder === undefined) {
-				stream.showViewBorder = true;
-			}
-			
-			if (stream.todayBorderColor === undefined) {
-				stream.todayBorderColor = 'var(--text-accent)';
-			}
-			
-			if (stream.viewBorderColor === undefined) {
-				stream.viewBorderColor = 'var(--text-success)';
-			}
+			this.migrateStreamSettings(stream);
 		});
+	}
+	
+	/**
+	 * Migrate stream settings to ensure backward compatibility and set defaults
+	 */
+	private migrateStreamSettings(stream: Stream): void {
+		// Add viewIcon if missing
+		if (!stream.viewIcon) {
+			stream.viewIcon = stream.icon;
+		}
+		
+		// Migrate from old property names to new ones
+		// @ts-ignore - Accessing old property names for migration
+		if (stream['showInRibbon'] !== undefined && stream.showTodayInRibbon === undefined) {
+			// @ts-ignore - Accessing old property names for migration
+			stream.showTodayInRibbon = stream['showInRibbon'];
+			// @ts-ignore - Accessing old property names for migration
+			delete stream['showInRibbon'];
+		}
+		
+		// @ts-ignore - Accessing old property names for migration
+		if (stream['showViewInRibbon'] !== undefined && stream.showFullStreamInRibbon === undefined) {
+			// @ts-ignore - Accessing old property names for migration
+			stream.showFullStreamInRibbon = stream['showViewInRibbon'];
+			// @ts-ignore - Accessing old property names for migration
+			delete stream['showViewInRibbon'];
+		}
+		
+		// Set defaults if values are undefined
+		if (stream.showTodayInRibbon === undefined) {
+			stream.showTodayInRibbon = false;
+		}
+		
+		if (stream.showFullStreamInRibbon === undefined) {
+			stream.showFullStreamInRibbon = false;
+		}
+
+		// Set defaults for new styling options
+		if (stream.showTodayBorder === undefined) {
+			stream.showTodayBorder = true;
+		}
+		
+		if (stream.showViewBorder === undefined) {
+			stream.showViewBorder = true;
+		}
+		
+		if (stream.todayBorderColor === undefined) {
+			stream.todayBorderColor = 'var(--text-accent)';
+		}
+		
+		if (stream.viewBorderColor === undefined) {
+			stream.viewBorderColor = 'var(--text-success)';
+		}
 	}
 
 	/**
@@ -860,17 +868,24 @@ export default class StreamsPlugin extends Plugin {
 			this.log.debug("Settings saved successfully");
 			
 			// Log the currently saved state for debugging
-			this.log.debug("=== SAVED STREAM STATES ===");
-			this.settings.streams.forEach(stream => {
-				this.log.debug(`Stream ${stream.id} (${stream.name}): Today=${stream.showTodayInRibbon}, View=${stream.showFullStreamInRibbon}`);
-			});
-			this.log.debug("==========================");
+			this.logSavedSettings();
 			
 			// Update visibility based on current settings
 			this.updateAllIconVisibility();
 		} catch (error) {
 			this.log.error("Error saving settings:", error);
 		}
+	}
+	
+	/**
+	 * Log the saved state of all streams for debugging
+	 */
+	private logSavedSettings(): void {
+		this.log.debug("=== SAVED STREAM STATES ===");
+		this.settings.streams.forEach(stream => {
+			this.log.debug(`Stream ${stream.id} (${stream.name}): Today=${stream.showTodayInRibbon}, View=${stream.showFullStreamInRibbon}`);
+		});
+		this.log.debug("==========================");
 	}
 	
 	/**

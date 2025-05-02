@@ -33,28 +33,17 @@ export class CreateFileView extends ItemView {
         try {
             // Extract date from the filename
             const fileName = this.filePath.split('/').pop() || '';
-            const match = fileName.match(/(\d{4}-\d{2}-\d{2})\.md$/);
+            const extractedDate = this.extractDateFromFilenameString(fileName);
             
-            if (match && match[1]) {
-                // Get a readable date format
-                const [year, month, day] = match[1].split('-').map(n => parseInt(n, 10));
-                const dateObj = new Date(year, month - 1, day);
+            if (extractedDate) {
+                const dateString = this.formatTitleDate(extractedDate);
                 
-                if (!isNaN(dateObj.getTime())) {
-                    // Format as MMM DD, YYYY
-                    const dateString = dateObj.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                    });
-                    
-                    // Return a title like "Streams: Work Notes, Today - Apr 27, 2025"
-                    if (this.stream && this.stream.name) {
-                        return `Streams: ${this.stream.name}, Today - ${dateString}`;
-                    }
-                    
-                    return dateString;
+                // Return a title like "Streams: Work Notes, Today - Apr 27, 2025"
+                if (this.stream && this.stream.name) {
+                    return `Streams: ${this.stream.name}, Today - ${dateString}`;
                 }
+                
+                return dateString;
             }
             
             // Fallback to just the filename without extension
@@ -142,12 +131,27 @@ export class CreateFileView extends ItemView {
         }
     }
 
+    /**
+     * Extract a date from a filename string in YYYY-MM-DD.md format
+     */
+    private extractDateFromFilenameString(filename: string): Date | null {
+        const match = filename.match(/(\d{4}-\d{2}-\d{2})\.md$/);
+        if (match && match[1]) {
+            const [year, month, day] = match[1].split('-').map(n => parseInt(n, 10));
+            const date = new Date(year, month - 1, day);
+            
+            if (!isNaN(date.getTime())) {
+                return date;
+            }
+        }
+        return null;
+    }
+
     private extractDateFromFilename(): void {
         // Extract date from filename
-        const fileNameMatch = this.filePath.match(/(\d{4}-\d{2}-\d{2})\.md$/);
-        if (fileNameMatch && fileNameMatch[1]) {
-            const [year, month, day] = fileNameMatch[1].split('-').map(n => parseInt(n, 10));
-            this.date = new Date(year, month - 1, day);
+        const extractedDate = this.extractDateFromFilenameString(this.filePath);
+        if (extractedDate) {
+            this.date = extractedDate;
             this.log.debug(`Extracted date from filename fallback: ${this.date.toISOString()}`);
         } else {
             this.date = new Date();
@@ -160,16 +164,11 @@ export class CreateFileView extends ItemView {
         this.contentEl.addClass('streams-create-file-container');
         
         // Always ensure we have the correct date based on the file path first
-        const fileNameMatch = this.filePath.match(/(\d{4}-\d{2}-\d{2})\.md$/);
-        if (fileNameMatch && fileNameMatch[1]) {
-            const [year, month, day] = fileNameMatch[1].split('-').map(n => parseInt(n, 10));
-            const fileDate = new Date(year, month - 1, day);
-            
-            if (!isNaN(fileDate.getTime())) {
-                if (!this.date || this.date.toDateString() !== fileDate.toDateString()) {
-                    this.log.debug(`Updating date from file path: ${fileDate.toISOString()}`);
-                    this.date = fileDate;
-                }
+        const extractedDate = this.extractDateFromFilenameString(this.filePath);
+        if (extractedDate) {
+            if (!this.date || this.date.toDateString() !== extractedDate.toDateString()) {
+                this.log.debug(`Updating date from file path: ${extractedDate.toISOString()}`);
+                this.date = extractedDate;
             }
         }
         
@@ -229,6 +228,17 @@ export class CreateFileView extends ItemView {
             this.log.error(`Error formatting date: ${error}`);
             return "Invalid Date";
         }
+    }
+    
+    /**
+     * Format a date for display in a title
+     */
+    private formatTitleDate(date: Date): string {
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
     }
     
     private async createAndOpenFile(): Promise<void> {
