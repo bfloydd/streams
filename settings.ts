@@ -62,7 +62,7 @@ export class StreamsSettingTab extends PluginSettingTab {
     private addStreamSettings(card: HTMLElement, stream: Stream, index: number) {
         // Stream name setting
         new Setting(card)
-            .setName('Stream Name')
+            .setName('Name')
             .addText(text => text
                 .setValue(stream.name)
                 .onChange(async (value) => {
@@ -94,213 +94,67 @@ export class StreamsSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
-        // ==================== TODAY TOGGLE SECTION ====================
-        // Completely isolated container for today toggle
-        const todaySection = card.createDiv({cls: 'ribbon-toggle-section today-toggle-section'});
-        
-        // Create heading for this section
-        todaySection.createEl('h4', {text: 'Open Today in Ribbon', cls: 'toggle-section-heading'});
-        
-        // Create visual indicator of current state
-        const todayStateIndicator = todaySection.createDiv({cls: 'toggle-state-indicator'});
-        todayStateIndicator.setText(stream.showTodayInRibbon ? 'ENABLED' : 'DISABLED');
-        todayStateIndicator.addClass(stream.showTodayInRibbon ? 'is-enabled' : 'is-disabled');
-        
-        // Create action buttons container
-        const todayButtonContainer = todaySection.createDiv({cls: 'toggle-button-container'});
-        
-        // Enable button
-        const enableTodayButton = todayButtonContainer.createEl('button', {
-            text: 'Enable',
-            cls: 'toggle-action-button enable-button ' + (stream.showTodayInRibbon ? 'is-active' : '')
-        });
-        
-        // Disable button
-        const disableTodayButton = todayButtonContainer.createEl('button', {
-            text: 'Disable',
-            cls: 'toggle-action-button disable-button ' + (!stream.showTodayInRibbon ? 'is-active' : '')
-        });
-        
-        // Add event handlers with timeouts to prevent interference
-        enableTodayButton.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            if (!stream.showTodayInRibbon) {
-                console.log('ENABLING TODAY RIBBON');
-                stream.showTodayInRibbon = true;
-                
-                // Update UI
-                todayStateIndicator.setText('ENABLED');
-                todayStateIndicator.removeClass('is-disabled');
-                todayStateIndicator.addClass('is-enabled');
-                enableTodayButton.addClass('is-active');
-                disableTodayButton.removeClass('is-active');
-                
-                // Update the ribbon icon directly
-                this.plugin.updateStreamTodayIcon(stream);
-                
-                // Save settings
-                await this.plugin.saveSettings();
-            }
-        });
-        
-        disableTodayButton.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            if (stream.showTodayInRibbon) {
-                console.log('DISABLING TODAY RIBBON');
-                stream.showTodayInRibbon = false;
-                
-                // Update UI
-                todayStateIndicator.setText('DISABLED');
-                todayStateIndicator.removeClass('is-enabled');
-                todayStateIndicator.addClass('is-disabled');
-                disableTodayButton.addClass('is-active');
-                enableTodayButton.removeClass('is-active');
-                
-                // Update the ribbon icon directly
-                this.plugin.updateStreamTodayIcon(stream);
-                
-                // Save settings
-                await this.plugin.saveSettings();
-            }
-        });
-        
-        // Add icon setting
-        const iconSetting = new Setting(card);
-        iconSetting
-            .setName('Icon')
-            .setDesc('Open Today ribbon button')
+        // ===== RIBBON SECTION =====
+        card.createEl('h4', { text: 'Ribbon Controls', cls: 'setting-header' });
+
+        // Open Today ribbon
+        new Setting(card)
+            .setName('Open Today in Ribbon')
+            .setDesc('Show the "Open Today" button in the sidebar ribbon')
+            .addToggle(toggle => toggle
+                .setValue(stream.showTodayInRibbon)
+                .onChange(async (value) => {
+                    stream.showTodayInRibbon = value;
+                    this.plugin.updateStreamTodayIcon(stream);
+                    await this.plugin.saveSettings();
+                }));
+
+        // Today Icon
+        new Setting(card)
+            .setName('Today Icon')
+            .setDesc('Icon for the "Open Today" ribbon button')
+            .setClass('setting-indent')
             .addDropdown(dropdown => {
-                const iconCategories = {
-                    'Files & Documents': ['file-text', 'file', 'files', 'folder', 'book', 'notebook', 'diary'],
-                    'Communication': ['message-circle', 'message-square', 'mail', 'inbox', 'send'],
-                    'Time & Planning': ['alarm-check', 'calendar', 'clock', 'timer', 'history'],
-                    'UI Elements': ['home', 'settings', 'search', 'bookmark', 'star', 'heart'],
-                    'Content': ['text', 'edit', 'pencil', 'pen', 'list', 'check-square'],
-                    'Media': ['image', 'video', 'music', 'camera'],
-                    'Weather': ['sun', 'moon', 'cloud', 'umbrella'],
-                    'Misc': ['user', 'users', 'tag', 'flag', 'bookmark', 'link']
-                } as const;
-
-                Object.entries(iconCategories).forEach(([category, icons]) => {
-                    dropdown.addOption(`---${category}---`, category); // Add category header
-                    icons.forEach(icon => dropdown.addOption(icon, icon));
-                });
-
+                this.populateIconDropdown(dropdown);
                 dropdown
                     .setValue(stream.icon)
                     .onChange(async (value: LucideIcon) => {
                         stream.icon = value;
-                        
-                        // Save settings with UI refresh
                         await this.plugin.saveSettings(true);
                     });
             });
-        
-        // Add separator
-        card.createEl('hr', {cls: 'settings-separator'});
-        
-        // ==================== VIEW TOGGLE SECTION ====================
-        // Completely isolated container for view toggle
-        const viewSection = card.createDiv({cls: 'ribbon-toggle-section view-toggle-section'});
-        
-        // Create heading for this section
-        viewSection.createEl('h4', {text: 'View Full Stream in Ribbon', cls: 'toggle-section-heading'});
-        
-        // Create visual indicator of current state
-        const viewStateIndicator = viewSection.createDiv({cls: 'toggle-state-indicator'});
-        viewStateIndicator.setText(stream.showFullStreamInRibbon ? 'ENABLED' : 'DISABLED');
-        viewStateIndicator.addClass(stream.showFullStreamInRibbon ? 'is-enabled' : 'is-disabled');
-        
-        // Create action buttons container
-        const viewButtonContainer = viewSection.createDiv({cls: 'toggle-button-container'});
-        
-        // Enable button
-        const enableViewButton = viewButtonContainer.createEl('button', {
-            text: 'Enable',
-            cls: 'toggle-action-button enable-button ' + (stream.showFullStreamInRibbon ? 'is-active' : '')
-        });
-        
-        // Disable button
-        const disableViewButton = viewButtonContainer.createEl('button', {
-            text: 'Disable',
-            cls: 'toggle-action-button disable-button ' + (!stream.showFullStreamInRibbon ? 'is-active' : '')
-        });
-        
-        // Add event handlers with timeouts to prevent interference
-        enableViewButton.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            if (!stream.showFullStreamInRibbon) {
-                console.log('ENABLING VIEW RIBBON');
-                stream.showFullStreamInRibbon = true;
+
+        // View Stream ribbon
+        new Setting(card)
+            .setName('View Full Stream in Ribbon')
+            .setDesc('Show the "View Full Stream" button in the sidebar ribbon')
+            .addToggle(toggle => toggle
+                .setValue(stream.showFullStreamInRibbon)
+                .onChange(async (value) => {
+                    stream.showFullStreamInRibbon = value;
+                    this.plugin.updateStreamViewIcon(stream);
+                    await this.plugin.saveSettings();
+                }));
                 
-                // Update UI
-                viewStateIndicator.setText('ENABLED');
-                viewStateIndicator.removeClass('is-disabled');
-                viewStateIndicator.addClass('is-enabled');
-                enableViewButton.addClass('is-active');
-                disableViewButton.removeClass('is-active');
-                
-                // Update the ribbon icon directly
-                this.plugin.updateStreamViewIcon(stream);
-                
-                // Save settings
-                await this.plugin.saveSettings();
-            }
-        });
-        
-        disableViewButton.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            if (stream.showFullStreamInRibbon) {
-                console.log('DISABLING VIEW RIBBON');
-                stream.showFullStreamInRibbon = false;
-                
-                // Update UI
-                viewStateIndicator.setText('DISABLED');
-                viewStateIndicator.removeClass('is-enabled');
-                viewStateIndicator.addClass('is-disabled');
-                disableViewButton.addClass('is-active');
-                enableViewButton.removeClass('is-active');
-                
-                // Update the ribbon icon directly
-                this.plugin.updateStreamViewIcon(stream);
-                
-                // Save settings
-                await this.plugin.saveSettings();
-            }
-        });
-        
-        // Add View Icon setting
-        const viewIconSetting = new Setting(card);
-        viewIconSetting
+        // View Icon
+        new Setting(card)
             .setName('View Icon')
-            .setDesc('View Full Stream ribbon button')
+            .setDesc('Icon for the "View Full Stream" ribbon button')
+            .setClass('setting-indent')
             .addDropdown(dropdown => {
-                const iconCategories = {
-                    'Files & Documents': ['file-text', 'file', 'files', 'folder', 'book', 'notebook', 'diary'],
-                    'Communication': ['message-circle', 'message-square', 'mail', 'inbox', 'send'],
-                    'Time & Planning': ['alarm-check', 'calendar', 'clock', 'timer', 'history'],
-                    'UI Elements': ['home', 'settings', 'search', 'bookmark', 'star', 'heart'],
-                    'Content': ['text', 'edit', 'pencil', 'pen', 'list', 'check-square'],
-                    'Media': ['image', 'video', 'music', 'camera'],
-                    'Weather': ['sun', 'moon', 'cloud', 'umbrella'],
-                    'Misc': ['user', 'users', 'tag', 'flag', 'bookmark', 'link']
-                } as const;
-
-                Object.entries(iconCategories).forEach(([category, icons]) => {
-                    dropdown.addOption(`---${category}---`, category); // Add category header
-                    icons.forEach(icon => dropdown.addOption(icon, icon));
-                });
-
+                this.populateIconDropdown(dropdown);
                 dropdown
                     .setValue(stream.viewIcon || stream.icon)
                     .onChange(async (value: LucideIcon) => {
                         stream.viewIcon = value;
-                        
-                        // Save settings with UI refresh
                         await this.plugin.saveSettings(true);
                     });
             });
 
+        // ===== COMMANDS SECTION =====
+        card.createEl('h4', { text: 'Command Palette', cls: 'setting-header' });
+
+        // Command palette integration
         new Setting(card)
             .setName('Add command: Open Today')
             .setDesc('Add this stream to the command palette')
@@ -323,9 +177,14 @@ export class StreamsSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
+        // ===== DELETE SECTION =====
+        card.createEl('hr');
+        
         new Setting(card)
+            .setName('Delete Stream')
+            .setDesc('Permanently remove this stream')
             .addButton(button => button
-                .setButtonText('Delete Stream')
+                .setButtonText('Delete')
                 .setWarning()
                 .onClick(async () => {
                     // Remove all UI elements for this stream
@@ -344,5 +203,23 @@ export class StreamsSettingTab extends PluginSettingTab {
                     // Redisplay the settings tab
                     this.display();
                 }));
+    }
+
+    private populateIconDropdown(dropdown: any) {
+        const iconCategories = {
+            'Files & Documents': ['file-text', 'file', 'files', 'folder', 'book', 'notebook', 'diary'],
+            'Communication': ['message-circle', 'message-square', 'mail', 'inbox', 'send'],
+            'Time & Planning': ['alarm-check', 'calendar', 'clock', 'timer', 'history'],
+            'UI Elements': ['home', 'settings', 'search', 'bookmark', 'star', 'heart', 'layout-dashboard'],
+            'Content': ['text', 'edit', 'pencil', 'pen', 'list', 'check-square'],
+            'Media': ['image', 'video', 'music', 'camera'],
+            'Weather': ['sun', 'moon', 'cloud', 'umbrella'],
+            'Misc': ['user', 'users', 'tag', 'flag', 'bookmark', 'link']
+        } as const;
+
+        Object.entries(iconCategories).forEach(([category, icons]) => {
+            dropdown.addOption(`---${category}---`, category); // Add category header
+            icons.forEach(icon => dropdown.addOption(icon, icon));
+        });
     }
 } 
