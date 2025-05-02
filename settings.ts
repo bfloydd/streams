@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting, Notice } from 'obsidian';
+import { App, PluginSettingTab, Setting, Notice, TFolder } from 'obsidian';
 import StreamsPlugin from './main';
 import { Stream, StreamsSettings, LucideIcon } from './types';
 import { getFolderSuggestions } from './src/utils/streamUtils';
@@ -81,20 +81,29 @@ export class StreamsSettingTab extends PluginSettingTab {
             .addText(text => text
                 .setValue(stream.folder)
                 .setPlaceholder('folder/path')
-                .then(textComponent => {
-                    // Add folder autocomplete
-                    const folders = getFolderSuggestions(this.app);
-                    textComponent.inputEl.setAttribute('list', 'folder-list');
-                    const datalist = textComponent.inputEl.createEl('datalist', {
-                        attr: { id: 'folder-list' }
-                    });
-                    folders.forEach(folder => {
-                        datalist.createEl('option', { value: folder });
-                    });
-                })
                 .onChange(async (value) => {
                     const normalizedPath = value.split(/[/\\]/).filter(Boolean).join('/');
                     stream.folder = normalizedPath;
+                    
+                    // Validate path
+                    const pathExists = await this.validateFolderPath(normalizedPath);
+                    
+                    // Remove existing validation classes
+                    text.inputEl.removeClass('stream-folder-valid');
+                    text.inputEl.removeClass('stream-folder-invalid');
+                    
+                    // Update input styling based on validation
+                    if (value === '') {
+                        // Reset to default styling for empty input
+                        // No class needed
+                    } else if (pathExists) {
+                        // Valid path - add valid class
+                        text.inputEl.addClass('stream-folder-valid');
+                    } else {
+                        // Invalid path - add invalid class
+                        text.inputEl.addClass('stream-folder-invalid');
+                    }
+                    
                     await this.plugin.saveSettings();
                 }));
 
@@ -309,5 +318,30 @@ export class StreamsSettingTab extends PluginSettingTab {
             dropdown.addOption(`---${category}---`, category); // Add category header
             icons.forEach(icon => dropdown.addOption(icon, icon));
         });
+    }
+
+    private async validateFolderPath(path: string): Promise<boolean> {
+        if (!path) return false;
+        
+        try {
+            // Check if the folder exists in the vault
+            const folder = this.app.vault.getAbstractFileByPath(path);
+            const folderExists = folder instanceof TFolder;
+            
+            // If it's not found directly, check if a parent folder exists that we can potentially create this in
+            if (!folderExists) {
+                // Try parent path
+                const parentPath = path.split('/').slice(0, -1).join('/');
+                if (parentPath) {
+                    const parentFolder = this.app.vault.getAbstractFileByPath(parentPath);
+                    return parentFolder instanceof TFolder;
+                }
+            }
+            
+            return folderExists;
+        } catch (error) {
+            console.error('Error validating folder path:', error);
+            return false;
+        }
     }
 } 
