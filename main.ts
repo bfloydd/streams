@@ -163,7 +163,7 @@ export default class StreamsPlugin extends Plugin {
 			};
 		}
 		
-		return new StreamViewWidget(leaf, this.app, stream, this);
+		return new StreamViewWidget(leaf, this.app, stream);
 	}
 	
 	/**
@@ -224,7 +224,7 @@ export default class StreamsPlugin extends Plugin {
 				stream.viewIcon || stream.icon,
 				`Streams: ${stream.name}, Full`,
 				() => {
-					const command = new OpenStreamViewCommand(this.app, stream, this);
+					const command = new OpenStreamViewCommand(this.app, stream);
 					command.execute();
 				}
 			);
@@ -724,23 +724,26 @@ export default class StreamsPlugin extends Plugin {
 
 	// Add a new method for adding stream view commands
 	public addStreamViewCommand(stream: Stream) {
-		const commandId = `streams-plugin:view-${stream.id}`;
+		const streamId = stream.id;
 		
-		// Remove existing command if any
-		this.removeStreamViewCommand(stream.id);
-
-		// Add new command
-		const command = this.addCommand({
+		// First check if the command already exists
+		if (this.viewCommandsByStreamId.has(streamId)) {
+			return;
+		}
+		
+		// Add command
+		const commandId = `streams-view-stream-${streamId}`;
+		this.addCommand({
 			id: commandId,
-			name: `${stream.name}, Full`,
-			callback: async () => {
-				const command = new OpenStreamViewCommand(this.app, stream, this);
-				await command.execute();
+			name: `Open Full View: ${stream.name}`,
+			callback: () => {
+				const command = new OpenStreamViewCommand(this.app, stream);
+				command.execute();
 			}
 		});
 
 		// Store command ID for later removal
-		this.viewCommandsByStreamId.set(stream.id, commandId);
+		this.viewCommandsByStreamId.set(streamId, commandId);
 	}
 
 	/**

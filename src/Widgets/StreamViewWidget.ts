@@ -9,7 +9,6 @@ export class StreamViewWidget extends ItemView {
     public app: App;
     private streamContentEl: HTMLElement;
     private isLoading: boolean = false;
-    private currentDate: Date;
     private olderDates: Date[] = [];
     private loadMoreTrigger: HTMLElement;
     private noMoreContent: boolean = false;
@@ -18,11 +17,10 @@ export class StreamViewWidget extends ItemView {
     private lastScrollPosition: number = 0;
     private log: Logger;
 
-    constructor(leaf: WorkspaceLeaf, app: App, stream: Stream, plugin?: any) {
+    constructor(leaf: WorkspaceLeaf, app: App, stream: Stream) {
         super(leaf);
         this.app = app;
         this.stream = stream;
-        this.currentDate = new Date();
         
         // Get logger singleton instance
         this.log = new Logger();

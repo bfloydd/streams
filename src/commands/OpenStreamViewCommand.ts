@@ -8,7 +8,7 @@ export class OpenStreamViewCommand {
     private stream: Stream;
     private log: Logger;
 
-    constructor(app: App, stream: Stream, plugin?: any) {
+    constructor(app: App, stream: Stream) {
         this.app = app;
         this.stream = stream;
         this.log = new Logger(); // Get logger singleton instance
