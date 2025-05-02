@@ -178,8 +178,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                 }));
 
         // ===== DELETE SECTION =====
-        card.createEl('hr');
-        
         new Setting(card)
             .setName('Delete Stream')
             .setDesc('Permanently remove this stream')

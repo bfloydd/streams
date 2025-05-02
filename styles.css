@@ -24,7 +24,7 @@ If your plugin does not need CSS, delete this file.
 .stream-card h3 {
     margin-top: 0;
     margin-bottom: 20px;
-    border-bottom: 1px solid var(--background-modifier-border);
+    border-bottom: none;
     padding-bottom: 10px;
 }
 
@@ -32,7 +32,7 @@ If your plugin does not need CSS, delete this file.
 .setting-header {
     margin: 20px 0 10px;
     padding-bottom: 5px;
-    border-bottom: 1px solid var(--background-modifier-border);
+    border-bottom: none;
     font-size: 1em;
     color: var(--text-normal);
 }
