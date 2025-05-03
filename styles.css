@@ -120,6 +120,20 @@
     margin-right: 8px;
 }
 
+/* Mobile-specific positioning for the calendar widget */
+.is-mobile .stream-calendar-widget {
+    position: absolute;
+    top: 32px;
+    right: 0;
+    z-index: 1000;
+    font-size: 12px;
+    margin-right: 0;
+}
+
+.is-phone .stream-calendar-widget {
+    font-size: 11px;
+}
+
 .streams-create-file-container .stream-calendar-widget {
     position: fixed;
     top: 80px;
