@@ -52,10 +52,6 @@ export class StreamViewWidget extends ItemView {
         
         // Create and position trigger for infinite scroll
         this.loadMoreTrigger = container.createDiv('stream-view-scroll-trigger');
-        this.loadMoreTrigger.style.width = '100%';
-        this.loadMoreTrigger.style.height = '50px'; 
-        this.loadMoreTrigger.style.position = 'relative';
-        this.loadMoreTrigger.style.marginTop = '20px';
         
         this.setupInfiniteScroll();
     }
@@ -240,8 +236,6 @@ export class StreamViewWidget extends ItemView {
     private addEndMarker(): void {
         const endMarker = this.streamContentEl.createDiv('stream-view-end-marker');
         endMarker.textContent = 'End of stream';
-        endMarker.style.opacity = '0';
-        endMarker.style.height = '1px';
     }
     
     /**
@@ -406,10 +400,6 @@ export class StreamViewWidget extends ItemView {
                     await this.loadInitialContent();
                     
                     this.loadMoreTrigger = container.createDiv('stream-view-scroll-trigger');
-                    this.loadMoreTrigger.style.width = '100%';
-                    this.loadMoreTrigger.style.height = '50px'; 
-                    this.loadMoreTrigger.style.position = 'relative';
-                    this.loadMoreTrigger.style.marginTop = '20px';
                     
                     this.setupInfiniteScroll();
                     

@@ -9,7 +9,7 @@ import { CREATE_FILE_VIEW_TYPE, CreateFileView } from './src/Widgets/CreateFileV
 import { STREAM_VIEW_TYPE, StreamViewWidget } from './src/Widgets/StreamViewWidget';
 import { OpenStreamViewCommand } from './src/commands/OpenStreamViewCommand';
 
-// Add this type for Lucide icon names
+// Lucide icon names used by the plugin
 type LucideIcon =
 	| 'alarm-check'
 	| 'album'
@@ -42,7 +42,6 @@ type LucideIcon =
 	| 'tag'
 	| 'trash'
 	| 'user'
-	// Add more icons as needed from https://lucide.dev
 
 export function isValidIcon(icon: string): icon is LucideIcon {
 	return document.querySelector(`[data-icon="${icon}"]`) !== null;
@@ -54,7 +53,6 @@ const DEFAULT_SETTINGS: StreamsSettings = {
 
 export default class StreamsPlugin extends Plugin {
 	settings: StreamsSettings;
-	// Store icons by stream ID and type
 	private ribbonIconsByStream: Map<string, {today?: HTMLElement, view?: HTMLElement}> = new Map();
 	commandsByStreamId: Map<string, string> = new Map();
 	viewCommandsByStreamId: Map<string, string> = new Map();
@@ -62,38 +60,27 @@ export default class StreamsPlugin extends Plugin {
 	public log: Logger = new Logger();
 
 	async onload() {
-		this.log.info('Loading Streams plugin...');
-		
-		// Load settings and styles
 		await this.loadSettings();
-		this.loadStyles();
+		this.log = new Logger();
 		
-		// Register plugin components
 		this.registerPluginViews();
-		
-		// Initialize ribbon icons based on settings
-		this.initializeAllRibbonIcons();
-		
-		// Initialize commands for streams that have them enabled
-		this.initializeStreamCommands();
-		
-		// Log the current state of all streams for debugging
-		this.logInitialState();
-		
-		// Add settings tab
-		this.addSettingTab(new StreamsSettingTab(this.app, this));
-		
-		// Register remaining components
 		this.registerEventHandlers();
+		this.initializeAllRibbonIcons();
+		this.initializeStreamCommands();
 		this.initializeMobileIntegration();
+
+		this.addSettingTab(new StreamsSettingTab(this.app, this));
 		this.initializeActiveView();
-		
-		this.log.info('Streams plugin loaded successfully');
+		this.logInitialState();
+
+		// Style element for dynamic styles
+		const styleEl = document.createElement('style');
+		styleEl.id = 'streams-calendar-styles';
+		document.head.appendChild(styleEl);
+
+		this.log.info('Streams plugin loaded');
 	}
 	
-	/**
-	 * Log the initial state of all streams for debugging
-	 */
 	private logInitialState(): void {
 		this.log.debug("=== INITIAL STREAM RIBBON STATES ===");
 		this.settings.streams.forEach(stream => {
@@ -102,9 +89,6 @@ export default class StreamsPlugin extends Plugin {
 		this.log.debug("===================================");
 	}
 	
-	/**
-	 * Register all plugin views
-	 */
 	private registerPluginViews(): void {
 		// Register CreateFileView
 		this.registerView(
@@ -133,19 +117,15 @@ export default class StreamsPlugin extends Plugin {
 		);
 	}
 	
-	/**
-	 * Create a stream view from a leaf's state
-	 */
 	private createStreamViewFromState(leaf: WorkspaceLeaf): StreamViewWidget {
 		const state = leaf.getViewState();
 		const streamId = state?.state?.streamId;
 		let stream = this.settings.streams.find(s => s.id === streamId);
 		
-		// Fallback to first stream if none found
+		// Fall back to first stream or create dummy if none exists
 		if (!stream && this.settings.streams.length > 0) {
 			stream = this.settings.streams[0];
 		} else if (!stream) {
-			// Create a dummy stream if none exist
 			stream = {
 				id: "default",
 				name: "Default Stream",
@@ -166,23 +146,16 @@ export default class StreamsPlugin extends Plugin {
 		return new StreamViewWidget(leaf, this.app, stream);
 	}
 	
-	/**
-	 * Initialize all icons for all streams
-	 * Creates the icons in hidden state, then shows if enabled
-	 */
 	private initializeAllRibbonIcons(): void {
-		// First, make sure all streams have their icons created (even if hidden)
+		// Create icons for all streams (even if hidden)
 		this.settings.streams.forEach(stream => {
 			this.createStreamIcons(stream);
 		});
 		
-		// Then update visibility based on settings
+		// Update visibility based on settings
 		this.updateAllIconVisibility();
 	}
 	
-	/**
-	 * Create ribbon icons for a stream (but don't show them yet)
-	 */
 	private createStreamIcons(stream: Stream): void {
 		// Get or create entry for this stream
 		let streamIcons = this.ribbonIconsByStream.get(stream.id);
@@ -191,7 +164,7 @@ export default class StreamsPlugin extends Plugin {
 			this.ribbonIconsByStream.set(stream.id, streamIcons);
 		}
 		
-		// Create Today icon if not already created
+		// Create Today icon if needed
 		if (!streamIcons.today) {
 			this.log.debug(`Creating Today icon for stream ${stream.id}, initial visibility: ${stream.showTodayInRibbon}`);
 			
@@ -204,16 +177,15 @@ export default class StreamsPlugin extends Plugin {
 				}
 			);
 			
-			// Hide initially, then update based on settings later
+			// Hide initially, visibility updated later
 			this.updateIconVisibility(streamIcons.today, false);
 			
-			// Apply custom border styling if enabled
 			if (stream.showTodayBorder) {
 				this.applyTodayIconStyles(streamIcons.today, stream);
 			}
 		}
 		
-		// Create Full Stream View icon if not already created
+		// Create View icon if needed
 		if (!streamIcons.view) {
 			this.log.debug(`Creating View icon for stream ${stream.id}, initial visibility: ${stream.showFullStreamInRibbon}`);
 			
@@ -226,27 +198,21 @@ export default class StreamsPlugin extends Plugin {
 				}
 			);
 			
-			// Hide initially, then update based on settings later
+			// Hide initially, visibility updated later
 			this.updateIconVisibility(streamIcons.view, false);
 			
-			// Apply custom border styling if enabled
 			if (stream.showViewBorder) {
 				this.applyViewIconStyles(streamIcons.view, stream);
 			}
 		}
 	}
 	
-	/**
-	 * Apply styling to the Today icon based on stream settings
-	 */
 	private applyTodayIconStyles(icon: HTMLElement, stream: Stream): void {
 		if (!icon) return;
 		
 		try {
-			// Apply border to the icon container itself instead of the inner SVG
 			icon.classList.add('streams-today-icon-border');
 			
-			// Add custom color if specified
 			if (stream.todayBorderColor && stream.todayBorderColor !== 'default') {
 				icon.style.setProperty('--stream-today-border-color', stream.todayBorderColor);
 			}
@@ -255,17 +221,12 @@ export default class StreamsPlugin extends Plugin {
 		}
 	}
 	
-	/**
-	 * Apply styling to the View icon based on stream settings
-	 */
 	private applyViewIconStyles(icon: HTMLElement, stream: Stream): void {
 		if (!icon) return;
 		
 		try {
-			// Apply border to the icon container itself instead of the inner SVG
 			icon.classList.add('streams-view-icon-border');
 			
-			// Add custom color if specified
 			if (stream.viewBorderColor && stream.viewBorderColor !== 'default') {
 				icon.style.setProperty('--stream-view-border-color', stream.viewBorderColor);
 			}
@@ -274,68 +235,47 @@ export default class StreamsPlugin extends Plugin {
 		}
 	}
 
-	/**
-	 * Update the visibility of all stream icons based on current settings
-	 */
 	private updateAllIconVisibility(): void {
 		this.settings.streams.forEach(stream => {
 			this.updateStreamIconVisibility(stream);
 		});
 	}
 	
-	/**
-	 * Update the visibility of icons for a specific stream
-	 */
 	private updateStreamIconVisibility(stream: Stream): void {
 		const streamIcons = this.ribbonIconsByStream.get(stream.id);
 		if (streamIcons) {
-			// Update Today icon visibility
 			if (streamIcons.today) {
 				this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
 			}
 			
-			// Update View icon visibility
 			if (streamIcons.view) {
 				this.updateIconVisibility(streamIcons.view, stream.showFullStreamInRibbon);
 			}
 		}
 	}
 	
-	/**
-	 * Update the styles of a stream's Today icon
-	 */
 	public updateStreamTodayIcon(stream: Stream): void {
 		const streamIcons = this.ribbonIconsByStream.get(stream.id);
 		if (streamIcons && streamIcons.today) {
-			// Toggle the border class on the icon container itself
 			streamIcons.today.classList.toggle('streams-today-icon-border', stream.showTodayBorder);
 			
-			// Then apply new styling if enabled
 			if (stream.showTodayBorder) {
 				this.applyTodayIconStyles(streamIcons.today, stream);
 			}
 		}
 	}
 	
-	/**
-	 * Update the styles of a stream's View icon
-	 */
 	public updateStreamViewIcon(stream: Stream): void {
 		const streamIcons = this.ribbonIconsByStream.get(stream.id);
 		if (streamIcons && streamIcons.view) {
-			// Toggle the border class on the icon container itself
 			streamIcons.view.classList.toggle('streams-view-icon-border', stream.showViewBorder);
 			
-			// Then apply new styling if enabled
 			if (stream.showViewBorder) {
 				this.applyViewIconStyles(streamIcons.view, stream);
 			}
 		}
 	}
 	
-	/**
-	 * Remove all ribbon icons
-	 */
 	private removeAllRibbonIcons(): void {
 		this.ribbonIconsByStream.forEach((icons) => {
 			if (icons.today) icons.today.detach();
@@ -346,20 +286,13 @@ export default class StreamsPlugin extends Plugin {
 	
 	onunload() {
 		this.log.info('Unloading Streams plugin');
-		
 		this.cleanupResources();
-		
 		this.log.info('Streams plugin unloaded');
 	}
 
-	/**
-	 * Clean up resources when plugin is unloaded
-	 */
 	private cleanupResources(): void {
-		// Remove all ribbon icons
 		this.removeAllRibbonIcons();
 		
-		// Remove all calendar widgets
 		this.calendarWidgets.forEach(widget => {
 			widget.destroy();
 		});
@@ -369,26 +302,21 @@ export default class StreamsPlugin extends Plugin {
 		this.viewCommandsByStreamId.clear();
 	}
 	
-	/**
-	 * Register all event handlers
-	 */
 	private registerEventHandlers(): void {
-		// Register event for active leaf changes
+		// Handle active leaf changes
 		this.registerEvent(
 			this.app.workspace.on('active-leaf-change', (leaf) => {
 				this.log.debug('Active leaf changed');
 				if (leaf?.view instanceof MarkdownView) {
 					this.updateCalendarWidget(leaf);
 				} else if (leaf?.view.getViewType() === CREATE_FILE_VIEW_TYPE) {
-					// Also show calendar widget in the create file view
 					this.updateCalendarWidgetForCreateView(leaf);
 				}
 			})
 		);
 
-		// Listen for CreateFileView state changes and update calendar widget accordingly
+		// Update calendar when create file state changes
 		this.registerEvent(
-			// Use 'on' directly on app.workspace without type checking
 			// @ts-ignore - Custom event not in type definitions
 			this.app.workspace.on('streams-create-file-state-changed', (view: any) => {
 				this.log.debug('Create file state changed, updating calendar widget');
@@ -399,11 +327,8 @@ export default class StreamsPlugin extends Plugin {
 		);
 	}
 	
-	/**
-	 * Initialize mobile-specific features
-	 */
 	private initializeMobileIntegration(): void {
-		// Mobile share handler (for Android)
+		// Add share handler for Android
 		if (Platform.isAndroidApp) {
 			this.registerEvent(
 				this.app.workspace.on('file-menu', (menu, file) => {
@@ -422,140 +347,11 @@ export default class StreamsPlugin extends Plugin {
 		}
 	}
 	
-	/**
-	 * Initialize the active view's calendar widget
-	 */
 	private initializeActiveView(): void {
 		const activeLeaf = this.app.workspace.getActiveViewOfType(MarkdownView)?.leaf;
 		if (activeLeaf) {
 			this.updateCalendarWidget(activeLeaf);
 		}
-	}
-
-	/**
-	 * Load and inject CSS styles for the plugin
-	 */
-	private loadStyles(): void {
-		// Add a style element to the document head
-		const styleEl = document.createElement('style');
-		styleEl.id = 'streams-calendar-styles';
-		document.head.appendChild(styleEl);
-		
-		styleEl.textContent = `
-			.stream-calendar-widget {
-				position: fixed;
-				top: 80px;
-				right: 0;
-				z-index: 1000;
-				font-size: 12px;
-				background-color: var(--background-primary);
-				border-radius: 6px 0 0 6px;
-				box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.15);
-				user-select: none;
-				pointer-events: all;
-			}
-
-			.stream-calendar-collapsed {
-				padding: 8px 12px;
-				cursor: pointer;
-				transition: opacity 0.3s ease;
-			}
-
-			.stream-calendar-today-button {
-				color: var(--text-accent);
-				font-weight: 600;
-				transition: opacity 0.3s ease;
-			}
-
-			.today-button-expanded {
-				opacity: 0;
-			}
-
-			.stream-calendar-expanded {
-				padding: 12px;
-				background-color: var(--background-primary);
-				border-radius: 6px;
-				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-				opacity: 0;
-				transform: scale(0.95);
-				transition: all 0.3s ease;
-			}
-
-			.calendar-expanded {
-				opacity: 1;
-				transform: scale(1);
-			}
-
-			/* Icon borders */
-			.streams-today-icon-border {
-				border-left: 2px solid var(--stream-today-border-color, var(--text-accent));
-			}
-
-			.streams-view-icon-border {
-				border-left: 2px solid var(--stream-view-border-color, var(--text-success));
-			}
-
-			/* Calendar styles */
-			.stream-calendar-header {
-				display: flex;
-				justify-content: space-between;
-				align-items: center;
-				margin-bottom: 12px;
-			}
-
-			.stream-calendar-nav {
-				cursor: pointer;
-				color: var(--text-muted);
-				padding: 4px;
-			}
-
-			.stream-calendar-nav:hover {
-				color: var(--text-normal);
-			}
-
-			.stream-calendar-date {
-				font-weight: 600;
-			}
-
-			.stream-calendar-grid {
-				display: grid;
-				grid-template-columns: repeat(7, 1fr);
-				gap: 4px;
-			}
-
-			.calendar-day {
-				display: flex;
-				flex-direction: column;
-				align-items: center;
-				gap: 2px;
-				padding: 4px;
-				text-align: center;
-				cursor: pointer;
-				border-radius: 4px;
-				transition: background-color 0.2s ease;
-			}
-
-			.dot-container {
-				display: flex;
-				gap: 2px;
-				height: 4px;
-			}
-
-			.content-dot {
-				width: 4px;
-				height: 4px;
-				border-radius: 50%;
-				background-color: var(--text-muted);
-			}
-
-			.calendar-day:hover .content-dot {
-				background-color: var(--text-normal);
-			}
-
-			.calendar-day.today .content-dot {
-				background-color: var(--text-accent);
-			}
-		`;
 	}
 
 	private updateCalendarWidget(leaf: WorkspaceLeaf) {
@@ -564,7 +360,7 @@ export default class StreamsPlugin extends Plugin {
 		
 		this.log.debug('Updating calendar widget for file:', filePath);
 
-		// Remove existing widget if any
+		// Clean up existing widgets
 		this.calendarWidgets.forEach((widget) => {
 			widget.destroy();
 		});
@@ -572,7 +368,7 @@ export default class StreamsPlugin extends Plugin {
 
 		if (!filePath) return;
 
-		// Log all streams first
+		// Log streams for debugging
 		this.log.debug('Available streams:', this.settings.streams.map(s => ({
 			name: s.name,
 			folder: s.folder
@@ -580,7 +376,7 @@ export default class StreamsPlugin extends Plugin {
 
 		// Find which stream this file belongs to
 		const stream = this.settings.streams.find(s => {
-			// Normalize both paths to use forward slashes
+			// Normalize paths for comparison
 			const normalizedFilePath = filePath.split(/[/\\]/).filter(Boolean);
 			const normalizedStreamPath = s.folder.split(/[/\\]/).filter(Boolean);
 			
@@ -608,7 +404,6 @@ export default class StreamsPlugin extends Plugin {
 		}
 	}
 
-	// Add new methods for handling stream link insertion
 	private async showStreamSelectionModal(filePath: string) {
 		const modal = new StreamSelectionModal(this.app, this.settings.streams, async (selectedStream) => {
 			if (selectedStream) {
@@ -642,10 +437,8 @@ export default class StreamsPlugin extends Plugin {
 					return;
 				}
 
-				// Create the link
+				// Create and append the link
 				const link = this.app.fileManager.generateMarkdownLink(linkFile, streamPath);
-				
-				// Append the link to the stream note
 				const content = await this.app.vault.read(file);
 				const newContent = content + (content.length > 0 ? '\n' : '') + link;
 				await this.app.vault.modify(file, newContent);
@@ -658,22 +451,20 @@ export default class StreamsPlugin extends Plugin {
 		}
 	}
 
-	// Add new method to handle calendar widget for create file view
 	private updateCalendarWidgetForCreateView(leaf: WorkspaceLeaf) {
 		const view = leaf.view;
 		if (!view) return;
 		
-		// Remove existing widget if any
+		// Clean up existing widgets
 		this.calendarWidgets.forEach((widget) => {
 			widget.destroy();
 		});
 		this.calendarWidgets.clear();
 		
 		try {
-			// Get the stream and date from the view's state
+			// Get stream and date from view state
 			const state = view.getState();
 			if (state && state.stream && state.date) {
-				// Cast to appropriate types
 				const stream = state.stream as Stream;
 				const dateString = state.date as string;
 				const date = new Date(dateString);
@@ -683,33 +474,29 @@ export default class StreamsPlugin extends Plugin {
 					date: date.toISOString()
 				});
 				
-				// Create the calendar widget with the correct date
+				// Create the calendar widget
 				const widget = new CalendarWidget(leaf, stream, this.app);
 				
-				// Extract date string in YYYY-MM-DD format for currentViewedDate
+				// Set current viewed date
 				const formattedDate = dateString.split('T')[0];
-				
-				// Set the currentViewedDate explicitly
 				widget.setCurrentViewedDate(formattedDate);
 				
 				const widgetId = 'create-file-view-' + stream.id;
 				this.calendarWidgets.set(widgetId, widget);
 			}
-			} catch (error) {
+		} catch (error) {
 			this.log.error('Error setting up calendar widget for create view:', error);
 		}
 	}
 
-	// Add a new method for adding stream view commands
 	public addStreamViewCommand(stream: Stream) {
 		const streamId = stream.id;
 		
-		// First check if the command already exists
+		// Skip if command already exists
 		if (this.viewCommandsByStreamId.has(streamId)) {
 			return;
 		}
 		
-		// Add command
 		const commandId = `streams-view-stream-${streamId}`;
 		this.addCommand({
 			id: commandId,
@@ -720,43 +507,32 @@ export default class StreamsPlugin extends Plugin {
 			}
 		});
 
-		// Store command ID for later removal
 		this.viewCommandsByStreamId.set(streamId, commandId);
 	}
 
-	/**
-	 * Remove the "View Full Stream" command
-	 */
 	public removeStreamViewCommand(streamId: string) {
 		const commandId = this.viewCommandsByStreamId.get(streamId);
 		if (commandId) {
-			// Remove command from Obsidian
 			this.removeCommand(commandId);
 			this.viewCommandsByStreamId.delete(streamId);
 			this.log.debug(`Removed View Full Stream command for stream ${streamId}`);
 		}
 	}
 
-	/**
-	 * Completely reset and rebuild all ribbon icons based on current settings
-	 */
 	public forceRebuildAllIcons(): void {
 		this.log.debug("=== FORCE REBUILDING ALL RIBBON ICONS ===");
 		
-		// First, ensure all icons are created
+		// Ensure all icons are created
 		this.settings.streams.forEach(stream => {
 			this.createStreamIcons(stream);
 		});
 		
-		// Then update their visibility
+		// Update visibility
 		this.updateAllIconVisibility();
 		
 		this.log.debug("=== FORCE REBUILD COMPLETE ===");
 	}
 
-	/**
-	 * Directly toggle a specific icon without affecting any other icons
-	 */
 	public directlyToggleSpecificRibbonIcon(type: 'today' | 'view', stream: Stream, enabled: boolean): void {
 		this.log.debug(`Directly toggling ${type} icon for ${stream.id} to ${enabled}`);
 		
@@ -777,22 +553,19 @@ export default class StreamsPlugin extends Plugin {
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 		
-		// Ensure backward compatibility by adding viewIcon to any existing streams
+		// Migrate existing streams
 		this.settings.streams.forEach(stream => {
 			this.migrateStreamSettings(stream);
 		});
 	}
 	
-	/**
-	 * Migrate stream settings to ensure backward compatibility and set defaults
-	 */
 	private migrateStreamSettings(stream: Stream): void {
 		// Add viewIcon if missing
 		if (!stream.viewIcon) {
 			stream.viewIcon = stream.icon;
 		}
 		
-		// Migrate from old property names to new ones
+		// Migrate from old property names
 		// @ts-ignore - Accessing old property names for migration
 		if (stream['showInRibbon'] !== undefined && stream.showTodayInRibbon === undefined) {
 			// @ts-ignore - Accessing old property names for migration
@@ -809,7 +582,7 @@ export default class StreamsPlugin extends Plugin {
 			delete stream['showViewInRibbon'];
 		}
 		
-		// Set defaults if values are undefined
+		// Set default values if undefined
 		if (stream.showTodayInRibbon === undefined) {
 			stream.showTodayInRibbon = false;
 		}
@@ -818,7 +591,6 @@ export default class StreamsPlugin extends Plugin {
 			stream.showFullStreamInRibbon = false;
 		}
 
-		// Set defaults for new styling options
 		if (stream.showTodayBorder === undefined) {
 			stream.showTodayBorder = true;
 		}
@@ -836,28 +608,19 @@ export default class StreamsPlugin extends Plugin {
 		}
 	}
 
-	/**
-	 * Save settings
-	 */
 	async saveSettings(refreshUI: boolean = false) {
 		this.log.debug("Saving settings...");
 		try {
 			await this.saveData(this.settings);
 			this.log.debug("Settings saved successfully");
 			
-			// Log the currently saved state for debugging
 			this.logSavedSettings();
-			
-			// Update visibility based on current settings
 			this.updateAllIconVisibility();
 		} catch (error) {
 			this.log.error("Error saving settings:", error);
 		}
 	}
 	
-	/**
-	 * Log the saved state of all streams for debugging
-	 */
 	private logSavedSettings(): void {
 		this.log.debug("=== SAVED STREAM STATES ===");
 		this.settings.streams.forEach(stream => {
@@ -866,14 +629,11 @@ export default class StreamsPlugin extends Plugin {
 		this.log.debug("==========================");
 	}
 	
-	/**
-	 * Toggle commands
-	 */
 	public toggleStreamCommand(stream: Stream) {
 		// Remove existing command first
 		this.removeStreamCommand(stream.id);
 		
-		// Only add if enabled
+		// Add if enabled
 		if (stream.addCommand) {
 			this.addStreamCommand(stream);
 		}
@@ -885,7 +645,7 @@ export default class StreamsPlugin extends Plugin {
 		// Remove existing view command first
 		this.removeStreamViewCommand(stream.id);
 		
-		// Only add if enabled
+		// Add if enabled
 		if (stream.addViewCommand) {
 			this.addStreamViewCommand(stream);
 		}
@@ -909,43 +669,31 @@ export default class StreamsPlugin extends Plugin {
 			}
 		});
 
-		// Store command ID for later removal
 		this.commandsByStreamId.set(stream.id, commandId);
 	}
 
-	/**
-	 * Remove the "Open Today" command
-	 */
 	public removeStreamCommand(streamId: string) {
 		const commandId = this.commandsByStreamId.get(streamId);
 		if (commandId) {
-			// Remove command from Obsidian
 			this.removeCommand(commandId);
 			this.commandsByStreamId.delete(streamId);
 			this.log.debug(`Removed Open Today command for stream ${streamId}`);
 		}
 	}
 
-	/**
-	 * Update an icon's visibility with multiple approaches to ensure it sticks
-	 */
 	private updateIconVisibility(icon: HTMLElement, visible: boolean): void {
-		// Log before and after state in a single message to reduce noise
+		// Log visibility state
 		const wasVisible = icon.style.display !== 'none' && !icon.classList.contains('is-hidden');
 		
-		// Capture the stream ID and icon type for later reapplying styles
+		// Get stream info for styling
 		const streamId = icon.getAttribute('data-stream-id');
 		const iconType = icon.getAttribute('data-icon-type');
 		
 		if (visible) {
-			// Show the icon
 			icon.classList.remove('is-hidden');
-			
-			// Preserve custom styling by not completely resetting inline styles
-			// Only change display property
 			icon.style.display = 'flex';
 			
-			// Ensure it's in the DOM
+			// Add to DOM if needed
 			if (!document.body.contains(icon)) {
 				const ribbon = this.app.workspace.containerEl.querySelector(".side-dock-ribbon");
 				if (ribbon) {
@@ -953,7 +701,7 @@ export default class StreamsPlugin extends Plugin {
 				}
 			}
 			
-			// Reapply custom styling if needed
+			// Reapply styling
 			if (streamId) {
 				const stream = this.settings.streams.find(s => s.id === streamId);
 				if (stream) {
@@ -965,30 +713,25 @@ export default class StreamsPlugin extends Plugin {
 				}
 			}
 		} else {
-			// Completely hide the icon
 			icon.style.display = 'none';
 			icon.classList.add('is-hidden');
 		}
 		
-		// Log visibility change once instead of before and after
 		const isNowVisible = icon.style.display !== 'none' && !icon.classList.contains('is-hidden');
 		this.log.debug(`Icon visibility update: ${wasVisible ? 'visible' : 'hidden'} → ${isNowVisible ? 'visible' : 'hidden'}`);
 	}
 
-	/**
-	 * Initialize commands for streams that have them enabled
-	 */
 	public initializeStreamCommands(): void {
 		this.log.debug('Initializing stream commands...');
 		
 		this.settings.streams.forEach(stream => {
-			// Initialize "Open Today" command if enabled
+			// Add "Open Today" command if enabled
 			if (stream.addCommand) {
 				this.addStreamCommand(stream);
 				this.log.debug(`Added Open Today command for stream ${stream.name}`);
 			}
 			
-			// Initialize "View Full Stream" command if enabled
+			// Add "View Full Stream" command if enabled
 			if (stream.addViewCommand) {
 				this.addStreamViewCommand(stream);
 				this.log.debug(`Added View Full Stream command for stream ${stream.name}`);

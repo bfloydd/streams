@@ -75,7 +75,6 @@ export class CalendarWidget {
         this.app.vault.on('modify', this.fileModifyHandler);
 
         this.initializeWidget();
-        this.loadStyles();
     }
 
     private handleFileModify(file: TFile) {
@@ -241,31 +240,27 @@ export class CalendarWidget {
 
     private async updateCalendarGrid(grid: HTMLElement) {
         grid.empty();
-        grid.style.display = 'grid';
         
-        this.log.debug(`Updating calendar grid for ${this.formatMonthYear(this.currentDate)}`);
+        const daysInMonth = this.getDaysInMonth(this.currentDate.getFullYear(), this.currentDate.getMonth());
+        const firstDayOfMonth = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1).getDay();
         
-        const days = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-        days.forEach(day => {
-            const dayHeader = grid.createDiv('calendar-day-header');
-            dayHeader.setText(day);
-        });
-
-        const firstDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), 1);
-        const lastDay = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth() + 1, 0);
-        const totalDays = lastDay.getDate();
-        const startingDay = firstDay.getDay();
+        // Add day headers (Su, Mo, Tu, etc.)
+        for (let i = 0; i < 7; i++) {
+            const dayHeader = grid.createDiv('stream-calendar-day-header');
+            dayHeader.textContent = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][i];
+        }
         
-        this.log.debug(`Month: ${this.currentDate.getMonth() + 1}, First day: ${startingDay}, Total days: ${totalDays}`);
-
-        for (let i = 0; i < startingDay; i++) {
+        // Add empty cells for days before the 1st of the month
+        for (let i = 0; i < firstDayOfMonth; i++) {
             grid.createDiv('calendar-day empty');
         }
-
-        for (let day = 1; day <= totalDays; day++) {
+        
+        // Add all days of the month
+        for (let day = 1; day <= daysInMonth; day++) {
             const dayEl = grid.createDiv('calendar-day');
+            
             const dateContainer = dayEl.createDiv('date-container');
-            dateContainer.setText(String(day));
+            dateContainer.textContent = String(day);
             
             const dotContainer = dayEl.createDiv('dot-container');
             
@@ -331,80 +326,19 @@ export class CalendarWidget {
 
     private toggleExpanded(collapsedView: HTMLElement, expandedView: HTMLElement) {
         this.expanded = !this.expanded;
-        expandedView.style.display = this.expanded ? 'block' : 'none';
+        expandedView.toggleClass('calendar-expanded', this.expanded);
         collapsedView.toggleClass('today-button-expanded', this.expanded);
         
         if (this.expanded) {
+            expandedView.style.display = 'block';
             const grid = this.grid;
             if (grid) {
                 setTimeout(() => {
                     this.updateCalendarGrid(grid);
-                    expandedView.toggleClass('calendar-expanded', true);
                 }, 10);
             }
         } else {
-            expandedView.toggleClass('calendar-expanded', false);
-        }
-    }
-
-    private loadStyles() {
-        const additionalStyles = `
-            .calendar-day {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                gap: 2px;
-                border: 1px solid transparent;
-                padding: 4px;
-                border-radius: 4px;
-            }
-
-            .calendar-day.viewed {
-                border-color: var(--text-accent);
-            }
-
-            .dot-container {
-                display: flex;
-                gap: 2px;
-                height: 4px;
-            }
-
-            .content-dot {
-                width: 4px;
-                height: 4px;
-                border-radius: 50%;
-                background-color: var(--text-muted);
-            }
-
-            .calendar-day:hover .content-dot {
-                background-color: var(--text-normal);
-            }
-
-            .calendar-day.today {
-                color: var(--text-accent);
-                font-weight: 600;
-            }
-
-            .calendar-day.today .content-dot {
-                background-color: var(--text-accent);
-            }
-
-            .stream-calendar-label {
-                font-size: 0.8em;
-                color: var(--text-muted);
-                margin-bottom: 2px;
-            }
-
-            .stream-calendar-collapsed {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-        `;
-
-        const styleEl = document.getElementById('streams-calendar-styles');
-        if (styleEl) {
-            styleEl.textContent += additionalStyles;
+            expandedView.style.display = 'none';
         }
     }
 
@@ -464,5 +398,9 @@ export class CalendarWidget {
     private parseViewedDate(dateString: string): Date {
         const [year, month, day] = dateString.split('-').map(n => parseInt(n, 10));
         return new Date(year, month - 1, day);
+    }
+
+    private getDaysInMonth(year: number, month: number): number {
+        return new Date(year, month, 0).getDate();
     }
 } 

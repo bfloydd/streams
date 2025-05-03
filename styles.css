@@ -255,6 +255,78 @@
     line-height: 1;
 }
 
+.calendar-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    border: 1px solid transparent;
+    padding: 4px;
+    border-radius: 4px;
+}
+
+.calendar-day.viewed {
+    border-color: var(--text-accent);
+}
+
+.dot-container {
+    display: flex;
+    gap: 2px;
+    height: 4px;
+}
+
+.content-dot {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background-color: var(--text-muted);
+}
+
+.calendar-day:hover .content-dot {
+    background-color: var(--text-normal);
+}
+
+.calendar-day.today {
+    color: var(--text-accent);
+    font-weight: 600;
+}
+
+.calendar-day.today .content-dot {
+    background-color: var(--text-accent);
+}
+
+.stream-calendar-label {
+    font-size: 0.8em;
+    color: var(--text-muted);
+    margin-bottom: 2px;
+}
+
+.streams-today-icon-border {
+    border-left: 2px solid var(--stream-today-border-color, var(--text-accent));
+}
+
+.streams-view-icon-border {
+    border-left: 2px solid var(--stream-view-border-color, var(--text-success));
+}
+
+.stream-calendar-nav {
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 4px;
+}
+
+.stream-calendar-nav:hover {
+    color: var(--text-normal);
+}
+
+.stream-calendar-date {
+    font-weight: 600;
+}
+
+.today-button-expanded {
+    opacity: 0;
+}
+
 /*********************************************************
  * CREATE FILE VIEW STYLES
  *********************************************************/
@@ -463,6 +535,7 @@
     width: 100%;
     opacity: 0;
     margin: 20px 0 100px 0;
+    position: relative;
 }
 
 .stream-view-end-marker {
@@ -472,6 +545,7 @@
     color: var(--text-muted);
     font-size: 0;
     opacity: 0;
+    height: 1px;
 }
 
 .stream-view-empty {
