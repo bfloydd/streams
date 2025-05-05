@@ -173,7 +173,7 @@
     top: 0;
     right: 0;
     padding: 16px;
-    min-width: 250px;
+    width: 280px; /* Fixed width for consistency */
     background-color: var(--background-secondary);
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
@@ -242,6 +242,11 @@
     padding: 4px;
     border-radius: 4px;
     transition: background-color 0.2s ease, transform 0.1s ease;
+    min-width: 32px; /* Fixed width for day cells */
+    min-height: 32px; /* Fixed height for day cells */
+    width: 32px;
+    height: 32px;
+    justify-content: center;
 }
 
 .calendar-day:hover {
@@ -272,6 +277,7 @@
     color: var(--text-muted);
     font-size: 12px;
     text-align: center;
+    width: 32px; /* Fixed width for headers */
 }
 
 .stream-calendar-day-nav {
@@ -312,10 +318,10 @@
 
 .stream-calendar-grid {
     display: grid !important;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, 32px); /* Fixed width columns */
     gap: 4px;
     width: 100%;
-    min-width: 200px;
+    min-width: 248px; /* 7 * 32px + 6 * 4px (gap) */
     background-color: var(--background-primary);
     padding: 8px;
     border-radius: 6px;
@@ -328,6 +334,8 @@
     align-items: center;
     font-size: 12px;
     line-height: 1;
+    width: 100%;
+    height: 100%;
 }
 
 .calendar-day {
