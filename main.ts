@@ -1,12 +1,12 @@
 import { App, MarkdownView, Notice, Plugin, WorkspaceLeaf, Platform, TFile } from 'obsidian';
 import { StreamsSettingTab } from './settings';
 import { Stream, StreamsSettings } from './types';
-import { CalendarWidget } from './src/Widgets/CalendarWidget';
+import { CalendarWidget } from './src/components/CalendarWidget';
 import { Logger } from './src/utils/Logger';
 import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
 import { StreamSelectionModal } from './src/modals/StreamSelectionModal';
-import { CREATE_FILE_VIEW_TYPE, CreateFileView } from './src/Widgets/CreateFileView';
-import { STREAM_VIEW_TYPE, StreamViewWidget } from './src/Widgets/StreamViewWidget';
+import { CREATE_FILE_VIEW_TYPE, CreateFileView } from './src/components/CreateFileView';
+import { STREAM_VIEW_TYPE, StreamViewWidget } from './src/components/StreamViewWidget';
 import { OpenStreamViewCommand } from './src/commands/OpenStreamViewCommand';
 
 // Lucide icon names used by the plugin

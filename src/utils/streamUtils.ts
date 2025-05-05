@@ -1,7 +1,7 @@
 import { App, TFolder, TFile, MarkdownView, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../types';
 import { Logger } from '../utils/Logger';
-import { CREATE_FILE_VIEW_TYPE, CreateFileView } from '../Widgets/CreateFileView';
+import { CREATE_FILE_VIEW_TYPE, CreateFileView } from '../components/CreateFileView';
 
 const log = new Logger();
 

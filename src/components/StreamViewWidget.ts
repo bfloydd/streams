@@ -349,10 +349,6 @@ export class StreamViewWidget extends ItemView {
         }
     }
 
-    async createTodayFile(): Promise<void> {
-        // Method intentionally left empty as the "Create Today's Note" functionality has been removed
-    }
-
     getState(): any {
         return {
             streamId: this.stream.id,

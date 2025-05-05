@@ -1,6 +1,6 @@
 import { App, Notice, TFile, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../types';
-import { STREAM_VIEW_TYPE, StreamViewWidget } from '../Widgets/StreamViewWidget';
+import { STREAM_VIEW_TYPE, StreamViewWidget } from '../components/StreamViewWidget';
 import { Logger } from '../utils/Logger';
 
 export class OpenStreamViewCommand {

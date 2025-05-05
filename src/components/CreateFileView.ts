@@ -168,7 +168,6 @@ export class CreateFileView extends ItemView {
         const streamName = streamContainer.createSpan('streams-create-file-stream');
         streamName.setText(this.stream.name);
         
-        // Date display
         const dateEl = container.createDiv('streams-create-file-date');
         
         this.log.debug(`Date for formatting: ${this.date.toISOString()}`);

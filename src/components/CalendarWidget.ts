@@ -38,7 +38,6 @@ export class CalendarWidget {
             const markdownView = leaf.view as MarkdownView;
             contentContainer = markdownView.contentEl;
             
-            // Extract date from current file
             const currentFile = markdownView.file;
             if (currentFile) {
                 const match = currentFile.basename.match(/^\d{4}-\d{2}-\d{2}/);
