@@ -11,7 +11,7 @@ interface ContentIndicator {
 }
 
 export class CalendarComponent {
-    private widget: HTMLElement;
+    private component: HTMLElement;
     private expanded: boolean = false;
     private currentDate: Date = new Date();
     private selectedStream: Stream;
@@ -23,16 +23,16 @@ export class CalendarComponent {
     private todayButton: HTMLElement;
 
     constructor(leaf: WorkspaceLeaf, stream: Stream, app: App) {
-        this.log.debug('Creating calendar widget for stream:', stream.name);
+        this.log.debug('Creating calendar component for stream:', stream.name);
         this.selectedStream = stream;
         this.app = app;
         
-        this.widget = document.createElement('div');
-        this.widget.addClass('stream-calendar-widget');
+        this.component = document.createElement('div');
+        this.component.addClass('stream-calendar-component');
         
         let contentContainer: HTMLElement | null = null;
         const viewType = leaf.view.getViewType();
-        this.log.debug(`Creating calendar widget for view type: ${viewType}`);
+        this.log.debug(`Creating calendar component for view type: ${viewType}`);
         
         if (viewType === 'markdown') {
             const markdownView = leaf.view as MarkdownView;
@@ -70,18 +70,18 @@ export class CalendarComponent {
         contentContainer.style.position = 'relative';
         
         // I don't like these here, but moving them to styles.css caused breaks
-        this.widget.style.position = 'absolute';
-        this.widget.style.zIndex = '1000';
-        this.widget.style.top = '32px';
+        this.component.style.position = 'absolute';
+        this.component.style.zIndex = '1000';
+        this.component.style.top = '32px';
         // Account for scrollbar
-        this.widget.style.right = '16px';
+        this.component.style.right = '16px';
         
-        contentContainer.appendChild(this.widget);
+        contentContainer.appendChild(this.component);
         
         this.fileModifyHandler = this.handleFileModify.bind(this);
         this.app.vault.on('modify', this.fileModifyHandler);
 
-        this.initializeWidget();
+        this.initializeComponent();
     }
 
     private handleFileModify(file: TFile) {
@@ -96,8 +96,8 @@ export class CalendarComponent {
         }
     }
 
-    private initializeWidget() {
-        const collapsedView = this.widget.createDiv('stream-calendar-collapsed');
+    private initializeComponent() {
+        const collapsedView = this.component.createDiv('stream-calendar-collapsed');
         collapsedView.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleExpanded(collapsedView, expandedView);
@@ -130,7 +130,7 @@ export class CalendarComponent {
             await this.navigateToAdjacentDay(1);
         });
 
-        const expandedView = this.widget.createDiv('stream-calendar-expanded');
+        const expandedView = this.component.createDiv('stream-calendar-expanded');
         expandedView.style.display = 'none';
 
         const topNav = expandedView.createDiv('stream-calendar-top-nav');
@@ -181,7 +181,7 @@ export class CalendarComponent {
         });
 
         document.addEventListener('click', (e) => {
-            if (this.expanded && !this.widget.contains(e.target as Node)) {
+            if (this.expanded && !this.component.contains(e.target as Node)) {
                 this.toggleExpanded(collapsedView, expandedView);
             }
         });
@@ -350,11 +350,11 @@ export class CalendarComponent {
     }
 
     public destroy() {
-        this.log.debug('Destroying calendar widget');
+        this.log.debug('Destroying calendar component');
         this.app.vault.off('modify', this.fileModifyHandler);
         
-        if (this.widget && this.widget.parentElement) {
-            this.widget.remove();
+        if (this.component && this.component.parentElement) {
+            this.component.remove();
         }
     }
 

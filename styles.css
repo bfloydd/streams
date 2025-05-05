@@ -74,7 +74,7 @@
 }
 
 /*********************************************************
- * CALENDAR WIDGET STYLES
+ * CALENDAR COMPONENT STYLES
  *********************************************************/
 
 .stream-calendar-top-nav {
@@ -111,7 +111,7 @@
     color: var(--text-normal);
 }
 
-.stream-calendar-widget {
+.stream-calendar-component {
     position: absolute;
     top: 32px;
     right: 16px;
@@ -122,8 +122,8 @@
     filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
 }
 
-/* Mobile-specific positioning for the calendar widget */
-.is-mobile .stream-calendar-widget {
+/* Mobile-specific positioning for the calendar component */
+.is-mobile .stream-calendar-component {
     position: absolute;
     top: 32px;
     right: 12px;
@@ -133,11 +133,11 @@
     pointer-events: auto;
 }
 
-.is-phone .stream-calendar-widget {
+.is-phone .stream-calendar-component {
     font-size: 11px;
 }
 
-.streams-create-file-container .stream-calendar-widget {
+.streams-create-file-container .stream-calendar-component {
     position: fixed;
     top: 80px;
     right: 0;

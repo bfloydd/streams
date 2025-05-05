@@ -20,18 +20,18 @@ export class StreamsSettingTab extends PluginSettingTab {
         containerEl.createEl('h3', { text: 'Global Settings' });
         
         new Setting(containerEl)
-            .setName('Show Calendar Widget')
-            .setDesc('Show the calendar widget in stream notes')
+            .setName('Show Calendar Component')
+            .setDesc('Show the calendar component in stream notes')
             .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.showCalendarWidget)
+                .setValue(this.plugin.settings.showCalendarComponent)
                 .onChange(async (value) => {
-                    this.plugin.settings.showCalendarWidget = value;
+                    this.plugin.settings.showCalendarComponent = value;
                     await this.plugin.saveSettings();
                     
                     // Use the refresh method to immediately update all components
                     this.plugin.refreshAllCalendarComponents();
                     
-                    new Notice(`Calendar widget ${value ? 'shown' : 'hidden'}`);
+                    new Notice(`Calendar component ${value ? 'shown' : 'hidden'}`);
                 }));
                 
         containerEl.createEl('h3', { text: 'Streams' });

@@ -36,5 +36,5 @@ export interface Stream {
 
 export interface StreamsSettings {
     streams: Stream[];
-    showCalendarWidget: boolean;
+    showCalendarComponent: boolean;
 } 

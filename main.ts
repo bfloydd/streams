@@ -49,7 +49,7 @@ export function isValidIcon(icon: string): icon is LucideIcon {
 
 const DEFAULT_SETTINGS: StreamsSettings = {
 	streams: [],
-	showCalendarWidget: true
+	showCalendarComponent: true
 }
 
 export default class StreamsPlugin extends Plugin {
@@ -372,8 +372,8 @@ export default class StreamsPlugin extends Plugin {
 		this.calendarComponents.clear();
 
 		// Exit early if there's no file path or the calendar is disabled
-		if (!filePath || !this.settings.showCalendarWidget) {
-			this.log.debug(`Not creating calendar component. File path: ${filePath ? 'exists' : 'missing'}, Component enabled: ${this.settings.showCalendarWidget}`);
+		if (!filePath || !this.settings.showCalendarComponent) {
+			this.log.debug(`Not creating calendar component. File path: ${filePath ? 'exists' : 'missing'}, Component enabled: ${this.settings.showCalendarComponent}`);
 			return;
 		}
 
@@ -489,7 +489,7 @@ export default class StreamsPlugin extends Plugin {
 		});
 		this.calendarComponents.clear();
 		
-		if (!this.settings.showCalendarWidget) {
+		if (!this.settings.showCalendarComponent) {
 			this.log.debug('Calendar component is disabled in settings');
 			return;
 		}
@@ -599,9 +599,9 @@ export default class StreamsPlugin extends Plugin {
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 		
-		// Ensure showCalendarWidget has a default value if not set
-		if (this.settings.showCalendarWidget === undefined) {
-			this.settings.showCalendarWidget = true;
+		// Ensure showCalendarComponent has a default value if not set
+		if (this.settings.showCalendarComponent === undefined) {
+			this.settings.showCalendarComponent = true;
 		}
 		
 		// Migrate existing streams
@@ -819,30 +819,30 @@ export default class StreamsPlugin extends Plugin {
 
 	private registerCalendarCommands(): void {
 		this.addCommand({
-			id: 'toggle-calendar-widget',
+			id: 'toggle-calendar-component',
 			name: 'Toggle Calendar Component',
 			callback: () => {
-				this.settings.showCalendarWidget = !this.settings.showCalendarWidget;
+				this.settings.showCalendarComponent = !this.settings.showCalendarComponent;
 				this.saveSettings();
 				
 				// Immediately refresh all components
 				this.refreshAllCalendarComponents();
 				
-				new Notice(`Calendar component ${this.settings.showCalendarWidget ? 'shown' : 'hidden'}`);
+				new Notice(`Calendar component ${this.settings.showCalendarComponent ? 'shown' : 'hidden'}`);
 			}
 		});
 	}
 
 	public refreshAllCalendarComponents(): void {
 		// Always clean up existing components first
-		this.log.debug(`Refreshing all calendar components. Current setting: ${this.settings.showCalendarWidget}`);
+		this.log.debug(`Refreshing all calendar components. Current setting: ${this.settings.showCalendarComponent}`);
 		this.calendarComponents.forEach((component) => {
 			component.destroy();
 		});
 		this.calendarComponents.clear();
 		
 		// If components should be hidden, we're done
-		if (!this.settings.showCalendarWidget) {
+		if (!this.settings.showCalendarComponent) {
 			this.log.debug('Calendar components will remain hidden due to setting');
 			return;
 		}
