@@ -3,14 +3,14 @@ import { Stream } from '../../types';
 import { Logger } from '../utils/Logger';
 import { OpenStreamDateCommand } from '../commands/OpenStreamDateCommand';
 import { OpenTodayStreamCommand } from '../commands/OpenTodayStreamCommand';
-import { CREATE_FILE_VIEW_TYPE } from './CreateFileView';
+import { CREATE_FILE_VIEW_TYPE } from '../views/CreateFileView';
 
 interface ContentIndicator {
     exists: boolean;
     size: 'small' | 'medium' | 'large';
 }
 
-export class CalendarWidget {
+export class CalendarComponent {
     private widget: HTMLElement;
     private expanded: boolean = false;
     private currentDate: Date = new Date();

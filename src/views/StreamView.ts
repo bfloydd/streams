@@ -2,9 +2,9 @@ import { App, ItemView, MarkdownRenderer, TFile, WorkspaceLeaf } from 'obsidian'
 import { Stream } from '../../types';
 import { Logger } from '../utils/Logger';
 
-export const STREAM_VIEW_TYPE = 'streams-full-view';
+export const STREAM_VIEW_TYPE = 'stream-view';
 
-export class StreamViewWidget extends ItemView {
+export class StreamView extends ItemView {
     private stream: Stream;
     public app: App;
     private streamContentEl: HTMLElement;

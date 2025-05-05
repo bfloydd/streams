@@ -1,6 +1,6 @@
 import { App, Notice, TFile, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../types';
-import { STREAM_VIEW_TYPE, StreamViewWidget } from '../components/StreamViewWidget';
+import { STREAM_VIEW_TYPE, StreamView } from '../views/StreamView';
 import { Logger } from '../utils/Logger';
 
 export class OpenStreamViewCommand {
@@ -36,10 +36,10 @@ export class OpenStreamViewCommand {
         }
     }
 
-    private findExistingView(): StreamViewWidget | null {
+    private findExistingView(): StreamView | null {
         const leaves = this.app.workspace.getLeavesOfType(STREAM_VIEW_TYPE);
         for (const leaf of leaves) {
-            const view = leaf.view as StreamViewWidget;
+            const view = leaf.view as StreamView;
             if (view && view.getState().streamId === this.stream.id) {
                 return view;
             }

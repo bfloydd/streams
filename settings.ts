@@ -28,8 +28,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                     this.plugin.settings.showCalendarWidget = value;
                     await this.plugin.saveSettings();
                     
-                    // Use the refresh method to immediately update all widgets
-                    this.plugin.refreshAllCalendarWidgets();
+                    // Use the refresh method to immediately update all components
+                    this.plugin.refreshAllCalendarComponents();
                     
                     new Notice(`Calendar widget ${value ? 'shown' : 'hidden'}`);
                 }));
