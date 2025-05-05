@@ -74,7 +74,8 @@ export class CalendarWidget {
         this.widget.style.position = 'absolute';
         this.widget.style.zIndex = '1000';
         this.widget.style.top = '32px';
-        this.widget.style.right = '0';
+        // Account for scrollbar
+        this.widget.style.right = '16px';
         
         contentContainer.appendChild(this.widget);
         

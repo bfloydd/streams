@@ -114,10 +114,10 @@
 .stream-calendar-widget {
     position: absolute;
     top: 32px;
-    right: 0;
+    right: 16px;
     z-index: 1000;
     font-size: 12px;
-    margin-right: 8px;
+    margin-right: 0;
     pointer-events: auto;
     filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
 }
@@ -126,7 +126,7 @@
 .is-mobile .stream-calendar-widget {
     position: absolute;
     top: 32px;
-    right: 0;
+    right: 12px;
     z-index: 1000;
     font-size: 12px;
     margin-right: 0;
