@@ -69,6 +69,13 @@ export class CalendarWidget {
         }
 
         contentContainer.style.position = 'relative';
+        
+        // I don't like these here, but moving them to styles.css caused breaks
+        this.widget.style.position = 'absolute';
+        this.widget.style.zIndex = '1000';
+        this.widget.style.top = '32px';
+        this.widget.style.right = '0';
+        
         contentContainer.appendChild(this.widget);
         
         this.fileModifyHandler = this.handleFileModify.bind(this);

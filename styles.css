@@ -114,10 +114,11 @@
 .stream-calendar-widget {
     position: absolute;
     top: 32px;
-    right: 100%;
+    right: 0;
     z-index: 1000;
     font-size: 12px;
     margin-right: 8px;
+    pointer-events: auto;
 }
 
 /* Mobile-specific positioning for the calendar widget */
@@ -128,6 +129,7 @@
     z-index: 1000;
     font-size: 12px;
     margin-right: 0;
+    pointer-events: auto;
 }
 
 .is-phone .stream-calendar-widget {
@@ -155,6 +157,8 @@
     text-align: center;
     white-space: nowrap;
     user-select: none;
+    z-index: 1000;
+    pointer-events: auto;
 }
 
 .stream-calendar-expanded {
@@ -169,15 +173,45 @@
     opacity: 0;
     transform: scale(0.95);
     transition: all 0.3s ease;
+    z-index: 1005;
+    pointer-events: none;
 }
 
 .calendar-expanded {
     opacity: 1;
     transform: scale(1);
+    pointer-events: auto;
 }
 
 .stream-calendar-header {
     margin: 12px 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stream-calendar-nav {
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+}
+
+.stream-calendar-nav:hover {
+    color: var(--text-normal);
+    background-color: var(--background-modifier-hover);
+    border-radius: 4px;
+}
+
+.stream-calendar-date {
+    font-weight: 600;
+    text-align: center;
+    flex: 1;
 }
 
 .calendar-day {
@@ -321,20 +355,6 @@
 
 .streams-view-icon-border {
     border-left: 2px solid var(--stream-view-border-color, var(--text-success));
-}
-
-.stream-calendar-nav {
-    cursor: pointer;
-    color: var(--text-muted);
-    padding: 4px;
-}
-
-.stream-calendar-nav:hover {
-    color: var(--text-normal);
-}
-
-.stream-calendar-date {
-    font-weight: 600;
 }
 
 .today-button-expanded {
