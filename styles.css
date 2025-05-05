@@ -317,6 +317,7 @@
     margin: 0 4px;
     width: 42px;
     min-width: 42px;
+    font-size: .9em;
 }
 
 .stream-calendar-grid {
@@ -632,41 +633,6 @@
     justify-content: center;
     padding: 64px 0;
     text-align: center;
-}
-
-.stream-view-create-button {
-    margin-top: 16px;
-    padding: 8px 16px;
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.stream-view-create-button:hover {
-    opacity: 0.9;
-}
-
-.stream-view-create-today-button {
-    margin: 16px 0 32px;
-    padding: 8px 16px;
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-    align-self: center;
-    font-size: 14px;
-}
-
-.stream-view-create-today-button:hover {
-    opacity: 0.9;
-    transform: translateY(-1px);
-}
-
-.stream-view-create-today-button:active {
-    transform: translateY(0);
 }
 
 /*********************************************************
