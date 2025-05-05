@@ -113,7 +113,7 @@
 
 .stream-calendar-component {
     position: absolute;
-    top: 32px;
+    top: -18px;
     right: 16px;
     z-index: 1000;
     font-size: 12px;
@@ -125,7 +125,7 @@
 /* Mobile-specific positioning for the calendar component */
 .is-mobile .stream-calendar-component {
     position: absolute;
-    top: 32px;
+    top: -18px;
     right: 12px;
     z-index: 1000;
     font-size: 12px;

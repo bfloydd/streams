@@ -72,7 +72,7 @@ export class CalendarComponent {
         // I don't like these here, but moving them to styles.css caused breaks
         this.component.style.position = 'absolute';
         this.component.style.zIndex = '1000';
-        this.component.style.top = '32px';
+        this.component.style.top = '5px';
         // Account for scrollbar
         this.component.style.right = '16px';
         
