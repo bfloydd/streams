@@ -48,7 +48,8 @@ export function isValidIcon(icon: string): icon is LucideIcon {
 }
 
 const DEFAULT_SETTINGS: StreamsSettings = {
-	streams: []
+	streams: [],
+	showCalendarWidget: true
 }
 
 export default class StreamsPlugin extends Plugin {
@@ -68,6 +69,7 @@ export default class StreamsPlugin extends Plugin {
 		this.initializeAllRibbonIcons();
 		this.initializeStreamCommands();
 		this.initializeMobileIntegration();
+		this.registerCalendarCommands();
 
 		this.addSettingTab(new StreamsSettingTab(this.app, this));
 		this.initializeActiveView();
@@ -357,7 +359,7 @@ export default class StreamsPlugin extends Plugin {
 		}
 	}
 
-	private updateCalendarWidget(leaf: WorkspaceLeaf) {
+	public updateCalendarWidget(leaf: WorkspaceLeaf) {
 		const view = leaf.view as MarkdownView;
 		const filePath = view.file?.path;
 		
@@ -369,9 +371,14 @@ export default class StreamsPlugin extends Plugin {
 		});
 		this.calendarWidgets.clear();
 
-		if (!filePath) return;
+		// Exit early if there's no file path or the calendar is disabled
+		if (!filePath || !this.settings.showCalendarWidget) {
+			this.log.debug(`Not creating calendar widget. File path: ${filePath ? 'exists' : 'missing'}, Widget enabled: ${this.settings.showCalendarWidget}`);
+			return;
+		}
 
 		// Log streams for debugging
+		this.log.debug(`Looking for stream matching file: ${filePath}`);
 		this.log.debug('Available streams:', this.settings.streams.map(s => ({
 			name: s.name,
 			folder: s.folder
@@ -379,29 +386,44 @@ export default class StreamsPlugin extends Plugin {
 
 		// Find which stream this file belongs to
 		const stream = this.settings.streams.find(s => {
+			// Skip streams with empty folders
+			if (!s.folder || s.folder.trim() === '') {
+				return false;
+			}
+			
 			// Normalize paths for comparison
 			const normalizedFilePath = filePath.split(/[/\\]/).filter(Boolean);
 			const normalizedStreamPath = s.folder.split(/[/\\]/).filter(Boolean);
 			
-			// Check if paths match at each level
-			const isMatch = normalizedStreamPath.every((part, index) => normalizedStreamPath[index] === normalizedFilePath[index]);
+			// If stream path is empty, skip this stream
+			if (normalizedStreamPath.length === 0) {
+				return false;
+			}
 			
-			this.log.debug(`Checking stream "${s.name}":`, {
-				filePath,
-				streamFolder: s.folder,
-				normalizedFilePath,
-				normalizedStreamPath,
-				isMatch
+			// Check if the file path starts with the stream path
+			const isInStreamFolder = normalizedStreamPath.every((part, index) => {
+				// Check bounds
+				if (index >= normalizedFilePath.length) {
+					return false;
+				}
+				return normalizedStreamPath[index] === normalizedFilePath[index];
 			});
 			
-			return isMatch;
+			this.log.debug(`Checking stream "${s.name}" (${s.folder}):`, {
+				isInStreamFolder,
+				normalizedFilePath,
+				normalizedStreamPath
+			});
+			
+			return isInStreamFolder;
 		});
 
 		if (stream) {
-			this.log.debug('File belongs to stream:', stream.name);
+			this.log.debug(`File belongs to stream: ${stream.name} (${stream.folder})`);
 			const widget = new CalendarWidget(leaf, stream, this.app);
 			const widgetId = filePath || crypto.randomUUID();
 			this.calendarWidgets.set(widgetId, widget);
+			this.log.debug('Calendar widget created successfully');
 		} else {
 			this.log.debug('File does not belong to any stream');
 		}
@@ -454,9 +476,12 @@ export default class StreamsPlugin extends Plugin {
 		}
 	}
 
-	private updateCalendarWidgetForCreateView(leaf: WorkspaceLeaf) {
+	public updateCalendarWidgetForCreateView(leaf: WorkspaceLeaf) {
 		const view = leaf.view;
-		if (!view) return;
+		if (!view) {
+			this.log.debug('Cannot update calendar widget: no view found');
+			return;
+		}
 		
 		// Clean up existing widgets
 		this.calendarWidgets.forEach((widget) => {
@@ -464,29 +489,47 @@ export default class StreamsPlugin extends Plugin {
 		});
 		this.calendarWidgets.clear();
 		
+		if (!this.settings.showCalendarWidget) {
+			this.log.debug('Calendar widget is disabled in settings');
+			return;
+		}
+		
 		try {
 			// Get stream and date from view state
 			const state = view.getState();
-			if (state && state.stream && state.date) {
-				const stream = state.stream as Stream;
-				const dateString = state.date as string;
-				const date = new Date(dateString);
-				
-				this.log.debug('Creating calendar widget for create file view:', {
-					stream: stream.name,
-					date: date.toISOString()
-				});
-				
-				// Create the calendar widget
-				const widget = new CalendarWidget(leaf, stream, this.app);
-				
-				// Set current viewed date
-				const formattedDate = dateString.split('T')[0];
-				widget.setCurrentViewedDate(formattedDate);
-				
-				const widgetId = 'create-file-view-' + stream.id;
-				this.calendarWidgets.set(widgetId, widget);
+			if (!state) {
+				this.log.debug('No state found in create file view');
+				return;
 			}
+			
+			if (!state.stream || !state.date) {
+				this.log.debug('Missing stream or date in create file view state', {
+					hasStream: !!state.stream,
+					hasDate: !!state.date
+				});
+				return;
+			}
+			
+			const stream = state.stream as Stream;
+			const dateString = state.date as string;
+			const date = new Date(dateString);
+			
+			this.log.debug('Creating calendar widget for create file view:', {
+				stream: stream.name,
+				date: date.toISOString()
+			});
+			
+			// Create the calendar widget
+			const widget = new CalendarWidget(leaf, stream, this.app);
+			
+			// Set current viewed date
+			const formattedDate = dateString.split('T')[0];
+			widget.setCurrentViewedDate(formattedDate);
+			
+			const widgetId = 'create-file-view-' + stream.id;
+			this.calendarWidgets.set(widgetId, widget);
+			
+			this.log.debug('Calendar widget for create file view created successfully');
 		} catch (error) {
 			this.log.error('Error setting up calendar widget for create view:', error);
 		}
@@ -555,6 +598,11 @@ export default class StreamsPlugin extends Plugin {
 
 	async loadSettings() {
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		
+		// Ensure showCalendarWidget has a default value if not set
+		if (this.settings.showCalendarWidget === undefined) {
+			this.settings.showCalendarWidget = true;
+		}
 		
 		// Migrate existing streams
 		this.settings.streams.forEach(stream => {
@@ -767,5 +815,73 @@ export default class StreamsPlugin extends Plugin {
 				this.log.debug(`Added View Full Stream command for stream ${stream.name}`);
 			}
 		});
+	}
+
+	private registerCalendarCommands(): void {
+		this.addCommand({
+			id: 'toggle-calendar-widget',
+			name: 'Toggle Calendar Widget',
+			callback: () => {
+				this.settings.showCalendarWidget = !this.settings.showCalendarWidget;
+				this.saveSettings();
+				
+				// Immediately refresh all widgets
+				this.refreshAllCalendarWidgets();
+				
+				new Notice(`Calendar widget ${this.settings.showCalendarWidget ? 'shown' : 'hidden'}`);
+			}
+		});
+	}
+
+	public refreshAllCalendarWidgets(): void {
+		// Always clean up existing widgets first
+		this.log.debug(`Refreshing all calendar widgets. Current setting: ${this.settings.showCalendarWidget}`);
+		this.calendarWidgets.forEach((widget) => {
+			widget.destroy();
+		});
+		this.calendarWidgets.clear();
+		
+		// If widgets should be hidden, we're done
+		if (!this.settings.showCalendarWidget) {
+			this.log.debug('Calendar widgets will remain hidden due to setting');
+			return;
+		}
+		
+		// Track if we successfully created at least one widget
+		let widgetCreated = false;
+		
+		// Otherwise, force recreation based on the current view type
+		this.log.debug('Recreating calendar widgets based on current view');
+		
+		// Handle markdown view case - most common
+		const activeMarkdownLeaf = this.app.workspace.getActiveViewOfType(MarkdownView)?.leaf;
+		if (activeMarkdownLeaf) {
+			this.log.debug('Active view is a markdown view, creating calendar if applicable');
+			this.updateCalendarWidget(activeMarkdownLeaf);
+			
+			// Check if a widget was actually created
+			if (this.calendarWidgets.size > 0) {
+				widgetCreated = true;
+				this.log.debug('Calendar widget successfully created for markdown view');
+			}
+		}
+		
+		// If no widget was created and there's an active leaf, try other view types
+		if (!widgetCreated && this.app.workspace.activeLeaf) {
+			const activeLeaf = this.app.workspace.activeLeaf;
+			const viewType = activeLeaf.view?.getViewType();
+			
+			// Handle create file view case
+			if (viewType === CREATE_FILE_VIEW_TYPE) {
+				this.log.debug('Active view is a create file view, creating calendar');
+				this.updateCalendarWidgetForCreateView(activeLeaf);
+				widgetCreated = this.calendarWidgets.size > 0;
+			} 
+			// Stream views and other view types don't get calendar widgets
+		}
+		
+		if (!widgetCreated) {
+			this.log.debug('No calendar widget was created during refresh. This may be because no suitable view is active or the current file is not part of a stream.');
+		}
 	}
 }

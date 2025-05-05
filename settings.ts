@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting, Notice, TFolder } from 'obsidian';
+import { App, PluginSettingTab, Setting, Notice, TFolder, MarkdownView } from 'obsidian';
 import StreamsPlugin from './main';
 import { Stream, StreamsSettings, LucideIcon } from './types';
 
@@ -15,6 +15,26 @@ export class StreamsSettingTab extends PluginSettingTab {
         containerEl.empty();
 
         containerEl.createEl('h2', { text: 'Streams Settings' });
+
+        // Global settings section
+        containerEl.createEl('h3', { text: 'Global Settings' });
+        
+        new Setting(containerEl)
+            .setName('Show Calendar Widget')
+            .setDesc('Show the calendar widget in stream notes')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.showCalendarWidget)
+                .onChange(async (value) => {
+                    this.plugin.settings.showCalendarWidget = value;
+                    await this.plugin.saveSettings();
+                    
+                    // Use the refresh method to immediately update all widgets
+                    this.plugin.refreshAllCalendarWidgets();
+                    
+                    new Notice(`Calendar widget ${value ? 'shown' : 'hidden'}`);
+                }));
+                
+        containerEl.createEl('h3', { text: 'Streams' });
 
         new Setting(containerEl)
             .setName('Add Stream')

@@ -23,6 +23,7 @@ export interface Stream {
     icon: LucideIcon;
     viewIcon: LucideIcon;
     showTodayInRibbon: boolean;
+    
     showFullStreamInRibbon: boolean;
     addCommand: boolean;
     addViewCommand: boolean;
@@ -35,4 +36,5 @@ export interface Stream {
 
 export interface StreamsSettings {
     streams: Stream[];
+    showCalendarWidget: boolean;
 } 
