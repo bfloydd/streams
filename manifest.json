@@ -8,5 +8,5 @@
   "authorUrl": "http://floyd.pro",
   "fundingUrl": "http://ty.floyd.pro",
   "isDesktopOnly": false,
-  "cssMinified": "dist/styles.css"
+  "distLocation": "dist"
 }
