@@ -1,13 +1,22 @@
-import { App, WorkspaceLeaf, TFile, MarkdownView } from 'obsidian';
+import { App, WorkspaceLeaf, TFile, MarkdownView, View } from 'obsidian';
 import { Stream } from '../../types';
 import { Logger } from '../utils/Logger';
 import { OpenStreamDateCommand } from '../commands/OpenStreamDateCommand';
 import { OpenTodayStreamCommand } from '../commands/OpenTodayStreamCommand';
-import { CREATE_FILE_VIEW_TYPE } from '../views/CreateFileView';
+import { CREATE_FILE_VIEW_TYPE, CreateFileView } from '../views/CreateFileView';
 
 interface ContentIndicator {
     exists: boolean;
     size: 'small' | 'medium' | 'large';
+}
+
+/**
+ * Extended View interface that includes contentEl property
+ * This is used for views that aren't fully typed in the obsidian API
+ * but we know they have a contentEl property
+ */
+interface ViewWithContentEl extends View {
+    contentEl: HTMLElement;
 }
 
 export class CalendarComponent {
@@ -46,7 +55,9 @@ export class CalendarComponent {
                 }
             }
         } else if (viewType === CREATE_FILE_VIEW_TYPE) {
-            contentContainer = (leaf.view as any).contentEl;
+            // Cast to unknown first, then to ViewWithContentEl to avoid TypeScript errors
+            const view = leaf.view as unknown as ViewWithContentEl;
+            contentContainer = view.contentEl;
             
             try {
                 const state = leaf.view.getState();
@@ -59,7 +70,9 @@ export class CalendarComponent {
                 this.log.error('Error getting date from CreateFileView state:', error);
             }
         } else {
-            contentContainer = (leaf.view as any).contentEl;
+            // Cast to unknown first, then to ViewWithContentEl to avoid TypeScript errors
+            const view = leaf.view as unknown as ViewWithContentEl;
+            contentContainer = view.contentEl;
         }
         
         if (!contentContainer) {
