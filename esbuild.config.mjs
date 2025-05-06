@@ -1,6 +1,8 @@
 import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
+import fs from "fs";
+import path from "path";
 
 const banner =
 `/*
@@ -10,6 +12,12 @@ if you want to view the source, please visit the github repository of this plugi
 `;
 
 const prod = (process.argv[2] === "production");
+const distDir = "dist";
+
+// Create dist directory if it doesn't exist
+if (!fs.existsSync(distDir)) {
+	fs.mkdirSync(distDir, { recursive: true });
+}
 
 const context = await esbuild.context({
 	banner: {
@@ -37,12 +45,29 @@ const context = await esbuild.context({
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
-	outfile: "main.js",
+	outfile: path.join(distDir, "main.js"),
 	minify: prod,
 });
 
 if (prod) {
 	await context.rebuild();
+	
+	// Minify CSS in production mode
+	if (fs.existsSync("styles.css")) {
+		console.log("Minifying CSS...");
+		const css = fs.readFileSync("styles.css", "utf8");
+		
+		// Use esbuild's CSS minification
+		const result = await esbuild.transform(css, {
+			loader: "css",
+			minify: true
+		});
+		
+		// Write to dist directory
+		fs.writeFileSync(path.join(distDir, "styles.css"), result.code);
+		console.log("CSS minification complete");
+	}
+	
 	process.exit(0);
 } else {
 	await context.watch();
