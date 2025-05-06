@@ -2,7 +2,7 @@ import { App, MarkdownView, Notice, Plugin, WorkspaceLeaf, Platform, TFile } fro
 import { StreamsSettingTab } from './settings';
 import { Stream, StreamsSettings } from './types';
 import { CalendarComponent } from './src/components/CalendarComponent';
-import { Logger } from './src/utils/Logger';
+import { Logger, LogLevel } from './src/utils/Logger';
 import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
 import { StreamSelectionModal } from './src/modals/StreamSelectionModal';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from './src/views/CreateFileView';
@@ -58,11 +58,13 @@ export default class StreamsPlugin extends Plugin {
 	commandsByStreamId: Map<string, string> = new Map();
 	viewCommandsByStreamId: Map<string, string> = new Map();
 	calendarComponents: Map<string, CalendarComponent> = new Map();
-	public log: Logger = new Logger();
+	public log: Logger;
 
 	async onload() {
+		// Initialize logger with plugin name prefix
+		this.log = new Logger('Streams');
+		
 		await this.loadSettings();
-		this.log = new Logger();
 		
 		this.registerPluginViews();
 		this.registerEventHandlers();
@@ -70,6 +72,7 @@ export default class StreamsPlugin extends Plugin {
 		this.initializeStreamCommands();
 		this.initializeMobileIntegration();
 		this.registerCalendarCommands();
+		this.registerLogCommands();
 
 		this.addSettingTab(new StreamsSettingTab(this.app, this));
 		this.initializeActiveView();
@@ -84,6 +87,27 @@ export default class StreamsPlugin extends Plugin {
 		await this.loadStyles();
 
 		this.log.info('Streams plugin loaded');
+	}
+	
+	/**
+	 * Register commands for controlling logging
+	 */
+	private registerLogCommands(): void {
+		// Add a command to enable/disable logging
+		this.addCommand({
+			id: 'toggle-logging',
+			name: 'Toggle Debug Logging',
+			callback: () => {
+				// Toggle between DEBUG and NONE
+				if (this.log.isEnabled()) {
+					this.log.off();
+					new Notice('Streams logging disabled');
+				} else {
+					this.log.on(LogLevel.DEBUG);
+					new Notice('Streams logging enabled (DEBUG level)');
+				}
+			}
+		});
 	}
 	
 	private logInitialState(): void {
