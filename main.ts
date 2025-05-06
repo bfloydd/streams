@@ -219,7 +219,7 @@ export default class StreamsPlugin extends Plugin {
 			icon.classList.add('streams-today-icon-border');
 			
 			if (stream.todayBorderColor && stream.todayBorderColor !== 'default') {
-				icon.style.setProperty('--stream-today-border-color', stream.todayBorderColor);
+				icon.setAttribute('data-border-color', stream.todayBorderColor);
 			}
 		} catch (error) {
 			this.log.error('Error applying today icon styles:', error);
@@ -233,7 +233,7 @@ export default class StreamsPlugin extends Plugin {
 			icon.classList.add('streams-view-icon-border');
 			
 			if (stream.viewBorderColor && stream.viewBorderColor !== 'default') {
-				icon.style.setProperty('--stream-view-border-color', stream.viewBorderColor);
+				icon.setAttribute('data-border-color', stream.viewBorderColor);
 			}
 		} catch (error) {
 			this.log.error('Error applying view icon styles:', error);
@@ -761,7 +761,7 @@ export default class StreamsPlugin extends Plugin {
 
 	private updateIconVisibility(icon: HTMLElement, visible: boolean): void {
 		// Log visibility state
-		const wasVisible = icon.style.display !== 'none' && !icon.classList.contains('is-hidden');
+		const wasVisible = !icon.classList.contains('stream-icon-hidden') && !icon.classList.contains('is-hidden');
 		
 		// Get stream info for styling
 		const streamId = icon.getAttribute('data-stream-id');
@@ -769,7 +769,8 @@ export default class StreamsPlugin extends Plugin {
 		
 		if (visible) {
 			icon.classList.remove('is-hidden');
-			icon.style.display = 'flex';
+			icon.classList.remove('stream-icon-hidden');
+			icon.classList.add('stream-icon-visible');
 			
 			// Add to DOM if needed
 			if (!document.body.contains(icon)) {
@@ -791,11 +792,11 @@ export default class StreamsPlugin extends Plugin {
 				}
 			}
 		} else {
-			icon.style.display = 'none';
+			icon.classList.add('stream-icon-hidden');
 			icon.classList.add('is-hidden');
 		}
 		
-		const isNowVisible = icon.style.display !== 'none' && !icon.classList.contains('is-hidden');
+		const isNowVisible = !icon.classList.contains('stream-icon-hidden') && !icon.classList.contains('is-hidden');
 		this.log.debug(`Icon visibility update: ${wasVisible ? 'visible' : 'hidden'} → ${isNowVisible ? 'visible' : 'hidden'}`);
 	}
 

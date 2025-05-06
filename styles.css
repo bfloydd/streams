@@ -32,6 +32,15 @@
     opacity: 1;
 }
 
+/* Icon display states */
+.stream-icon-visible {
+    display: flex;
+}
+
+.stream-icon-hidden {
+    display: none;
+}
+
 /*********************************************************
  * SETTINGS UI STYLES
  *********************************************************/
@@ -122,6 +131,19 @@
     filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
 }
 
+/* For calendar component on markdown views */
+.markdown-view-content {
+    position: relative;
+}
+
+/* For CalendarComponent.ts positions that were previously inline */
+.stream-calendar-component-fixed {
+    position: absolute;
+    z-index: 1000;
+    top: 5px;
+    right: 16px;
+}
+
 /* Mobile-specific positioning for the calendar component */
 .is-mobile .stream-calendar-component {
     position: absolute;
@@ -184,12 +206,14 @@
     z-index: 1005;
     pointer-events: none;
     border: 1px solid rgba(0, 0, 0, 0.1);
+    display: none;
 }
 
 .calendar-expanded {
     opacity: 1;
     transform: scale(1);
     pointer-events: auto;
+    display: block;
 }
 
 .stream-calendar-header {
@@ -394,11 +418,53 @@
 }
 
 .streams-today-icon-border {
-    border-left: 2px solid var(--stream-today-border-color, var(--text-accent));
+    border-left: 2px solid var(--text-accent);
 }
 
+/* Each border color gets its own class */
+.streams-today-icon-border[data-border-color="var(--text-accent)"] {
+    border-left: 2px solid var(--text-accent);
+}
+
+.streams-today-icon-border[data-border-color="var(--text-normal)"] {
+    border-left: 2px solid var(--text-normal);
+}
+
+.streams-today-icon-border[data-border-color="var(--text-muted)"] {
+    border-left: 2px solid var(--text-muted);
+}
+
+.streams-today-icon-border[data-border-color="var(--text-success)"] {
+    border-left: 2px solid var(--text-success);
+}
+
+.streams-today-icon-border[data-border-color="var(--text-error)"] {
+    border-left: 2px solid var(--text-error);
+}
+
+/* For custom colors that don't use CSS variables */
 .streams-view-icon-border {
-    border-left: 2px solid var(--stream-view-border-color, var(--text-success));
+    border-left: 2px solid var(--text-success);
+}
+
+.streams-view-icon-border[data-border-color="var(--text-accent)"] {
+    border-left: 2px solid var(--text-accent);
+}
+
+.streams-view-icon-border[data-border-color="var(--text-normal)"] {
+    border-left: 2px solid var(--text-normal);
+}
+
+.streams-view-icon-border[data-border-color="var(--text-muted)"] {
+    border-left: 2px solid var(--text-muted);
+}
+
+.streams-view-icon-border[data-border-color="var(--text-success)"] {
+    border-left: 2px solid var(--text-success);
+}
+
+.streams-view-icon-border[data-border-color="var(--text-error)"] {
+    border-left: 2px solid var(--text-error);
 }
 
 .today-button-expanded {

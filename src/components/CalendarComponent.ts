@@ -67,14 +67,9 @@ export class CalendarComponent {
             return;
         }
 
-        contentContainer.style.position = 'relative';
+        contentContainer.addClass('markdown-view-content');
         
-        // I don't like these here, but moving them to styles.css caused breaks
-        this.component.style.position = 'absolute';
-        this.component.style.zIndex = '1000';
-        this.component.style.top = '5px';
-        // Account for scrollbar
-        this.component.style.right = '16px';
+        this.component.addClass('stream-calendar-component-fixed');
         
         contentContainer.appendChild(this.component);
         
@@ -131,7 +126,6 @@ export class CalendarComponent {
         });
 
         const expandedView = this.component.createDiv('stream-calendar-expanded');
-        expandedView.style.display = 'none';
 
         const topNav = expandedView.createDiv('stream-calendar-top-nav');
         const todayNavButton = topNav.createDiv('stream-calendar-today-nav');
@@ -337,15 +331,12 @@ export class CalendarComponent {
         collapsedView.toggleClass('today-button-expanded', this.expanded);
         
         if (this.expanded) {
-            expandedView.style.display = 'block';
             const grid = this.grid;
             if (grid) {
                 setTimeout(() => {
                     this.updateCalendarGrid(grid);
                 }, 10);
             }
-        } else {
-            expandedView.style.display = 'none';
         }
     }
 
