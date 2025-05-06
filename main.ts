@@ -543,7 +543,7 @@ export default class StreamsPlugin extends Plugin {
 			return;
 		}
 		
-		const commandId = `streams-view-stream-${streamId}`;
+		const commandId = `streams-view-${streamId}`;
 		this.addCommand({
 			id: commandId,
 			name: `Open Full View: ${stream.name}`,
@@ -732,7 +732,7 @@ export default class StreamsPlugin extends Plugin {
 	}
 
 	private addStreamCommand(stream: Stream) {
-		const commandId = `streams-plugin:open-${stream.id}`;
+		const commandId = `streams-open-${stream.id}`;
 		
 		// Remove existing command if any
 		this.removeStreamCommand(stream.id);
