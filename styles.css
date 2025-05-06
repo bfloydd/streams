@@ -171,14 +171,14 @@
     position: absolute;
     top: 0;
     right: 0;
-    padding: 8px 12px;
+    padding: 4px 8px;
     cursor: pointer;
     transition: opacity 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
     background-color: var(--background-secondary);
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    min-width: 140px;
-    width: 140px;
+    min-width: 120px;
+    width: 120px;
     text-align: center;
     white-space: nowrap;
     user-select: none;
@@ -310,15 +310,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 42px;
-    height: 32px;
+    width: 36px;
+    height: 28px;
     border-radius: 4px;
     cursor: pointer;
     color: var(--text-normal);
     transition: background-color 0.2s ease, transform 0.1s ease;
     background-color: var(--background-primary);
     border: none;
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .stream-calendar-day-nav:hover {
@@ -339,10 +339,8 @@
     text-align: center;
     font-weight: 600;
     color: var(--text-accent);
-    margin: 0 4px;
-    width: 42px;
-    min-width: 42px;
-    font-size: .9em;
+    margin: 0 2px;
+    font-size: 0.8em;
 }
 
 .stream-calendar-grid {
@@ -413,7 +411,7 @@
 }
 
 .stream-calendar-label {
-    font-size: 0.8em;
+    font-size: 0.7em;
     color: var(--text-muted);
     margin-bottom: 2px;
 }
@@ -784,9 +782,9 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 4px;
+    margin-top: 2px;
     background-color: var(--background-primary-alt);
     border-radius: 4px;
-    padding: 6px;
+    padding: 2px 4px;
     border: none;
 }
