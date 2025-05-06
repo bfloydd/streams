@@ -68,6 +68,13 @@ if (prod) {
 		console.log("CSS minification complete");
 	}
 	
+	// Copy manifest.json to dist directory
+	if (fs.existsSync("manifest.json")) {
+		console.log("Copying manifest.json to dist directory...");
+		fs.copyFileSync("manifest.json", path.join(distDir, "manifest.json"));
+		console.log("Manifest copied successfully");
+	}
+	
 	process.exit(0);
 } else {
 	await context.watch();
