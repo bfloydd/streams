@@ -54,6 +54,9 @@ export class CalendarComponent {
                     this.currentViewedDate = match[0];
                 }
             }
+            
+            // Add the fixed position class for markdown views
+            this.component.addClass('stream-calendar-component-fixed');
         } else if (viewType === CREATE_FILE_VIEW_TYPE) {
             // Cast to unknown first, then to ViewWithContentEl to avoid TypeScript errors
             const view = leaf.view as unknown as ViewWithContentEl;
@@ -69,10 +72,16 @@ export class CalendarComponent {
             } catch (error) {
                 this.log.error('Error getting date from CreateFileView state:', error);
             }
+            
+            // Don't add fixed position class for create file view
+            // The CSS will correctly position it via .streams-create-file-container .stream-calendar-component
         } else {
             // Cast to unknown first, then to ViewWithContentEl to avoid TypeScript errors
             const view = leaf.view as unknown as ViewWithContentEl;
             contentContainer = view.contentEl;
+            
+            // Add the fixed position class for other view types
+            this.component.addClass('stream-calendar-component-fixed');
         }
         
         if (!contentContainer) {
@@ -81,8 +90,6 @@ export class CalendarComponent {
         }
 
         contentContainer.addClass('markdown-view-content');
-        
-        this.component.addClass('stream-calendar-component-fixed');
         
         contentContainer.appendChild(this.component);
         

@@ -160,10 +160,11 @@
 }
 
 .streams-create-file-container .stream-calendar-component {
-    position: fixed;
-    top: 80px;
-    right: 0;
+    position: absolute;
+    top: 5px;
+    right: 16px;
     margin-right: 0;
+    z-index: 1000;
 }
 
 .stream-calendar-collapsed {
