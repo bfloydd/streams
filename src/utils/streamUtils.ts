@@ -5,6 +5,28 @@ import { CREATE_FILE_VIEW_TYPE, CreateFileView } from '../views/CreateFileView';
 
 const log = new Logger();
 
+/**
+ * Interface for Obsidian's internal ViewRegistry, which manages all view registrations
+ */
+interface ViewRegistry {
+    /**
+     * Register a view creator function for a given view type
+     */
+    registerView(viewType: string, viewCreator: (leaf: WorkspaceLeaf) => any): void;
+    
+    /**
+     * Get a view creator function for a given view type
+     */
+    getViewCreatorByType(viewType: string): ((leaf: WorkspaceLeaf) => any) | null;
+}
+
+/**
+ * Interface for Obsidian's App with internal ViewRegistry
+ */
+interface AppWithViewRegistry extends App {
+    viewRegistry: ViewRegistry;
+}
+
 function normalizePath(path: string): string {
     return path.replace(/\\/g, '/').replace(/\/+/g, '/');
 }
@@ -118,8 +140,10 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
             log.debug('Created a new leaf for CreateFileView');
         }
         
-        // Register view if needed
-        const viewRegistry = (app as any).viewRegistry;
+        // Register view if needed - using properly typed interface
+        const appWithViewRegistry = app as unknown as AppWithViewRegistry;
+        const viewRegistry = appWithViewRegistry.viewRegistry;
+        
         if (viewRegistry && !viewRegistry.getViewCreatorByType(CREATE_FILE_VIEW_TYPE)) {
             viewRegistry.registerView(
                 CREATE_FILE_VIEW_TYPE,
