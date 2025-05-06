@@ -147,8 +147,8 @@
 /* Mobile-specific positioning for the calendar component */
 .is-mobile .stream-calendar-component {
     position: absolute;
-    top: -18px;
-    right: 12px;
+    top: 5px;
+    right: 16px;
     z-index: 1000;
     font-size: 12px;
     margin-right: 0;
@@ -159,7 +159,17 @@
     font-size: 11px;
 }
 
+/* Positioning for create file view - applies to both desktop and mobile */
 .streams-create-file-container .stream-calendar-component {
+    position: absolute;
+    top: 5px;
+    right: 16px;
+    margin-right: 0;
+    z-index: 1000;
+}
+
+/* Ensure consistent positioning for create file view on mobile */
+.is-mobile .streams-create-file-container .stream-calendar-component {
     position: absolute;
     top: 5px;
     right: 16px;
