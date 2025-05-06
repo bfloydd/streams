@@ -1,8 +1,24 @@
-import { App, ItemView, MarkdownRenderer, TFile, WorkspaceLeaf } from 'obsidian';
+import { App, ItemView, MarkdownRenderer, TFile, WorkspaceLeaf, Plugin } from 'obsidian';
 import { Stream } from '../../types';
 import { Logger } from '../utils/Logger';
 
 export const STREAM_VIEW_TYPE = 'stream-view';
+
+// Interface just for our streams plugin structure
+interface StreamsPlugin extends Plugin {
+    settings: {
+        streams: Stream[];
+    };
+}
+
+// Interface for accessing app.plugins
+interface AppWithPlugins extends App {
+    plugins: {
+        plugins: {
+            'streams': StreamsPlugin;
+        };
+    };
+}
 
 export class StreamView extends ItemView {
     private stream: Stream;
@@ -373,42 +389,48 @@ export class StreamView extends ItemView {
                 this.scrollTimeout = null;
             }
             
-            const plugin = (this.app as any).plugins.plugins['streams'];
-            if (plugin && plugin.settings && plugin.settings.streams) {
-                const newStream = plugin.settings.streams.find((s: Stream) => s.id === state.streamId);
-                if (newStream) {
-                    if (!newStream.viewIcon) {
-                        newStream.viewIcon = newStream.icon;
-                    }
-                    this.stream = newStream;
-                    
-                    this.log.debug(`Rebuilding UI for stream: ${this.stream.name}`);
-                    
-                    const container = this.containerEl.children[1];
-                    container.empty();
-                    container.addClass('stream-view-container');
-                    
-                    const header = container.createDiv('stream-view-header');
-                    header.createEl('h2', { text: `${this.stream.name} Stream` });
-                    
-                    this.streamContentEl = container.createDiv('stream-view-content');
-                    
-                    await this.loadInitialContent();
-                    
-                    this.loadMoreTrigger = container.createDiv('stream-view-scroll-trigger');
-                    
-                    this.setupInfiniteScroll();
-                    
-                    setTimeout(() => {
-                        const viewportHeight = window.innerHeight;
-                        const contentHeight = this.streamContentEl.getBoundingClientRect().height;
-                        
-                        if (contentHeight < viewportHeight && !this.noMoreContent) {
-                            this.log.debug('Content does not fill viewport after stream switch, loading more');
-                            this.triggerLoadMore();
+            // Use the properly typed interfaces
+            try {
+                const appWithPlugins = this.app as unknown as AppWithPlugins;
+                const plugin = appWithPlugins.plugins.plugins['streams'];
+                if (plugin?.settings?.streams) {
+                    const newStream = plugin.settings.streams.find(s => s.id === state.streamId);
+                    if (newStream) {
+                        if (!newStream.viewIcon) {
+                            newStream.viewIcon = newStream.icon;
                         }
-                    }, 300);
+                        this.stream = newStream;
+                        
+                        this.log.debug(`Rebuilding UI for stream: ${this.stream.name}`);
+                        
+                        const container = this.containerEl.children[1];
+                        container.empty();
+                        container.addClass('stream-view-container');
+                        
+                        const header = container.createDiv('stream-view-header');
+                        header.createEl('h2', { text: `${this.stream.name} Stream` });
+                        
+                        this.streamContentEl = container.createDiv('stream-view-content');
+                        
+                        await this.loadInitialContent();
+                        
+                        this.loadMoreTrigger = container.createDiv('stream-view-scroll-trigger');
+                        
+                        this.setupInfiniteScroll();
+                        
+                        setTimeout(() => {
+                            const viewportHeight = window.innerHeight;
+                            const contentHeight = this.streamContentEl.getBoundingClientRect().height;
+                            
+                            if (contentHeight < viewportHeight && !this.noMoreContent) {
+                                this.log.debug('Content does not fill viewport after stream switch, loading more');
+                                this.triggerLoadMore();
+                            }
+                        }, 300);
+                    }
                 }
+            } catch (error) {
+                this.log.error('Error accessing plugin:', error);
             }
         }
     }
