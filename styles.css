@@ -181,7 +181,7 @@
     position: absolute;
     top: 0;
     right: 0;
-    padding: 4px 8px;
+    padding: 4px 0 0 0;
     cursor: pointer;
     transition: opacity 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
     background-color: var(--background-secondary);
@@ -349,7 +349,7 @@
     text-align: center;
     font-weight: 600;
     color: var(--text-accent);
-    margin: 0 2px;
+    margin: 0 8px;
     font-size: 0.8em;
 }
 
@@ -795,6 +795,6 @@
     margin-top: 2px;
     background-color: var(--background-primary-alt);
     border-radius: 4px;
-    padding: 2px 4px;
+    padding: 2px 6px;
     border: none;
 }
