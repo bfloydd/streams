@@ -1,6 +1,6 @@
 import { App, MarkdownView, Notice, Plugin, WorkspaceLeaf, Platform, TFile } from 'obsidian';
 import { StreamsSettingTab } from './settings';
-import { Stream, StreamsSettings } from './types';
+import { Stream, StreamsSettings, LucideIcon } from './types';
 import { CalendarComponent } from './src/components/CalendarComponent';
 import { Logger, LogLevel } from './src/utils/Logger';
 import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
@@ -8,40 +8,6 @@ import { StreamSelectionModal } from './src/modals/StreamSelectionModal';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from './src/views/CreateFileView';
 import { STREAM_VIEW_TYPE, StreamView } from './src/views/StreamView';
 import { OpenStreamViewCommand } from './src/commands/OpenStreamViewCommand';
-
-// Lucide icon names used by the plugin
-type LucideIcon =
-	| 'alarm-check'
-	| 'album'
-	| 'alert-circle'
-	| 'archive'
-	| 'book'
-	| 'bookmark'
-	| 'box'
-	| 'calendar'
-	| 'check-circle'
-	| 'clipboard'
-	| 'clock'
-	| 'cloud'
-	| 'code'
-	| 'coffee'
-	| 'edit'
-	| 'file-text'
-	| 'folder'
-	| 'heart'
-	| 'home'
-	| 'inbox'
-	| 'layout-dashboard'
-	| 'list'
-	| 'message-circle'
-	| 'music'
-	| 'pencil'
-	| 'settings'
-	| 'star'
-	| 'sun'
-	| 'tag'
-	| 'trash'
-	| 'user'
 
 export function isValidIcon(icon: string): icon is LucideIcon {
 	return document.querySelector(`[data-icon="${icon}"]`) !== null;
