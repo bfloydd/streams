@@ -9,10 +9,6 @@ import { CREATE_FILE_VIEW_TYPE, CreateFileView } from './src/views/CreateFileVie
 import { STREAM_VIEW_TYPE, StreamView } from './src/views/StreamView';
 import { OpenStreamViewCommand } from './src/commands/OpenStreamViewCommand';
 
-export function isValidIcon(icon: string): icon is LucideIcon {
-	return document.querySelector(`[data-icon="${icon}"]`) !== null;
-}
-
 const DEFAULT_SETTINGS: StreamsSettings = {
 	streams: [],
 	showCalendarComponent: true
