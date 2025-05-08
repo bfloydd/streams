@@ -23,7 +23,6 @@ export default class StreamsPlugin extends Plugin {
 	public log: Logger;
 
 	async onload() {
-		// Initialize logger with plugin name prefix
 		this.log = new Logger('Streams');
 		
 		await this.loadSettings();
@@ -40,12 +39,10 @@ export default class StreamsPlugin extends Plugin {
 		this.initializeActiveView();
 		this.logInitialState();
 
-		// Style element for dynamic styles
 		const styleEl = document.createElement('style');
 		styleEl.id = 'streams-calendar-styles';
 		document.head.appendChild(styleEl);
 
-		// Load CSS styles from styles.css
 		await this.loadStyles();
 
 		this.log.info('Streams plugin loaded');
@@ -548,37 +545,6 @@ export default class StreamsPlugin extends Plugin {
 			this.removeCommand(commandId);
 			this.viewCommandsByStreamId.delete(streamId);
 			this.log.debug(`Removed View Full Stream command for stream ${streamId}`);
-		}
-	}
-
-	public forceRebuildAllIcons(): void {
-		this.log.debug("=== FORCE REBUILDING ALL RIBBON ICONS ===");
-		
-		// Ensure all icons are created
-		this.settings.streams.forEach(stream => {
-			this.createStreamIcons(stream);
-		});
-		
-		// Update visibility
-		this.updateAllIconVisibility();
-		
-		this.log.debug("=== FORCE REBUILD COMPLETE ===");
-	}
-
-	public directlyToggleSpecificRibbonIcon(type: 'today' | 'view', stream: Stream, enabled: boolean): void {
-		this.log.debug(`Directly toggling ${type} icon for ${stream.id} to ${enabled}`);
-		
-		// Create icons if needed
-		this.createStreamIcons(stream);
-		
-		// Update visibility
-		const streamIcons = this.ribbonIconsByStream.get(stream.id);
-		if (!streamIcons) return;
-		
-		if (type === 'today' && streamIcons.today) {
-			this.updateIconVisibility(streamIcons.today, enabled);
-		} else if (type === 'view' && streamIcons.view) {
-			this.updateIconVisibility(streamIcons.view, enabled);
 		}
 	}
 
