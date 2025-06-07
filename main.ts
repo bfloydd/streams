@@ -55,7 +55,7 @@ export default class StreamsPlugin extends Plugin {
 		// Add a command to enable/disable logging
 		this.addCommand({
 			id: 'toggle-logging',
-			name: 'Toggle Debug Logging',
+			name: 'Toggle debug logging',
 			callback: () => {
 				// Toggle between DEBUG and NONE
 				if (this.log.isEnabled()) {
@@ -158,7 +158,7 @@ export default class StreamsPlugin extends Plugin {
 			
 			streamIcons.today = this.addRibbonIcon(
 				stream.icon,
-				`Streams: ${stream.name}, Today`,
+				`Streams: ${stream.name}, today`,
 				() => {
 					const command = new OpenTodayStreamCommand(this.app, stream);
 					command.execute();
@@ -179,7 +179,7 @@ export default class StreamsPlugin extends Plugin {
 			
 			streamIcons.view = this.addRibbonIcon(
 				stream.viewIcon || stream.icon,
-				`Streams: ${stream.name}, Full`,
+				`Streams: ${stream.name}, full`,
 				() => {
 					const command = new OpenStreamViewCommand(this.app, stream);
 					command.execute();
@@ -529,7 +529,7 @@ export default class StreamsPlugin extends Plugin {
 		const commandId = `streams-view-${streamId}`;
 		this.addCommand({
 			id: commandId,
-			name: `Open Full View: ${stream.name}`,
+			name: `Open full view: ${stream.name}`,
 			callback: () => {
 				const command = new OpenStreamViewCommand(this.app, stream);
 				command.execute();
@@ -692,7 +692,7 @@ export default class StreamsPlugin extends Plugin {
 		// Add new command
 		const command = this.addCommand({
 			id: commandId,
-			name: `${stream.name}, Today`,
+			name: `${stream.name}, today`,
 			callback: async () => {
 				const command = new OpenTodayStreamCommand(this.app, stream);
 				await command.execute();
@@ -773,7 +773,7 @@ export default class StreamsPlugin extends Plugin {
 	private registerCalendarCommands(): void {
 		this.addCommand({
 			id: 'toggle-calendar-component',
-			name: 'Toggle Calendar Component',
+			name: 'Toggle calendar component',
 			callback: () => {
 				this.settings.showCalendarComponent = !this.settings.showCalendarComponent;
 				this.saveSettings();

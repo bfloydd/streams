@@ -15,7 +15,7 @@ export class StreamSelectionModal extends Modal {
         const { contentEl } = this;
         contentEl.empty();
 
-        contentEl.createEl('h2', { text: 'Select Stream' });
+        contentEl.createEl('h2', { text: 'Select stream' });
 
         this.streams.forEach(stream => {
             new Setting(contentEl)

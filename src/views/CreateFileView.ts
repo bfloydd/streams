@@ -37,7 +37,7 @@ export class CreateFileView extends ItemView {
                 const dateString = this.formatTitleDate(extractedDate);
                 
                 if (this.stream && this.stream.name) {
-                    return `Streams: ${this.stream.name}, Today - ${dateString}`;
+                    return `Streams: ${this.stream.name}, today - ${dateString}`;
                 }
                 
                 return dateString;

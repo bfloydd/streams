@@ -125,7 +125,7 @@ export class CalendarComponent {
         
         const prevDayButton = navControls.createDiv('stream-calendar-day-nav prev-day');
         prevDayButton.setText('←');
-        prevDayButton.setAttribute('aria-label', 'Previous Day');
+        prevDayButton.setAttribute('aria-label', 'Previous day');
         prevDayButton.addEventListener('click', async (e) => {
             e.stopPropagation();
             this.log.debug("LEFT ARROW CLICKED - Going to PREVIOUS day");
@@ -138,7 +138,7 @@ export class CalendarComponent {
         
         const nextDayButton = navControls.createDiv('stream-calendar-day-nav next-day');
         nextDayButton.setText('→');
-        nextDayButton.setAttribute('aria-label', 'Next Day');
+        nextDayButton.setAttribute('aria-label', 'Next day');
         nextDayButton.addEventListener('click', async (e) => {
             e.stopPropagation();
             this.log.debug("RIGHT ARROW CLICKED - Going to NEXT day");
@@ -149,7 +149,7 @@ export class CalendarComponent {
 
         const topNav = expandedView.createDiv('stream-calendar-top-nav');
         const todayNavButton = topNav.createDiv('stream-calendar-today-nav');
-        todayNavButton.setText('TODAY');
+        todayNavButton.setText('Today');
         const streamName = topNav.createDiv('stream-calendar-name');
         streamName.setText(this.selectedStream.name);
         const backButton = topNav.createDiv('stream-calendar-back');

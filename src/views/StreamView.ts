@@ -45,7 +45,7 @@ export class StreamView extends ItemView {
     }
 
     getDisplayText(): string {
-        return `Streams: ${this.stream.name}, Full`;
+        return `Streams: ${this.stream.name}, full`;
     }
 
     getIcon(): string {
@@ -60,7 +60,7 @@ export class StreamView extends ItemView {
         container.addClass('stream-view-container');
 
         const header = container.createDiv('stream-view-header');
-        header.createEl('h2', { text: `${this.stream.name} Stream` });
+        header.createEl('h2', { text: `${this.stream.name} stream` });
         
         this.streamContentEl = container.createDiv('stream-view-content');
         

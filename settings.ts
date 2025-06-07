@@ -20,7 +20,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         containerEl.createEl('h3', { text: 'Global Settings' });
         
         new Setting(containerEl)
-            .setName('Show Calendar Component')
+            .setName('Show calendar component')
             .setDesc('Show the calendar component in stream notes')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.showCalendarComponent)
@@ -37,10 +37,10 @@ export class StreamsSettingTab extends PluginSettingTab {
         containerEl.createEl('h3', { text: 'Streams' });
 
         new Setting(containerEl)
-            .setName('Add Stream')
+            .setName('Add stream')
             .setDesc('Create a new note stream')
             .addButton(button => button
-                .setButtonText('Add Stream')
+                .setButtonText('Add stream')
                 .setCta()
                 .onClick(async () => {
                     const newStream: Stream = {
@@ -123,10 +123,10 @@ export class StreamsSettingTab extends PluginSettingTab {
                     });
                 }));
 
-        card.createEl('h4', { text: 'Ribbon Controls', cls: 'setting-header' });
+        card.createEl('h4', { text: 'Ribbon controls', cls: 'setting-header' });
 
         new Setting(card)
-            .setName('Open Today in Ribbon')
+            .setName('Open today in ribbon')
             .setDesc('Show the "Open Today" button in the sidebar ribbon')
             .addToggle(toggle => toggle
                 .setValue(stream.showTodayInRibbon)
@@ -137,7 +137,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(card)
-            .setName('Today Icon')
+            .setName('Today icon')
             .setDesc('Icon for the "Open Today" ribbon button')
             .setClass('setting-indent')
             .addDropdown(dropdown => {
@@ -151,7 +151,7 @@ export class StreamsSettingTab extends PluginSettingTab {
             });
 
         new Setting(card)
-            .setName('Show Today Border')
+            .setName('Show today border')
             .setDesc('Display a colored border on the left side of the Today icon')
             .setClass('setting-indent')
             .addToggle(toggle => toggle
@@ -166,7 +166,7 @@ export class StreamsSettingTab extends PluginSettingTab {
 
         if (stream.showTodayBorder) {
             new Setting(card)
-                .setName('Border Color')
+                .setName('Border color')
                 .setClass('setting-double-indent')
                 .addText(text => text
                     .setValue(stream.todayBorderColor ?? 'var(--text-accent)')
@@ -183,7 +183,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         }
 
         new Setting(card)
-            .setName('View Full Stream in Ribbon')
+            .setName('View full stream in ribbon')
             .setDesc('Show the "View Full Stream" button in the sidebar ribbon')
             .addToggle(toggle => toggle
                 .setValue(stream.showFullStreamInRibbon)
@@ -194,7 +194,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                 }));
                 
         new Setting(card)
-            .setName('View Icon')
+            .setName('View icon')
             .setDesc('Icon for the "View Full Stream" ribbon button')
             .setClass('setting-indent')
             .addDropdown(dropdown => {
@@ -208,7 +208,7 @@ export class StreamsSettingTab extends PluginSettingTab {
             });
 
         new Setting(card)
-            .setName('Show View Border')
+            .setName('Show view border')
             .setDesc('Display a colored border on the left side of the View icon')
             .setClass('setting-indent')
             .addToggle(toggle => toggle
@@ -223,7 +223,7 @@ export class StreamsSettingTab extends PluginSettingTab {
 
         if (stream.showViewBorder) {
             new Setting(card)
-                .setName('Border Color')
+                .setName('Border color')
                 .setClass('setting-double-indent')
                 .addText(text => text
                     .setValue(stream.viewBorderColor ?? 'var(--text-success)')
@@ -240,7 +240,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         }
 
         new Setting(card)
-            .setName('Add command: Open Today')
+            .setName('Add command: open today')
             .setDesc('Add this stream to the command palette')
             .addToggle(toggle => toggle
                 .setValue(stream.addCommand ?? false)
@@ -251,7 +251,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                     if (value) {
                         setTimeout(() => {
                             this.plugin.initializeStreamCommands();
-                            new Notice(`Added "${stream.name}, Today" to command palette`);
+                            new Notice(`Added "${stream.name}, today" to command palette`);
                         }, 100);
                     }
                     
@@ -259,7 +259,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(card)
-            .setName('Add command: View Full Stream')
+            .setName('Add command: view full stream')
             .setDesc('Add a view command to the command palette')
             .addToggle(toggle => toggle
                 .setValue(stream.addViewCommand ?? false)
@@ -270,7 +270,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                     if (value) {
                         setTimeout(() => {
                             this.plugin.initializeStreamCommands();
-                            new Notice(`Added "${stream.name}, Full Stream" to command palette`);
+                            new Notice(`Added "${stream.name}, full stream" to command palette`);
                         }, 100);
                     }
                     
@@ -278,7 +278,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                 }));
 
         new Setting(card)
-            .setName('Delete Stream')
+            .setName('Delete stream')
             .setDesc('Permanently remove this stream')
             .addButton(button => button
                 .setButtonText('Delete')
@@ -299,10 +299,10 @@ export class StreamsSettingTab extends PluginSettingTab {
 
     private populateIconDropdown(dropdown: any) {
         const iconCategories = {
-            'Files & Documents': ['file-text', 'file', 'files', 'folder', 'book', 'notebook', 'diary'],
+            'Files & documents': ['file-text', 'file', 'files', 'folder', 'book', 'notebook', 'diary'],
             'Communication': ['message-circle', 'message-square', 'mail', 'inbox', 'send'],
-            'Time & Planning': ['alarm-check', 'calendar', 'clock', 'timer', 'history'],
-            'UI Elements': ['home', 'settings', 'search', 'bookmark', 'star', 'heart', 'layout-dashboard'],
+            'Time & planning': ['alarm-check', 'calendar', 'clock', 'timer', 'history'],
+            'UI elements': ['home', 'settings', 'search', 'bookmark', 'star', 'heart', 'layout-dashboard'],
             'Content': ['text', 'edit', 'pencil', 'pen', 'list', 'check-square'],
             'Media': ['image', 'video', 'music', 'camera'],
             'Weather': ['sun', 'moon', 'cloud', 'umbrella'],
