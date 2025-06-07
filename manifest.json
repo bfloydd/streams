@@ -7,6 +7,5 @@
   "author": "Floyd",
   "authorUrl": "http://floyd.pro",
   "fundingUrl": "http://ty.floyd.pro",
-  "isDesktopOnly": false,
-  "distLocation": "dist"
+  "isDesktopOnly": false
 }

@@ -5,7 +5,8 @@ import fs from "fs";
 import path from "path";
 
 const prod = (process.argv[2] === "production");
-const distDir = prod ? "dist" : ".";
+const distLocation = "dist";
+const distDir = prod ? distLocation : ".";
 
 if (prod && !fs.existsSync(distDir)) {
 	fs.mkdirSync(distDir, { recursive: true });
