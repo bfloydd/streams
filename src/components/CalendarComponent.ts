@@ -1,4 +1,4 @@
-import { App, WorkspaceLeaf, TFile, MarkdownView, View } from 'obsidian';
+import { App, WorkspaceLeaf, TFile, MarkdownView, View, Component } from 'obsidian';
 import { Stream } from '../../types';
 import { Logger } from '../utils/Logger';
 import { OpenStreamDateCommand } from '../commands/OpenStreamDateCommand';
@@ -19,7 +19,7 @@ interface ViewWithContentEl extends View {
     contentEl: HTMLElement;
 }
 
-export class CalendarComponent {
+export class CalendarComponent extends Component {
     private component: HTMLElement;
     private expanded: boolean = false;
     private currentDate: Date = new Date();
@@ -32,6 +32,7 @@ export class CalendarComponent {
     private todayButton: HTMLElement;
 
     constructor(leaf: WorkspaceLeaf, stream: Stream, app: App) {
+        super();
         this.log.debug('Creating calendar component for stream:', stream.name);
         this.selectedStream = stream;
         this.app = app;
@@ -94,7 +95,7 @@ export class CalendarComponent {
         contentContainer.appendChild(this.component);
         
         this.fileModifyHandler = this.handleFileModify.bind(this);
-        this.app.vault.on('modify', this.fileModifyHandler);
+        this.registerEvent(this.app.vault.on('modify', this.fileModifyHandler));
 
         this.initializeComponent();
     }
@@ -362,7 +363,6 @@ export class CalendarComponent {
 
     public destroy() {
         this.log.debug('Destroying calendar component');
-        this.app.vault.off('modify', this.fileModifyHandler);
         
         if (this.component && this.component.parentElement) {
             this.component.remove();
