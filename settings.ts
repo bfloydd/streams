@@ -1,6 +1,7 @@
 import { App, PluginSettingTab, Setting, Notice, TFolder, MarkdownView } from 'obsidian';
 import StreamsPlugin from './main';
 import { Stream, StreamsSettings, LucideIcon } from './types';
+import { FolderSuggest } from './src/settings/FolderSuggest';
 
 export class StreamsSettingTab extends PluginSettingTab {
     plugin: StreamsPlugin;
@@ -89,33 +90,35 @@ export class StreamsSettingTab extends PluginSettingTab {
 
         new Setting(card)
             .setName('Folder')
-            .addText(text => text
-                .setValue(stream.folder)
-                .setPlaceholder('folder/path')
-                .onChange(async (value) => {
-                    const normalizedPath = value.split(/[/\\]/).filter(Boolean).join('/');
-                    
-                    const pathExists = await this.validateFolderPath(normalizedPath);
-                    
-                    text.inputEl.removeClass('streams-folder-valid');
-                    text.inputEl.removeClass('streams-folder-invalid');
-                    
-                    if (value === '') {
-                        // Empty input, no styling needed
-                    } else if (pathExists) {
-                        text.inputEl.addClass('streams-folder-valid');
-                    } else {
-                        text.inputEl.addClass('streams-folder-invalid');
-                    }
-                })
-                .then(textComponent => {
-                    textComponent.inputEl.addEventListener('blur', async () => {
-                        const value = textComponent.getValue();
+            .setDesc('Select or type a folder path')
+            .addSearch(search => {
+                search
+                    .setValue(stream.folder)
+                    .setPlaceholder('folder/path')
+                    .onChange(async (value) => {
                         const normalizedPath = value.split(/[/\\]/).filter(Boolean).join('/');
+                        
+                        const pathExists = await this.validateFolderPath(normalizedPath);
+                        
+                        search.inputEl.removeClass('streams-folder-valid');
+                        search.inputEl.removeClass('streams-folder-invalid');
+                        
+                        if (value === '') {
+                            // Empty input, no styling needed
+                        } else if (pathExists) {
+                            search.inputEl.addClass('streams-folder-valid');
+                        } else {
+                            search.inputEl.addClass('streams-folder-invalid');
+                        }
+                        
+                        // Update stream folder immediately
                         stream.folder = normalizedPath;
                         await this.plugin.saveSettings();
                     });
-                }));
+
+                // Add folder suggestions
+                new FolderSuggest(this.app, search.inputEl);
+            });
 
         card.createEl('h4', { text: 'Ribbon controls', cls: 'streams-setting-header' });
 
