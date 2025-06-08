@@ -1,4 +1,4 @@
-import { App, TFolder, TFile, MarkdownView, WorkspaceLeaf } from 'obsidian';
+import { App, TFolder, TFile, MarkdownView, WorkspaceLeaf, normalizePath } from 'obsidian';
 import { Stream } from '../../types';
 import { Logger } from '../utils/Logger';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from '../views/CreateFileView';
@@ -27,18 +27,17 @@ interface AppWithViewRegistry extends App {
     viewRegistry: ViewRegistry;
 }
 
-function normalizePath(path: string): string {
-    return path.replace(/\\/g, '/').replace(/\/+/g, '/');
-}
+
 
 /**
- * Normalize folder path - convert backslashes to forward slashes and filter out empty segments
+ * Normalize folder path - uses Obsidian's normalizePath and filters out empty segments
  */
 export function normalizeFolderPath(folder: string): string {
-    return folder
-        .split(/[/\\]/)  
+    const normalized = normalizePath(folder);
+    return normalized
+        .split('/')
         .filter(Boolean)
-        .join('/');      
+        .join('/');
 }
 
 /**
