@@ -1,7 +1,6 @@
 import { App, PluginSettingTab, Setting, Notice, TFolder, MarkdownView } from 'obsidian';
 import StreamsPlugin from './main';
 import { Stream, StreamsSettings, LucideIcon } from './types';
-import { FolderSuggest } from './src/settings/FolderSuggest';
 
 export class StreamsSettingTab extends PluginSettingTab {
     plugin: StreamsPlugin;
@@ -115,9 +114,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                         stream.folder = normalizedPath;
                         await this.plugin.saveSettings();
                     });
-
-                // Add folder suggestions
-                new FolderSuggest(this.app, search.inputEl);
             });
 
         card.createEl('h4', { text: 'Ribbon controls', cls: 'streams-setting-header' });

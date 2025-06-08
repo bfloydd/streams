@@ -772,28 +772,6 @@
 }
 
 /*********************************************************
- * FOLDER SUGGESTION STYLES
- *********************************************************/
-
-.streams-folder-suggestion {
-    display: flex;
-    align-items: center;
-    padding: 4px 8px;
-    gap: 8px;
-}
-
-.streams-folder-suggestion-text {
-    flex: 1;
-    color: var(--text-normal);
-}
-
-.streams-folder-suggestion-path {
-    color: var(--text-muted);
-    font-size: 0.9em;
-    font-family: var(--font-monospace);
-}
-
-/*********************************************************
  * UTILITY STYLES
  *********************************************************/
 
