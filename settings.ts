@@ -58,8 +58,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                     this.display();
                 }));
 
-        const streamsContainer = containerEl.createDiv('streams-container');
-        streamsContainer.addClass('streams-grid');
+        const streamsContainer = containerEl.createDiv('streams-plugin-container');
 
         this.plugin.settings.streams.forEach((stream, index) => {
             const streamCard = this.createStreamCard(streamsContainer, stream, index);
@@ -68,7 +67,7 @@ export class StreamsSettingTab extends PluginSettingTab {
     }
 
     private createStreamCard(container: HTMLElement, stream: Stream, index: number): HTMLElement {
-        const card = container.createDiv('stream-card');
+        const card = container.createDiv('streams-plugin-card');
         card.createEl('h3', { text: stream.name });
         return card;
     }
@@ -98,15 +97,15 @@ export class StreamsSettingTab extends PluginSettingTab {
                     
                     const pathExists = await this.validateFolderPath(normalizedPath);
                     
-                    text.inputEl.removeClass('stream-folder-valid');
-                    text.inputEl.removeClass('stream-folder-invalid');
+                    text.inputEl.removeClass('streams-folder-valid');
+                    text.inputEl.removeClass('streams-folder-invalid');
                     
                     if (value === '') {
                         // Empty input, no styling needed
                     } else if (pathExists) {
-                        text.inputEl.addClass('stream-folder-valid');
+                        text.inputEl.addClass('streams-folder-valid');
                     } else {
-                        text.inputEl.addClass('stream-folder-invalid');
+                        text.inputEl.addClass('streams-folder-invalid');
                     }
                 })
                 .then(textComponent => {
@@ -118,7 +117,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                     });
                 }));
 
-        card.createEl('h4', { text: 'Ribbon controls', cls: 'setting-header' });
+        card.createEl('h4', { text: 'Ribbon controls', cls: 'streams-setting-header' });
 
         new Setting(card)
             .setName('Open today in ribbon')
@@ -134,7 +133,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         new Setting(card)
             .setName('Today icon')
             .setDesc('Icon for the "Open Today" ribbon button')
-            .setClass('setting-indent')
+            .setClass('streams-setting-indent')
             .addDropdown(dropdown => {
                 this.populateIconDropdown(dropdown);
                 dropdown
@@ -148,7 +147,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         new Setting(card)
             .setName('Show today border')
             .setDesc('Display a colored border on the left side of the Today icon')
-            .setClass('setting-indent')
+            .setClass('streams-setting-indent')
             .addToggle(toggle => toggle
                 .setValue(stream.showTodayBorder ?? true)
                 .onChange(async (value) => {
@@ -162,7 +161,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         if (stream.showTodayBorder) {
             new Setting(card)
                 .setName('Border color')
-                .setClass('setting-double-indent')
+                .setClass('streams-setting-double-indent')
                 .addText(text => text
                     .setValue(stream.todayBorderColor ?? 'var(--text-accent)')
                     .setPlaceholder('var(--text-accent)')
@@ -191,7 +190,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         new Setting(card)
             .setName('View icon')
             .setDesc('Icon for the "View Full Stream" ribbon button')
-            .setClass('setting-indent')
+            .setClass('streams-setting-indent')
             .addDropdown(dropdown => {
                 this.populateIconDropdown(dropdown);
                 dropdown
@@ -205,7 +204,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         new Setting(card)
             .setName('Show view border')
             .setDesc('Display a colored border on the left side of the View icon')
-            .setClass('setting-indent')
+            .setClass('streams-setting-indent')
             .addToggle(toggle => toggle
                 .setValue(stream.showViewBorder ?? true)
                 .onChange(async (value) => {
@@ -219,7 +218,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         if (stream.showViewBorder) {
             new Setting(card)
                 .setName('Border color')
-                .setClass('setting-double-indent')
+                .setClass('streams-setting-double-indent')
                 .addText(text => text
                     .setValue(stream.viewBorderColor ?? 'var(--text-success)')
                     .setPlaceholder('var(--text-success)')

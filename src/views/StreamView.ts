@@ -57,17 +57,17 @@ export class StreamView extends ItemView {
         
         const container = this.containerEl.children[1];
         container.empty();
-        container.addClass('stream-view-container');
+        container.addClass('streams-view-container');
 
-        const header = container.createDiv('stream-view-header');
+        const header = container.createDiv('streams-view-header');
         header.createEl('h2', { text: `${this.stream.name} stream` });
         
-        this.streamContentEl = container.createDiv('stream-view-content');
+        this.streamContentEl = container.createDiv('streams-view-content');
         
         await this.loadInitialContent();
         
         // Create and position trigger for infinite scroll
-        this.loadMoreTrigger = container.createDiv('stream-view-scroll-trigger');
+        this.loadMoreTrigger = container.createDiv('streams-view-scroll-trigger');
         
         this.setupInfiniteScroll();
     }
@@ -250,7 +250,7 @@ export class StreamView extends ItemView {
      * Adds an invisible end marker to the stream content
      */
     private addEndMarker(): void {
-        const endMarker = this.streamContentEl.createDiv('stream-view-end-marker');
+        const endMarker = this.streamContentEl.createDiv('streams-view-end-marker');
         endMarker.textContent = 'End of stream';
     }
     
@@ -298,16 +298,16 @@ export class StreamView extends ItemView {
             day: 'numeric'
         });
 
-        const dateSection = this.streamContentEl.createDiv('stream-view-date-section');
+        const dateSection = this.streamContentEl.createDiv('streams-view-date-section');
         
-        const dateHeader = dateSection.createDiv('stream-view-date-header');
+        const dateHeader = dateSection.createDiv('streams-view-date-header');
         dateHeader.createEl('h3', { text: formattedDate });
         
         dateHeader.addEventListener('click', () => {
             this.openDateFile(date);
         });
         
-        const contentContainer = dateSection.createDiv('stream-view-date-content');
+        const contentContainer = dateSection.createDiv('streams-view-date-content');
         
         const sourcePath = `${this.stream.folder}/${this.formatDateForFilename(date)}.md`;
         
@@ -352,7 +352,7 @@ export class StreamView extends ItemView {
     }
 
     renderEmptyState(): void {
-        const emptyState = this.streamContentEl.createDiv('stream-view-empty');
+        const emptyState = this.streamContentEl.createDiv('streams-view-empty');
         emptyState.createEl('p', { text: 'No content found for this stream.' });
     }
 
@@ -406,16 +406,16 @@ export class StreamView extends ItemView {
                         
                         const container = this.containerEl.children[1];
                         container.empty();
-                        container.addClass('stream-view-container');
+                        container.addClass('streams-view-container');
                         
-                        const header = container.createDiv('stream-view-header');
+                        const header = container.createDiv('streams-view-header');
                         header.createEl('h2', { text: `${this.stream.name} Stream` });
                         
-                        this.streamContentEl = container.createDiv('stream-view-content');
+                        this.streamContentEl = container.createDiv('streams-view-content');
                         
                         await this.loadInitialContent();
                         
-                        this.loadMoreTrigger = container.createDiv('stream-view-scroll-trigger');
+                        this.loadMoreTrigger = container.createDiv('streams-view-scroll-trigger');
                         
                         this.setupInfiniteScroll();
                         

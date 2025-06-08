@@ -2,42 +2,42 @@
  * LAYOUT & CONTAINER STYLES
  *********************************************************/
 
-.streams-container {
+.streams-plugin-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 20px;
     padding: 20px;
 }
 
-.stream-card {
+.streams-plugin-card {
     background-color: var(--background-secondary);
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.stream-card h3 {
+.streams-plugin-card h3 {
     margin-top: 0;
     margin-bottom: 20px;
     border-bottom: none;
     padding-bottom: 10px;
 }
 
-.stream-ribbon-icon {
+.streams-ribbon-icon {
     opacity: 0.8;
     transition: opacity 0.2s ease-in-out;
 }
 
-.stream-ribbon-icon:hover {
+.streams-ribbon-icon:hover {
     opacity: 1;
 }
 
 /* Icon display states */
-.stream-icon-visible {
+.streams-icon-visible {
     display: flex;
 }
 
-.stream-icon-hidden {
+.streams-icon-hidden {
     display: none;
 }
 
@@ -45,7 +45,7 @@
  * SETTINGS UI STYLES
  *********************************************************/
 
-.setting-header {
+.streams-setting-header {
     margin: 20px 0 10px;
     padding-bottom: 5px;
     border-bottom: none;
@@ -53,30 +53,30 @@
     color: var(--text-normal);
 }
 
-.setting-indent {
+.streams-setting-indent {
     margin-left: 20px;
     border-left: 2px solid var(--background-modifier-border);
     padding-left: 10px;
 }
 
-.setting-double-indent {
+.streams-setting-double-indent {
     margin-left: 40px;
     border-left: 2px solid var(--background-modifier-border);
     padding-left: 10px;
 }
 
-.setting-item.no-border-top {
+.streams-setting-item.no-border-top {
     border-top: none !important;
     margin-top: -10px;
 }
 
-.stream-folder-valid {
+.streams-folder-valid {
     border-color: var(--text-success) !important;
     background-color: rgba(0, 200, 0, 0.05) !important;
     transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
-.stream-folder-invalid {
+.streams-folder-invalid {
     border-color: var(--text-error) !important;
     background-color: rgba(200, 0, 0, 0.05) !important;
     transition: background-color 0.3s ease, border-color 0.3s ease;
@@ -86,7 +86,7 @@
  * CALENDAR COMPONENT STYLES
  *********************************************************/
 
-.stream-calendar-top-nav {
+.streams-calendar-top-nav {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -95,19 +95,19 @@
     border-bottom: 1px solid var(--background-modifier-border);
 }
 
-.stream-calendar-back {
+.streams-calendar-back {
     cursor: pointer;
     padding: 4px 8px;
     color: var(--text-muted);
     font-size: 16px;
 }
 
-.stream-calendar-name {
+.streams-calendar-name {
     font-weight: 600;
     color: var(--text-normal);
 }
 
-.stream-calendar-today-nav {
+.streams-calendar-today-nav {
     cursor: pointer;
     padding: 4px 8px;
     color: var(--text-accent);
@@ -115,12 +115,12 @@
     font-size: 12px;
 }
 
-.stream-calendar-back:hover,
-.stream-calendar-today-nav:hover {
+.streams-calendar-back:hover,
+.streams-calendar-today-nav:hover {
     color: var(--text-normal);
 }
 
-.stream-calendar-component {
+.streams-calendar-component {
     position: absolute;
     top: -18px;
     right: 16px;
@@ -132,12 +132,12 @@
 }
 
 /* For calendar component on markdown views */
-.markdown-view-content {
+.streams-markdown-view-content {
     position: relative;
 }
 
 /* For CalendarComponent.ts positions that were previously inline */
-.stream-calendar-component-fixed {
+.streams-calendar-component-fixed {
     position: absolute;
     z-index: 1000;
     top: 5px;
@@ -145,7 +145,7 @@
 }
 
 /* Mobile-specific positioning for the calendar component */
-.is-mobile .stream-calendar-component {
+.is-mobile .streams-calendar-component {
     position: absolute;
     top: 5px;
     right: 16px;
@@ -155,12 +155,12 @@
     pointer-events: auto;
 }
 
-.is-phone .stream-calendar-component {
+.is-phone .streams-calendar-component {
     font-size: 11px;
 }
 
 /* Positioning for create file view - applies to both desktop and mobile */
-.streams-create-file-container .stream-calendar-component {
+.streams-create-file-container .streams-calendar-component {
     position: absolute;
     top: 5px;
     right: 16px;
@@ -169,7 +169,7 @@
 }
 
 /* Ensure consistent positioning for create file view on mobile */
-.is-mobile .streams-create-file-container .stream-calendar-component {
+.is-mobile .streams-create-file-container .streams-calendar-component {
     position: absolute;
     top: 5px;
     right: 16px;
@@ -177,7 +177,7 @@
     z-index: 1000;
 }
 
-.stream-calendar-collapsed {
+.streams-calendar-collapsed {
     position: absolute;
     top: 0;
     right: 0;
@@ -197,12 +197,12 @@
     border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
-.stream-calendar-collapsed:hover {
+.streams-calendar-collapsed:hover {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-.stream-calendar-expanded {
+.streams-calendar-expanded {
     position: absolute;
     top: 0;
     right: 0;
@@ -220,14 +220,14 @@
     display: none;
 }
 
-.calendar-expanded {
+.streams-calendar-expanded-active {
     opacity: 1;
     transform: scale(1);
     pointer-events: auto;
     display: block;
 }
 
-.stream-calendar-header {
+.streams-calendar-header {
     margin: 12px 0;
     display: flex;
     flex-direction: row;
@@ -235,7 +235,7 @@
     justify-content: space-between;
 }
 
-.stream-calendar-nav {
+.streams-calendar-nav {
     cursor: pointer;
     color: var(--text-normal);
     padding: 4px;
@@ -250,26 +250,26 @@
     font-size: 16px;
 }
 
-.stream-calendar-nav:hover {
+.streams-calendar-nav:hover {
     color: var(--text-on-accent);
     background-color: var(--interactive-accent);
     border-radius: 4px;
     transform: scale(1.05);
 }
 
-.stream-calendar-nav:active {
+.streams-calendar-nav:active {
     transform: scale(0.95);
     background-color: var(--interactive-accent-hover);
 }
 
-.stream-calendar-date {
+.streams-calendar-date {
     font-weight: 600;
     text-align: center;
     flex: 1;
     margin: 0 12px;
 }
 
-.calendar-day {
+.streams-calendar-day {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -285,30 +285,30 @@
     justify-content: center;
 }
 
-.calendar-day:hover {
+.streams-calendar-day:hover {
     background-color: var(--interactive-hover);
     transform: scale(1.05);
     border-color: var(--background-modifier-border);
 }
 
-.calendar-day:active {
+.streams-calendar-day:active {
     background-color: var(--interactive-accent);
     color: var(--text-on-accent);
     transform: scale(0.95);
 }
 
-.calendar-day.empty {
+.streams-calendar-day.empty {
     cursor: default;
     min-height: 32px;
     min-width: 32px;
 }
 
-.calendar-day.empty:hover,
-.calendar-day.empty:active {
+.streams-calendar-day.empty:hover,
+.streams-calendar-day.empty:active {
     background-color: transparent;
 }
 
-.stream-calendar-day-header {
+.streams-calendar-day-header {
     padding: 6px;
     color: var(--text-muted);
     font-size: 12px;
@@ -316,7 +316,7 @@
     width: 32px; /* Fixed width for headers */
 }
 
-.stream-calendar-day-nav {
+.streams-calendar-day-nav {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -331,18 +331,18 @@
     font-size: 16px;
 }
 
-.stream-calendar-day-nav:hover {
+.streams-calendar-day-nav:hover {
     background-color: var(--interactive-accent);
     color: var(--text-on-accent);
     transform: scale(1.05);
 }
 
-.stream-calendar-day-nav:active {
+.streams-calendar-day-nav:active {
     background-color: var(--interactive-accent-hover);
     transform: scale(0.95);
 }
 
-.stream-calendar-today-button {
+.streams-calendar-today-button {
     white-space: nowrap;
     pointer-events: none;
     flex: 1;
@@ -353,7 +353,7 @@
     font-size: 0.8em;
 }
 
-.stream-calendar-grid {
+.streams-calendar-grid {
     display: grid !important;
     grid-template-columns: repeat(7, 32px); /* Fixed width columns */
     gap: 4px;
@@ -365,7 +365,7 @@
     border: none;
 }
 
-.date-container {
+.streams-date-container {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -375,7 +375,7 @@
     height: 100%;
 }
 
-.calendar-day {
+.streams-calendar-day {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -385,30 +385,30 @@
     border-radius: 4px;
 }
 
-.calendar-day.viewed {
+.streams-calendar-day.viewed {
     border-color: var(--text-accent);
     background-color: var(--background-primary-alt);
     box-shadow: none;
 }
 
-.dot-container {
+.streams-dot-container {
     display: flex;
     gap: 2px;
     height: 4px;
 }
 
-.content-dot {
+.streams-content-dot {
     width: 4px;
     height: 4px;
     border-radius: 50%;
     background-color: var(--text-muted);
 }
 
-.calendar-day:hover .content-dot {
+.streams-calendar-day:hover .streams-content-dot {
     background-color: var(--text-normal);
 }
 
-.calendar-day.today {
+.streams-calendar-day.today {
     color: var(--text-accent);
     font-weight: 600;
     background-color: var(--background-primary-alt);
@@ -416,11 +416,11 @@
     box-shadow: none;
 }
 
-.calendar-day.today .content-dot {
+.streams-calendar-day.today .streams-content-dot {
     background-color: var(--text-accent);
 }
 
-.stream-calendar-label {
+.streams-calendar-label {
     font-size: 0.7em;
     color: var(--text-muted);
     margin-bottom: 2px;
@@ -476,7 +476,7 @@
     border-left: 2px solid var(--text-error);
 }
 
-.today-button-expanded {
+.streams-today-button-expanded {
     opacity: 0;
 }
 
@@ -503,10 +503,10 @@
     padding: 40px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     text-align: center;
-    animation: fade-in 0.3s ease-in-out;
+    animation: streams-fade-in 0.3s ease-in-out;
 }
 
-@keyframes fade-in {
+@keyframes streams-fade-in {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
 }
@@ -597,7 +597,7 @@
  * STREAM VIEW STYLES
  *********************************************************/
  
-.stream-view-container {
+.streams-view-container {
     display: flex;
     flex-direction: column;
     padding: 12px 8px;
@@ -606,7 +606,7 @@
     background-color: var(--background-primary-alt);
 }
 
-.stream-view-header {
+.streams-view-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -617,20 +617,20 @@
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.stream-view-header h2 {
+.streams-view-header h2 {
     margin: 0;
     font-size: 1.8em;
     color: var(--text-normal);
 }
 
-.stream-view-content {
+.streams-view-content {
     display: flex;
     flex-direction: column;
     gap: 16px;
     padding: 0;
 }
 
-.stream-view-date-section {
+.streams-view-date-section {
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -641,7 +641,7 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.stream-view-date-header {
+.streams-view-date-header {
     cursor: pointer;
     padding: 4px 0 8px;
     margin-bottom: 8px;
@@ -649,41 +649,41 @@
     border-bottom: 1px solid var(--background-modifier-border);
 }
 
-.stream-view-date-header:hover {
+.streams-view-date-header:hover {
     color: var(--text-accent);
 }
 
-.stream-view-date-header h3 {
+.streams-view-date-header h3 {
     margin: 0;
     font-size: 1.5em;
     font-weight: 600;
     color: var(--text-accent);
 }
 
-.stream-view-date-content {
+.streams-view-date-content {
     padding: 4px 8px;
     border-left: 3px solid var(--background-modifier-border);
     background-color: var(--background-primary);
     border-radius: 0 4px 4px 0;
 }
 
-.stream-view-date-content img {
+.streams-view-date-content img {
     max-width: 100%;
     height: auto;
     border-radius: 4px;
     margin: 8px 0;
 }
 
-.stream-view-date-content .internal-embed {
+.streams-view-date-content .internal-embed {
     margin: 12px 0;
 }
 
-.stream-view-date-content .internal-embed.is-loaded {
+.streams-view-date-content .internal-embed.is-loaded {
     display: block;
     max-width: 100%;
 }
 
-.stream-view-scroll-trigger {
+.streams-view-scroll-trigger {
     height: 50px;
     width: 100%;
     opacity: 0;
@@ -691,7 +691,7 @@
     position: relative;
 }
 
-.stream-view-end-marker {
+.streams-view-end-marker {
     margin-top: 20px;
     margin-bottom: 100px;
     text-align: center;
@@ -701,7 +701,7 @@
     height: 1px;
 }
 
-.stream-view-empty {
+.streams-view-empty {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -725,48 +725,48 @@
     font-size: 1.5em;
 }
 
-.is-mobile .stream-view-container {
+.is-mobile .streams-view-container {
     padding: 8px 4px;
 }
 
-.is-mobile .stream-view-date-section {
+.is-mobile .streams-view-date-section {
     padding: 10px 8px;
     margin-bottom: 12px;
 }
 
-.is-mobile .stream-view-header {
+.is-mobile .streams-view-header {
     padding: 8px;
     margin-bottom: 12px;
 }
 
-.is-mobile .stream-view-header h2 {
+.is-mobile .streams-view-header h2 {
     font-size: 1.5em;
 }
 
-.is-mobile .stream-view-date-content {
+.is-mobile .streams-view-date-content {
     padding: 6px 12px;
 }
 
-.is-mobile .stream-view-date-content img {
+.is-mobile .streams-view-date-content img {
     max-width: 100%;
     height: auto;
 }
 
-.is-phone .stream-view-container {
+.is-phone .streams-view-container {
     padding: 6px 2px;
 }
 
-.is-phone .stream-view-date-section {
+.is-phone .streams-view-date-section {
     padding: 8px 6px;
     margin-bottom: 8px;
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
-.is-phone .stream-view-date-header h3 {
+.is-phone .streams-view-date-header h3 {
     font-size: 1.3em;
 }
 
-.is-phone .stream-view-date-content .internal-embed {
+.is-phone .streams-view-date-content .internal-embed {
     max-width: calc(100vw - 40px);
     overflow-x: auto;
 }
@@ -775,7 +775,7 @@
  * UTILITY STYLES
  *********************************************************/
 
-.is-hidden.side-dock-ribbon-action {
+.streams-plugin-hidden.side-dock-ribbon-action {
     display: none !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -788,7 +788,7 @@
     clip: rect(0, 0, 0, 0) !important;
 }
 
-.stream-calendar-nav-controls {
+.streams-calendar-nav-controls {
     display: flex;
     align-items: center;
     justify-content: space-between;

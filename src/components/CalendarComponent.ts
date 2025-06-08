@@ -38,7 +38,7 @@ export class CalendarComponent extends Component {
         this.app = app;
         
         this.component = document.createElement('div');
-        this.component.addClass('stream-calendar-component');
+        this.component.addClass('streams-calendar-component');
         
         let contentContainer: HTMLElement | null = null;
         const viewType = leaf.view.getViewType();
@@ -57,7 +57,7 @@ export class CalendarComponent extends Component {
             }
             
             // Add the fixed position class for markdown views
-            this.component.addClass('stream-calendar-component-fixed');
+            this.component.addClass('streams-calendar-component-fixed');
         } else if (viewType === CREATE_FILE_VIEW_TYPE) {
             // Cast to unknown first, then to ViewWithContentEl to avoid TypeScript errors
             const view = leaf.view as unknown as ViewWithContentEl;
@@ -75,14 +75,14 @@ export class CalendarComponent extends Component {
             }
             
             // Don't add fixed position class for create file view
-            // The CSS will correctly position it via .streams-create-file-container .stream-calendar-component
+            // The CSS will correctly position it via .streams-create-file-container .streams-calendar-component
         } else {
             // Cast to unknown first, then to ViewWithContentEl to avoid TypeScript errors
             const view = leaf.view as unknown as ViewWithContentEl;
             contentContainer = view.contentEl;
             
             // Add the fixed position class for other view types
-            this.component.addClass('stream-calendar-component-fixed');
+            this.component.addClass('streams-calendar-component-fixed');
         }
         
         if (!contentContainer) {
@@ -90,7 +90,7 @@ export class CalendarComponent extends Component {
             return;
         }
 
-        contentContainer.addClass('markdown-view-content');
+        contentContainer.addClass('streams-markdown-view-content');
         
         contentContainer.appendChild(this.component);
         
@@ -113,18 +113,18 @@ export class CalendarComponent extends Component {
     }
 
     private initializeComponent() {
-        const collapsedView = this.component.createDiv('stream-calendar-collapsed');
+        const collapsedView = this.component.createDiv('streams-calendar-collapsed');
         collapsedView.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleExpanded(collapsedView, expandedView);
         });
 
-        const streamLabel = collapsedView.createDiv('stream-calendar-label');
+        const streamLabel = collapsedView.createDiv('streams-calendar-label');
         streamLabel.setText(this.selectedStream.name);
 
-        const navControls = collapsedView.createDiv('stream-calendar-nav-controls');
+        const navControls = collapsedView.createDiv('streams-calendar-nav-controls');
         
-        const prevDayButton = navControls.createDiv('stream-calendar-day-nav prev-day');
+        const prevDayButton = navControls.createDiv('streams-calendar-day-nav prev-day');
         prevDayButton.setText('←');
         prevDayButton.setAttribute('aria-label', 'Previous day');
         prevDayButton.addEventListener('click', async (e) => {
@@ -133,11 +133,11 @@ export class CalendarComponent extends Component {
             await this.navigateToAdjacentDay(-1);
         });
         
-        const todayButton = navControls.createDiv('stream-calendar-today-button');
+        const todayButton = navControls.createDiv('streams-calendar-today-button');
         this.todayButton = todayButton;
         this.updateTodayButton();
         
-        const nextDayButton = navControls.createDiv('stream-calendar-day-nav next-day');
+        const nextDayButton = navControls.createDiv('streams-calendar-day-nav next-day');
         nextDayButton.setText('→');
         nextDayButton.setAttribute('aria-label', 'Next day');
         nextDayButton.addEventListener('click', async (e) => {
@@ -146,25 +146,25 @@ export class CalendarComponent extends Component {
             await this.navigateToAdjacentDay(1);
         });
 
-        const expandedView = this.component.createDiv('stream-calendar-expanded');
+        const expandedView = this.component.createDiv('streams-calendar-expanded');
 
-        const topNav = expandedView.createDiv('stream-calendar-top-nav');
-        const todayNavButton = topNav.createDiv('stream-calendar-today-nav');
+        const topNav = expandedView.createDiv('streams-calendar-top-nav');
+        const todayNavButton = topNav.createDiv('streams-calendar-today-nav');
         todayNavButton.setText('Today');
-        const streamName = topNav.createDiv('stream-calendar-name');
+        const streamName = topNav.createDiv('streams-calendar-name');
         streamName.setText(this.selectedStream.name);
-        const backButton = topNav.createDiv('stream-calendar-back');
+        const backButton = topNav.createDiv('streams-calendar-back');
         backButton.setText('→');
 
-        const header = expandedView.createDiv('stream-calendar-header');
-        const prevButton = header.createDiv('stream-calendar-nav');
+        const header = expandedView.createDiv('streams-calendar-header');
+        const prevButton = header.createDiv('streams-calendar-nav');
         prevButton.setText('←');
-        const dateDisplay = header.createDiv('stream-calendar-date');
+        const dateDisplay = header.createDiv('streams-calendar-date');
         dateDisplay.setText(this.formatMonthYear(this.currentDate));
-        const nextButton = header.createDiv('stream-calendar-nav');
+        const nextButton = header.createDiv('streams-calendar-nav');
         nextButton.setText('→');
 
-        const grid = expandedView.createDiv('stream-calendar-grid');
+        const grid = expandedView.createDiv('streams-calendar-grid');
         this.grid = grid;
         this.updateCalendarGrid(grid);
 
@@ -268,23 +268,23 @@ export class CalendarComponent extends Component {
         
         // Add day headers (Su, Mo, Tu, etc.)
         for (let i = 0; i < 7; i++) {
-            const dayHeader = grid.createDiv('stream-calendar-day-header');
+            const dayHeader = grid.createDiv('streams-calendar-day-header');
             dayHeader.textContent = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][i];
         }
         
         // Add empty cells for days before the 1st of the month
         for (let i = 0; i < firstDayOfMonth; i++) {
-            grid.createDiv('calendar-day empty');
+            grid.createDiv('streams-calendar-day empty');
         }
         
         // Add all days of the month
         for (let day = 1; day <= daysInMonth; day++) {
-            const dayEl = grid.createDiv('calendar-day');
+            const dayEl = grid.createDiv('streams-calendar-day');
             
-            const dateContainer = dayEl.createDiv('date-container');
+            const dateContainer = dayEl.createDiv('streams-date-container');
             dateContainer.textContent = String(day);
             
-            const dotContainer = dayEl.createDiv('dot-container');
+            const dotContainer = dayEl.createDiv('streams-dot-container');
             
             const currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
             const dateString = currentDate.toISOString().split('T')[0];
@@ -298,7 +298,7 @@ export class CalendarComponent extends Component {
             if (content.exists) {
                 const dots = content.size === 'small' ? 1 : content.size === 'medium' ? 2 : 3;
                 for (let i = 0; i < dots; i++) {
-                    dotContainer.createDiv('content-dot');
+                    dotContainer.createDiv('streams-content-dot');
                 }
             }
             
@@ -348,8 +348,8 @@ export class CalendarComponent extends Component {
 
     private toggleExpanded(collapsedView: HTMLElement, expandedView: HTMLElement) {
         this.expanded = !this.expanded;
-        expandedView.toggleClass('calendar-expanded', this.expanded);
-        collapsedView.toggleClass('today-button-expanded', this.expanded);
+        expandedView.toggleClass('streams-calendar-expanded-active', this.expanded);
+        collapsedView.toggleClass('streams-today-button-expanded', this.expanded);
         
         if (this.expanded) {
             const grid = this.grid;

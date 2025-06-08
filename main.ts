@@ -679,16 +679,16 @@ export default class StreamsPlugin extends Plugin {
 
 	private updateIconVisibility(icon: HTMLElement, visible: boolean): void {
 		// Log visibility state
-		const wasVisible = !icon.classList.contains('stream-icon-hidden') && !icon.classList.contains('is-hidden');
+		        const wasVisible = !icon.classList.contains('streams-icon-hidden') && !icon.classList.contains('streams-plugin-hidden');
 		
 		// Get stream info for styling
 		const streamId = icon.getAttribute('data-stream-id');
 		const iconType = icon.getAttribute('data-icon-type');
 		
 		if (visible) {
-			icon.classList.remove('is-hidden');
-			icon.classList.remove('stream-icon-hidden');
-			icon.classList.add('stream-icon-visible');
+			icon.classList.remove('streams-plugin-hidden');
+			icon.classList.remove('streams-icon-hidden');
+			icon.classList.add('streams-icon-visible');
 			
 			// Add to DOM if needed
 			if (!document.body.contains(icon)) {
@@ -710,11 +710,11 @@ export default class StreamsPlugin extends Plugin {
 				}
 			}
 		} else {
-			icon.classList.add('stream-icon-hidden');
-			icon.classList.add('is-hidden');
+			icon.classList.add('streams-icon-hidden');
+			icon.classList.add('streams-plugin-hidden');
 		}
 		
-		const isNowVisible = !icon.classList.contains('stream-icon-hidden') && !icon.classList.contains('is-hidden');
+		const isNowVisible = !icon.classList.contains('streams-icon-hidden') && !icon.classList.contains('streams-plugin-hidden');
 		this.log.debug(`Icon visibility update: ${wasVisible ? 'visible' : 'hidden'} → ${isNowVisible ? 'visible' : 'hidden'}`);
 	}
 
