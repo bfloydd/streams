@@ -152,7 +152,7 @@ export class StreamView extends ItemView {
             const latestFile = sortedFiles[0];
             
             this.log.debug(`Loading most recent file: ${latestFile.file.path}`);
-            const content = await this.app.vault.read(latestFile.file);
+            const content = await this.app.vault.cachedRead(latestFile.file);
             
             this.renderDateContent(latestFile.date, content);
             this.olderDates.push(latestFile.date);
@@ -204,7 +204,7 @@ export class StreamView extends ItemView {
             if (nextBatch.length > 0) {
                 for (const fileInfo of nextBatch) {
                     this.log.debug(`Loading file: ${fileInfo.file.path}`);
-                    const content = await this.app.vault.read(fileInfo.file);
+                    const content = await this.app.vault.cachedRead(fileInfo.file);
                     this.renderDateContent(fileInfo.date, content);
                     this.olderDates.push(fileInfo.date);
                 }
