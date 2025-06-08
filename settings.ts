@@ -14,11 +14,6 @@ export class StreamsSettingTab extends PluginSettingTab {
         const { containerEl } = this;
         containerEl.empty();
 
-        containerEl.createEl('h2', { text: 'Streams Settings' });
-
-        // Global settings section
-        containerEl.createEl('h3', { text: 'Global Settings' });
-        
         new Setting(containerEl)
             .setName('Show calendar component')
             .setDesc('Show the calendar component in stream notes')
@@ -34,7 +29,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                     new Notice(`Calendar component ${value ? 'shown' : 'hidden'}`);
                 }));
                 
-        containerEl.createEl('h3', { text: 'Streams' });
+        new Setting(containerEl).setName('Streams').setHeading();
 
         new Setting(containerEl)
             .setName('Add stream')
