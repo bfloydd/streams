@@ -311,7 +311,8 @@ export class StreamView extends ItemView {
         
         const sourcePath = `${this.stream.folder}/${this.formatDateForFilename(date)}.md`;
         
-        MarkdownRenderer.renderMarkdown(
+        MarkdownRenderer.render(
+            this.app,
             content, 
             contentContainer, 
             sourcePath,
