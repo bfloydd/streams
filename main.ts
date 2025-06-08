@@ -447,7 +447,6 @@ export default class StreamsPlugin extends Plugin {
 
 				// Create and append the link
 				const link = this.app.fileManager.generateMarkdownLink(linkFile, streamPath);
-				// Use vault.append() instead of read+modify as recommended by Obsidian team
 				await this.app.vault.append(file, (await this.app.vault.read(file)).length > 0 ? '\n' + link : link);
 
 				new Notice(`Added link to ${stream.name}`);
