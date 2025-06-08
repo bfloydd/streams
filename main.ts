@@ -39,12 +39,6 @@ export default class StreamsPlugin extends Plugin {
 		this.initializeActiveView();
 		this.logInitialState();
 
-		const styleEl = document.createElement('style');
-		styleEl.id = 'streams-calendar-styles';
-		document.head.appendChild(styleEl);
-
-		await this.loadStyles();
-
 		this.log.info('Streams plugin loaded');
 	}
 	
@@ -629,33 +623,7 @@ export default class StreamsPlugin extends Plugin {
 		});
 		this.log.debug("==========================");
 	}
-	
-	private loadStyles(): Promise<void> {
-		return new Promise((resolve, reject) => {
-			try {
-				this.log.debug("Loading styles from styles.css");
-				this.app.vault.adapter.readBinary(
-					`${this.app.vault.configDir}/plugins/streams/styles.css`
-				).then(data => {
-					// Convert ArrayBuffer to string
-					const decoder = new TextDecoder('utf-8');
-					const cssContent = decoder.decode(data);
-					
-					// Add styles
-					const styleEl = document.createElement('style');
-					styleEl.textContent = cssContent;
-					document.head.appendChild(styleEl);
-					resolve();
-				}).catch(error => {
-					this.log.error("Error reading styles.css:", error);
-					reject(error);
-				});
-			} catch (error) {
-				this.log.error("Error loading styles:", error);
-				reject(error);
-			}
-		});
-	}
+
 	
 	public toggleStreamCommand(stream: Stream) {
 		// Remove existing command first
