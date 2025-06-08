@@ -29,8 +29,6 @@ export class StreamView extends ItemView {
     private loadMoreTrigger: HTMLElement;
     private noMoreContent: boolean = false;
     private observer: IntersectionObserver | null = null;
-    private scrollTimeout: number | null = null;
-    private lastScrollPosition: number = 0;
     private log: Logger;
 
     constructor(leaf: WorkspaceLeaf, app: App, stream: Stream) {
@@ -75,60 +73,32 @@ export class StreamView extends ItemView {
     private setupInfiniteScroll() {
         this.log.debug(`Setting up infinite scroll for: ${this.stream.name}`);
         
+        // Clean up any existing observer
         if (this.observer) {
             this.observer.disconnect();
             this.observer = null;
         }
         
-        if (this.scrollTimeout) {
-            window.clearTimeout(this.scrollTimeout);
-            this.scrollTimeout = null;
-        }
+
         
+        // Single, robust intersection observer for scroll detection
         this.observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                if (entry.isIntersecting) {
+                if (entry.isIntersecting && !this.isLoading && !this.noMoreContent) {
                     this.log.debug(`Trigger element intersection detected: ${entry.intersectionRatio.toFixed(2)}`);
                     this.triggerLoadMore();
                 }
             });
         }, { 
-            threshold: [0, 0.1, 0.5, 1.0], // Better detection with multiple thresholds
-            rootMargin: '300px 0px' 
+            threshold: [0, 0.1, 0.5, 1.0], // Multiple thresholds for better detection
+            rootMargin: '300px 0px' // Large margin to trigger loading before user reaches the end
         });
 
         this.observer.observe(this.loadMoreTrigger);
         this.log.debug('Intersection observer started');
-        
-        // Backup scroll detection with debouncing
-        this.registerDomEvent(window, 'scroll', () => {
-            if (this.scrollTimeout) {
-                window.clearTimeout(this.scrollTimeout);
-            }
-            
-            this.scrollTimeout = window.setTimeout(() => {
-                const currentScrollY = window.scrollY;
-                const isScrollingDown = currentScrollY > this.lastScrollPosition;
-                this.lastScrollPosition = currentScrollY;
-                
-                if (isScrollingDown && !this.isLoading && !this.noMoreContent) {
-                    const rect = this.loadMoreTrigger.getBoundingClientRect();
-                    const windowHeight = window.innerHeight;
-                    
-                    if (rect.top < windowHeight + 300) {
-                        this.log.debug(`Scroll trigger detected, distance from viewport: ${(rect.top - windowHeight).toFixed(0)}px`);
-                        this.triggerLoadMore();
-                    }
-                }
-            }, 200);
-        });
     }
 
     private triggerLoadMore() {
-        if (this.isLoading || this.noMoreContent) {
-            return;
-        }
-        
         this.log.debug('Triggering load more content');
         this.loadMoreContent();
     }
@@ -171,11 +141,6 @@ export class StreamView extends ItemView {
         
         this.isLoading = false;
         this.log.debug('Initial content loading complete');
-        
-        // Check if we need to load more content to fill the viewport
-        setTimeout(() => {
-            this.checkIfViewportNeedsMoreContent();
-        }, 100);
     }
 
     async loadMoreContent(): Promise<void> {
@@ -226,25 +191,9 @@ export class StreamView extends ItemView {
         } finally {
             this.isLoading = false;
             this.log.debug('Loading more content complete');
-            
-            setTimeout(() => {
-                this.checkIfViewportNeedsMoreContent();
-            }, 100);
         }
     }
-    
-    /**
-     * Checks if the viewport needs more content and triggers loading if needed
-     */
-    private checkIfViewportNeedsMoreContent(): void {
-        const viewportHeight = window.innerHeight;
-        const contentHeight = this.streamContentEl.getBoundingClientRect().height;
-        
-        if (contentHeight < viewportHeight && !this.noMoreContent) {
-            this.log.debug('Content does not fill viewport, loading more');
-            this.triggerLoadMore();
-        }
-    }
+
     
     /**
      * Adds an invisible end marker to the stream content
@@ -385,11 +334,6 @@ export class StreamView extends ItemView {
                 this.observer = null;
             }
             
-            if (this.scrollTimeout) {
-                window.clearTimeout(this.scrollTimeout);
-                this.scrollTimeout = null;
-            }
-            
             // Use the properly typed interfaces
             try {
                 const appWithPlugins = this.app as unknown as AppWithPlugins;
@@ -418,16 +362,6 @@ export class StreamView extends ItemView {
                         this.loadMoreTrigger = container.createDiv('streams-view-scroll-trigger');
                         
                         this.setupInfiniteScroll();
-                        
-                        setTimeout(() => {
-                            const viewportHeight = window.innerHeight;
-                            const contentHeight = this.streamContentEl.getBoundingClientRect().height;
-                            
-                            if (contentHeight < viewportHeight && !this.noMoreContent) {
-                                this.log.debug('Content does not fill viewport after stream switch, loading more');
-                                this.triggerLoadMore();
-                            }
-                        }, 300);
                     }
                 }
             } catch (error) {
@@ -442,11 +376,6 @@ export class StreamView extends ItemView {
         if (this.observer) {
             this.observer.disconnect();
             this.observer = null;
-        }
-        
-        if (this.scrollTimeout) {
-            window.clearTimeout(this.scrollTimeout);
-            this.scrollTimeout = null;
         }
     }
 
