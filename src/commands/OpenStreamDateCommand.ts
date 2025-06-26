@@ -10,11 +10,13 @@ export class OpenStreamDateCommand implements Command {
     constructor(
         private app: App,
         private stream: Stream,
-        private date: Date
+        private date: Date,
+        private reuseCurrentTab: boolean = false
     ) {}
 
     async execute(): Promise<void> {
         log.debug(`Opening ${this.date.toDateString()} for stream: ${this.stream.name}`);
+        log.debug(`Reuse current tab: ${this.reuseCurrentTab}`);
         
         if (!(this.date instanceof Date) || isNaN(this.date.getTime())) {
             log.error(`Invalid date provided: ${this.date}`);
@@ -24,7 +26,7 @@ export class OpenStreamDateCommand implements Command {
         const formatted = this.formatDateForLogging(this.date);
         log.debug(`Formatted date for stream: ${formatted}`);
         
-        await openStreamDate(this.app, this.stream, this.date);
+        await openStreamDate(this.app, this.stream, this.date, this.reuseCurrentTab);
     }
     
     /**

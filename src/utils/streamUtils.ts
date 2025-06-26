@@ -94,9 +94,10 @@ export async function createDailyNote(app: App, folder: string): Promise<TFile |
     return file instanceof TFile ? file : null;
 }
 
-export async function openStreamDate(app: App, stream: Stream, date: Date = new Date()): Promise<void> {
+export async function openStreamDate(app: App, stream: Stream, date: Date = new Date(), reuseCurrentTab: boolean = false): Promise<void> {
     log.debug(`==== OPEN STREAM DATE START ====`);
     log.debug(`Date provided: ${date.toISOString()}`);
+    log.debug(`Reuse current tab: ${reuseCurrentTab}`);
     
     if (!(date instanceof Date) || isNaN(date.getTime())) {
         log.error(`Invalid date provided: ${date}`);
@@ -130,13 +131,33 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
         
         let leaf: WorkspaceLeaf | null = null;
         
-        const existingCreateFileViewLeaves = app.workspace.getLeavesOfType(CREATE_FILE_VIEW_TYPE);
-        if (existingCreateFileViewLeaves.length > 0) {
-            leaf = existingCreateFileViewLeaves[0];
-            log.debug('Reusing existing CreateFileView leaf');
+        if (reuseCurrentTab) {
+            // Always try to reuse the current active leaf when reuseCurrentTab is enabled
+            const activeLeaf = app.workspace.activeLeaf;
+            if (activeLeaf) {
+                leaf = activeLeaf;
+                log.debug('Reusing current active leaf for CreateFileView (reuseCurrentTab enabled)');
+            } else {
+                // Fallback: look for existing CreateFileView leaves
+                const existingCreateFileViewLeaves = app.workspace.getLeavesOfType(CREATE_FILE_VIEW_TYPE);
+                if (existingCreateFileViewLeaves.length > 0) {
+                    leaf = existingCreateFileViewLeaves[0];
+                    log.debug('Reusing existing CreateFileView leaf');
+                } else {
+                    leaf = app.workspace.getLeaf('tab');
+                    log.debug('Created a new leaf for CreateFileView');
+                }
+            }
         } else {
-            leaf = app.workspace.getLeaf('tab');
-            log.debug('Created a new leaf for CreateFileView');
+            // Original behavior: look for existing CreateFileView leaves first
+            const existingCreateFileViewLeaves = app.workspace.getLeavesOfType(CREATE_FILE_VIEW_TYPE);
+            if (existingCreateFileViewLeaves.length > 0) {
+                leaf = existingCreateFileViewLeaves[0];
+                log.debug('Reusing existing CreateFileView leaf');
+            } else {
+                leaf = app.workspace.getLeaf('tab');
+                log.debug('Created a new leaf for CreateFileView');
+            }
         }
         
         // Register view if needed - using properly typed interface
@@ -168,26 +189,68 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
 
     if (file instanceof TFile) {
         try {
-            const existingLeaf = app.workspace.getLeavesOfType('markdown')
-                .find(leaf => {
-                    try {
-                        const view = leaf.view as MarkdownView;
-                        const viewFile = view?.file;
-                        if (!viewFile || !file) return false;
-                        
-                        const viewPath = normalizePath(viewFile.path);
-                        const filePath = normalizePath(file.path);
-                        return viewPath === filePath;
-                    } catch (e) {
-                        log.debug('Error comparing files:', e);
-                        return false;
-                    }
-                });
+            let leaf: WorkspaceLeaf | null = null;
+            
+            if (reuseCurrentTab) {
+                // Always try to reuse the current active leaf when reuseCurrentTab is enabled
+                const activeLeaf = app.workspace.activeLeaf;
+                if (activeLeaf) {
+                    leaf = activeLeaf;
+                    log.debug('Reusing current active leaf for markdown view (reuseCurrentTab enabled)');
+                } else {
+                    // Fallback: look for existing leaf with the same file
+                    const existingLeaf = app.workspace.getLeavesOfType('markdown')
+                        .find(leaf => {
+                            try {
+                                const view = leaf.view as MarkdownView;
+                                const viewFile = view?.file;
+                                if (!viewFile || !file) return false;
+                                
+                                const viewPath = normalizePath(viewFile.path);
+                                const filePath = normalizePath(file.path);
+                                return viewPath === filePath;
+                            } catch (e) {
+                                log.debug('Error comparing files:', e);
+                                return false;
+                            }
+                        });
 
-            if (existingLeaf) {
-                app.workspace.setActiveLeaf(existingLeaf, { focus: true });
+                    if (existingLeaf) {
+                        leaf = existingLeaf;
+                        log.debug('Found existing leaf with same file');
+                    } else {
+                        leaf = app.workspace.getLeaf('tab');
+                        log.debug('Created a new leaf for markdown view');
+                    }
+                }
             } else {
-                const leaf = app.workspace.getLeaf('tab');
+                // Original behavior: look for existing leaf with same file first
+                const existingLeaf = app.workspace.getLeavesOfType('markdown')
+                    .find(leaf => {
+                        try {
+                            const view = leaf.view as MarkdownView;
+                            const viewFile = view?.file;
+                            if (!viewFile || !file) return false;
+                            
+                            const viewPath = normalizePath(viewFile.path);
+                            const filePath = normalizePath(file.path);
+                            return viewPath === filePath;
+                        } catch (e) {
+                            log.debug('Error comparing files:', e);
+                            return false;
+                        }
+                    });
+
+                if (existingLeaf) {
+                    leaf = existingLeaf;
+                    log.debug('Found existing leaf with same file');
+                } else {
+                    leaf = app.workspace.getLeaf('tab');
+                    log.debug('Created a new leaf for markdown view');
+                }
+            }
+            
+            if (leaf) {
                 await leaf.openFile(file);
                 app.workspace.setActiveLeaf(leaf, { focus: true });
             }

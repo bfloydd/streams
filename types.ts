@@ -37,4 +37,5 @@ export interface Stream {
 export interface StreamsSettings {
     streams: Stream[];
     showCalendarComponent: boolean;
+    reuseCurrentTab: boolean;
 } 

@@ -29,6 +29,18 @@ export class StreamsSettingTab extends PluginSettingTab {
                     new Notice(`Calendar component ${value ? 'shown' : 'hidden'}`);
                 }));
                 
+        new Setting(containerEl)
+            .setName('Reuse current tab for calendar navigation')
+            .setDesc('When enabled, calendar navigation will reuse the current tab instead of opening new tabs')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.reuseCurrentTab)
+                .onChange(async (value) => {
+                    this.plugin.settings.reuseCurrentTab = value;
+                    await this.plugin.saveSettings();
+                    
+                    new Notice(`Calendar navigation will ${value ? 'reuse' : 'open new'} tabs`);
+                }));
+                
         new Setting(containerEl).setName('Streams').setHeading();
 
         new Setting(containerEl)

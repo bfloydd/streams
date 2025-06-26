@@ -11,7 +11,8 @@ import { OpenStreamViewCommand } from './src/commands/OpenStreamViewCommand';
 
 const DEFAULT_SETTINGS: StreamsSettings = {
 	streams: [],
-	showCalendarComponent: true
+	showCalendarComponent: true,
+	reuseCurrentTab: false
 }
 
 export default class StreamsPlugin extends Plugin {
@@ -154,7 +155,7 @@ export default class StreamsPlugin extends Plugin {
 				stream.icon,
 				`Streams: ${stream.name}, today`,
 				() => {
-					const command = new OpenTodayStreamCommand(this.app, stream);
+					const command = new OpenTodayStreamCommand(this.app, stream, this.settings.reuseCurrentTab);
 					command.execute();
 				}
 			);
@@ -397,7 +398,7 @@ export default class StreamsPlugin extends Plugin {
 
 		if (stream) {
 			this.log.debug(`File belongs to stream: ${stream.name} (${stream.folder})`);
-			const component = new CalendarComponent(leaf, stream, this.app);
+			const component = new CalendarComponent(leaf, stream, this.app, this.settings.reuseCurrentTab);
 			const componentId = filePath || crypto.randomUUID();
 			this.calendarComponents.set(componentId, component);
 			this.log.debug('Calendar component created successfully');
@@ -495,7 +496,7 @@ export default class StreamsPlugin extends Plugin {
 			});
 			
 			// Create the calendar component
-			const component = new CalendarComponent(leaf, stream, this.app);
+			const component = new CalendarComponent(leaf, stream, this.app, this.settings.reuseCurrentTab);
 			
 			// Set current viewed date
 			const formattedDate = dateString.split('T')[0];
@@ -546,6 +547,11 @@ export default class StreamsPlugin extends Plugin {
 		// Ensure showCalendarComponent has a default value if not set
 		if (this.settings.showCalendarComponent === undefined) {
 			this.settings.showCalendarComponent = true;
+		}
+		
+		// Ensure reuseCurrentTab has a default value if not set
+		if (this.settings.reuseCurrentTab === undefined) {
+			this.settings.reuseCurrentTab = false;
 		}
 		
 		// Migrate existing streams
@@ -660,7 +666,7 @@ export default class StreamsPlugin extends Plugin {
 			id: commandId,
 			name: `${stream.name}, today`,
 			callback: async () => {
-				const command = new OpenTodayStreamCommand(this.app, stream);
+				const command = new OpenTodayStreamCommand(this.app, stream, this.settings.reuseCurrentTab);
 				await command.execute();
 			}
 		});

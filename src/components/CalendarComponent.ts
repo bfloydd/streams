@@ -30,12 +30,14 @@ export class CalendarComponent extends Component {
     private fileModifyHandler: () => void;
     private currentViewedDate: string | null = null;
     private todayButton: HTMLElement;
+    private reuseCurrentTab: boolean;
 
-    constructor(leaf: WorkspaceLeaf, stream: Stream, app: App) {
+    constructor(leaf: WorkspaceLeaf, stream: Stream, app: App, reuseCurrentTab: boolean = false) {
         super();
         this.log.debug('Creating calendar component for stream:', stream.name);
         this.selectedStream = stream;
         this.app = app;
+        this.reuseCurrentTab = reuseCurrentTab;
         
         this.component = document.createElement('div');
         this.component.addClass('streams-calendar-component');
@@ -189,7 +191,7 @@ export class CalendarComponent extends Component {
 
         todayNavButton.addEventListener('click', async (e) => {
             e.stopPropagation();
-            const command = new OpenTodayStreamCommand(this.app, this.selectedStream);
+            const command = new OpenTodayStreamCommand(this.app, this.selectedStream, this.reuseCurrentTab);
             await command.execute();
             this.currentDate = new Date();
             dateDisplay.setText(this.formatMonthYear(this.currentDate));
@@ -351,7 +353,7 @@ export class CalendarComponent extends Component {
     private async selectDate(day: number) {
         const selectedDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
         this.currentViewedDate = selectedDate.toISOString().split('T')[0];
-        const command = new OpenStreamDateCommand(this.app, this.selectedStream, selectedDate);
+        const command = new OpenStreamDateCommand(this.app, this.selectedStream, selectedDate, this.reuseCurrentTab);
         await command.execute();
         this.updateTodayButton();
     }
@@ -391,7 +393,7 @@ export class CalendarComponent extends Component {
             targetDate.setDate(targetDate.getDate() + offset);
             this.log.debug(`Target date: ${targetDate.toISOString()}`);
             
-            const command = new OpenStreamDateCommand(this.app, this.selectedStream, targetDate);
+            const command = new OpenStreamDateCommand(this.app, this.selectedStream, targetDate, this.reuseCurrentTab);
             await command.execute();
         } else {
             const targetDate = new Date();
@@ -399,7 +401,7 @@ export class CalendarComponent extends Component {
             const direction = offset > 0 ? "tomorrow" : "yesterday";
             this.log.debug(`No current date, going to ${direction}: ${targetDate.toISOString()}`);
             
-            const command = new OpenStreamDateCommand(this.app, this.selectedStream, targetDate);
+            const command = new OpenStreamDateCommand(this.app, this.selectedStream, targetDate, this.reuseCurrentTab);
             await command.execute();
         }
     }

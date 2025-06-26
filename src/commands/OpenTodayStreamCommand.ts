@@ -10,11 +10,13 @@ const log = new Logger();
 export class OpenTodayStreamCommand implements Command {
     constructor(
         private app: App,
-        private stream: Stream
+        private stream: Stream,
+        private reuseCurrentTab: boolean = false
     ) {}
 
     async execute(): Promise<void> {
         log.debug(`Opening today's note for stream: ${this.stream.name}`);
-        await openStreamDate(this.app, this.stream);
+        log.debug(`Reuse current tab: ${this.reuseCurrentTab}`);
+        await openStreamDate(this.app, this.stream, new Date(), this.reuseCurrentTab);
     }
 } 
