@@ -1,4 +1,4 @@
-import { App, WorkspaceLeaf, TFile, MarkdownView, View, Component } from 'obsidian';
+import { App, WorkspaceLeaf, TFile, MarkdownView, View, Component, setIcon } from 'obsidian';
 import { Stream } from '../../types';
 import { Logger } from '../utils/Logger';
 import { OpenStreamDateCommand } from '../commands/OpenStreamDateCommand';
@@ -154,7 +154,8 @@ export class CalendarComponent extends Component {
         const streamName = topNav.createDiv('streams-calendar-name');
         streamName.setText(this.selectedStream.name);
         const backButton = topNav.createDiv('streams-calendar-back');
-        backButton.setText('→');
+        setIcon(backButton, 'chevron-up');
+        backButton.setAttr('aria-label', 'Collapse calendar');
 
         const header = expandedView.createDiv('streams-calendar-header');
         const prevButton = header.createDiv('streams-calendar-nav');
