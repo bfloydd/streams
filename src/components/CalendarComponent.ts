@@ -200,6 +200,15 @@ export class CalendarComponent extends Component {
                 this.toggleExpanded(collapsedView, expandedView);
             }
         });
+
+        // Add keyboard event listener for Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.expanded) {
+                e.preventDefault();
+                e.stopPropagation();
+                this.toggleExpanded(collapsedView, expandedView);
+            }
+        });
     }
 
     private updateTodayButton() {
