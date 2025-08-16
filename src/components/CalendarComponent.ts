@@ -152,7 +152,7 @@ export class CalendarComponent extends Component {
         // Create the "Change Stream" section
         const changeStreamSection = collapsedView.createDiv('streams-calendar-change-stream');
         const changeStreamText = changeStreamSection.createDiv('streams-calendar-change-stream-text');
-        changeStreamText.setText('Change Stream');
+        changeStreamText.setText(this.selectedStream.name);
         changeStreamSection.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleStreamsDropdown();
@@ -471,6 +471,12 @@ export class CalendarComponent extends Component {
     private selectStream(stream: Stream) {
         // Update the selected stream
         this.selectedStream = stream;
+        
+        // Update the change stream text to show the new stream name
+        const changeStreamText = this.component.querySelector('.streams-calendar-change-stream-text');
+        if (changeStreamText) {
+            changeStreamText.setText(stream.name);
+        }
         
         // Update the calendar component for the new stream
         if (this.grid) {
