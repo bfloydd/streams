@@ -67,6 +67,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                     };
                     this.plugin.settings.streams.push(newStream);
                     await this.plugin.saveSettings(true);
+                    this.plugin.updateAllCalendarComponents();
                     this.display();
                 }));
 
@@ -93,10 +94,11 @@ export class StreamsSettingTab extends PluginSettingTab {
                     stream.name = value;
                 })
                 .then(textComponent => {
-                    textComponent.inputEl.addEventListener('blur', async () => {
-                        this.plugin.addStreamViewCommand(stream);
-                        await this.plugin.saveSettings();
-                    });
+                                    textComponent.inputEl.addEventListener('blur', async () => {
+                    this.plugin.addStreamViewCommand(stream);
+                    await this.plugin.saveSettings();
+                    this.plugin.updateAllCalendarComponents();
+                });
                 }));
 
         new Setting(card)
@@ -291,14 +293,15 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .onClick(async () => {
                     this.plugin.log.debug(`Deleting stream ${stream.id} (${stream.name})`);
                     
-                    this.plugin.settings.streams.splice(index, 1);
-                    
-                    await this.plugin.saveSettings(true);
-                    
-                    this.plugin.removeStreamCommand(stream.id);
-                    this.plugin.removeStreamViewCommand(stream.id);
-                    
-                    this.display();
+                    					this.plugin.settings.streams.splice(index, 1);
+					
+					await this.plugin.saveSettings(true);
+					
+					this.plugin.removeStreamCommand(stream.id);
+					this.plugin.removeStreamViewCommand(stream.id);
+					this.plugin.updateAllCalendarComponents();
+					
+					this.display();
                 }));
     }
 

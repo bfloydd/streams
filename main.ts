@@ -398,7 +398,7 @@ export default class StreamsPlugin extends Plugin {
 
 		if (stream) {
 			this.log.debug(`File belongs to stream: ${stream.name} (${stream.folder})`);
-			const component = new CalendarComponent(leaf, stream, this.app, this.settings.reuseCurrentTab);
+			const component = new CalendarComponent(leaf, stream, this.app, this.settings.reuseCurrentTab, this.settings.streams);
 			const componentId = filePath || crypto.randomUUID();
 			this.calendarComponents.set(componentId, component);
 			this.log.debug('Calendar component created successfully');
@@ -496,7 +496,7 @@ export default class StreamsPlugin extends Plugin {
 			});
 			
 			// Create the calendar component
-			const component = new CalendarComponent(leaf, stream, this.app, this.settings.reuseCurrentTab);
+			const component = new CalendarComponent(leaf, stream, this.app, this.settings.reuseCurrentTab, this.settings.streams);
 			
 			// Set current viewed date
 			const formattedDate = dateString.split('T')[0];
@@ -539,6 +539,12 @@ export default class StreamsPlugin extends Plugin {
 			this.viewCommandsByStreamId.delete(streamId);
 			this.log.debug(`Removed View Full Stream command for stream ${streamId}`);
 		}
+	}
+
+	public updateAllCalendarComponents() {
+		this.calendarComponents.forEach(component => {
+			component.updateStreamsList(this.settings.streams);
+		});
 	}
 
 	async loadSettings() {

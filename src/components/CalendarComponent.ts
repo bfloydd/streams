@@ -31,13 +31,16 @@ export class CalendarComponent extends Component {
     private currentViewedDate: string | null = null;
     private todayButton: HTMLElement;
     private reuseCurrentTab: boolean;
+    private streamsDropdown: HTMLElement | null = null;
+    private streams: Stream[];
 
-    constructor(leaf: WorkspaceLeaf, stream: Stream, app: App, reuseCurrentTab: boolean = false) {
+    constructor(leaf: WorkspaceLeaf, stream: Stream, app: App, reuseCurrentTab: boolean = false, streams: Stream[] = []) {
         super();
         this.log.debug('Creating calendar component for stream:', stream.name);
         this.selectedStream = stream;
         this.app = app;
         this.reuseCurrentTab = reuseCurrentTab;
+        this.streams = streams;
         
         this.component = document.createElement('div');
         this.component.addClass('streams-calendar-component');
@@ -121,9 +124,7 @@ export class CalendarComponent extends Component {
             this.toggleExpanded(collapsedView, expandedView);
         });
 
-        const streamLabel = collapsedView.createDiv('streams-calendar-label');
-        streamLabel.setText(this.selectedStream.name);
-
+        // Create the navigation controls
         const navControls = collapsedView.createDiv('streams-calendar-nav-controls');
         
         const prevDayButton = navControls.createDiv('streams-calendar-day-nav prev-day');
@@ -147,6 +148,20 @@ export class CalendarComponent extends Component {
             this.log.debug("RIGHT ARROW CLICKED - Going to NEXT day");
             await this.navigateToAdjacentDay(1);
         });
+
+        // Create the "Change Stream" section
+        const changeStreamSection = collapsedView.createDiv('streams-calendar-change-stream');
+        const changeStreamText = changeStreamSection.createDiv('streams-calendar-change-stream-text');
+        changeStreamText.setText('Change Stream');
+        changeStreamSection.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleStreamsDropdown();
+        });
+
+        // Create the streams dropdown
+        this.streamsDropdown = collapsedView.createDiv('streams-calendar-streams-dropdown');
+        this.streamsDropdown.style.display = 'none';
+        this.populateStreamsDropdown();
 
         const expandedView = this.component.createDiv('streams-calendar-expanded');
 
@@ -201,6 +216,11 @@ export class CalendarComponent extends Component {
         document.addEventListener('click', (e) => {
             if (this.expanded && !this.component.contains(e.target as Node)) {
                 this.toggleExpanded(collapsedView, expandedView);
+            }
+            
+            // Close streams dropdown when clicking outside
+            if (this.streamsDropdown && this.streamsDropdown.style.display !== 'none' && !this.component.contains(e.target as Node)) {
+                this.toggleStreamsDropdown();
             }
         });
 
@@ -406,6 +426,119 @@ export class CalendarComponent extends Component {
         }
     }
 
+    private toggleStreamsDropdown() {
+        if (this.streamsDropdown) {
+            const isVisible = this.streamsDropdown.style.display !== 'none';
+            this.streamsDropdown.style.display = isVisible ? 'none' : 'block';
+        }
+    }
+
+    private populateStreamsDropdown() {
+        if (!this.streamsDropdown) return;
+        
+        this.streamsDropdown.empty();
+        
+        // Display streams in the same order as they appear in Obsidian Streams Settings
+        // The streams array passed from main.ts (this.settings.streams) maintains the exact order
+        // from the settings UI, so we iterate through them in that order
+        this.streams.forEach(stream => {
+            const streamItem = this.streamsDropdown!.createDiv('streams-calendar-stream-item');
+            
+            // Add a class to indicate if this is the currently selected stream
+            if (stream.id === this.selectedStream.id) {
+                streamItem.addClass('streams-calendar-stream-item-selected');
+            }
+            
+            const streamIcon = streamItem.createDiv('streams-calendar-stream-item-icon');
+            setIcon(streamIcon, stream.icon);
+            const streamName = streamItem.createDiv('streams-calendar-stream-item-name');
+            streamName.setText(stream.name);
+            
+            // Add a checkmark for the currently selected stream
+            if (stream.id === this.selectedStream.id) {
+                const checkmark = streamItem.createDiv('streams-calendar-stream-item-checkmark');
+                setIcon(checkmark, 'check');
+            }
+            
+            streamItem.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.selectStream(stream);
+                this.toggleStreamsDropdown();
+            });
+        });
+    }
+
+    private selectStream(stream: Stream) {
+        // Update the selected stream
+        this.selectedStream = stream;
+        
+        // Update the calendar component for the new stream
+        if (this.grid) {
+            this.updateCalendarGrid(this.grid);
+        }
+        
+        // Close the dropdown
+        if (this.streamsDropdown) {
+            this.streamsDropdown.style.display = 'none';
+        }
+        
+        // Navigate to the selected stream's daily note
+        this.navigateToStreamDailyNote(stream);
+        
+        // Refresh the dropdown to update visual indicators
+        this.refreshStreamsDropdown();
+        
+        this.log.debug(`Switched to stream: ${stream.name}`);
+    }
+
+    private async navigateToStreamDailyNote(stream: Stream) {
+        try {
+            // Use the current viewed date if available, otherwise use today
+            let targetDate: Date;
+            if (this.currentViewedDate) {
+                targetDate = this.parseViewedDate(this.currentViewedDate);
+            } else {
+                targetDate = new Date();
+            }
+            
+            const year = targetDate.getFullYear();
+            const month = String(targetDate.getMonth() + 1).padStart(2, '0');
+            const day = String(targetDate.getDate()).padStart(2, '0');
+            const fileName = `${year}-${month}-${day}.md`;
+            
+            // Construct the file path
+            const folderPath = stream.folder
+                .split(/[/\\]/)
+                .filter(Boolean)
+                .join('/');
+            const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
+            
+            // Try to get the existing file
+            let file = this.app.vault.getAbstractFileByPath(filePath);
+            
+            // If file doesn't exist, create it
+            if (!file || !(file instanceof TFile)) {
+                file = await this.app.vault.create(filePath, '');
+            }
+            
+            if (file instanceof TFile) {
+                // Update the current viewed date to match the new stream
+                this.currentViewedDate = targetDate.toISOString().split('T')[0];
+                
+                // Open the file in the current leaf
+                const leaf = this.app.workspace.activeLeaf;
+                if (leaf) {
+                    await leaf.openFile(file);
+                }
+                
+                // Update the today button to reflect the new date
+                this.updateTodayButton();
+            }
+        } catch (error) {
+            this.log.error('Error navigating to stream daily note:', error);
+        }
+    }
+
     public setCurrentViewedDate(dateString: string): void {
         this.log.debug(`Setting currentViewedDate explicitly to: ${dateString}`);
         this.currentViewedDate = dateString;
@@ -419,6 +552,19 @@ export class CalendarComponent extends Component {
         
         if (this.grid) {
             this.updateCalendarGrid(this.grid);
+        }
+    }
+
+    public updateStreamsList(streams: Stream[]) {
+        this.streams = streams;
+        if (this.streamsDropdown) {
+            this.populateStreamsDropdown();
+        }
+    }
+
+    public refreshStreamsDropdown() {
+        if (this.streamsDropdown) {
+            this.populateStreamsDropdown();
         }
     }
 
