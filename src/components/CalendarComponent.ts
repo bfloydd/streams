@@ -507,39 +507,15 @@ export class CalendarComponent extends Component {
                 targetDate = new Date();
             }
             
-            const year = targetDate.getFullYear();
-            const month = String(targetDate.getMonth() + 1).padStart(2, '0');
-            const day = String(targetDate.getDate()).padStart(2, '0');
-            const fileName = `${year}-${month}-${day}.md`;
+            // Use the existing OpenStreamDateCommand which properly handles stream navigation
+            // This will maintain tab titles, stream context, and use the reuseCurrentTab setting
+            const command = new OpenStreamDateCommand(this.app, stream, targetDate, this.reuseCurrentTab);
+            await command.execute();
             
-            // Construct the file path
-            const folderPath = stream.folder
-                .split(/[/\\]/)
-                .filter(Boolean)
-                .join('/');
-            const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
+            // Update the current viewed date
+            this.currentViewedDate = targetDate.toISOString().split('T')[0];
+            this.updateTodayButton();
             
-            // Try to get the existing file
-            let file = this.app.vault.getAbstractFileByPath(filePath);
-            
-            // If file doesn't exist, create it
-            if (!file || !(file instanceof TFile)) {
-                file = await this.app.vault.create(filePath, '');
-            }
-            
-            if (file instanceof TFile) {
-                // Update the current viewed date to match the new stream
-                this.currentViewedDate = targetDate.toISOString().split('T')[0];
-                
-                // Open the file in the current leaf
-                const leaf = this.app.workspace.activeLeaf;
-                if (leaf) {
-                    await leaf.openFile(file);
-                }
-                
-                // Update the today button to reflect the new date
-                this.updateTodayButton();
-            }
         } catch (error) {
             this.log.error('Error navigating to stream daily note:', error);
         }
