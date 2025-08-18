@@ -127,7 +127,7 @@ export class CalendarComponent extends Component {
         const isInStream = streamPath.every((part, index) => streamPath[index] === filePath[index]);
         
         if (isInStream && this.grid) {
-            this.updateCalendarGrid(this.grid);
+            this.updateGridContent(this.grid);
             this.updateTodayButton();
         }
     }
@@ -227,13 +227,21 @@ export class CalendarComponent extends Component {
         prevButton.addEventListener('click', () => {
             this.currentDate.setMonth(this.currentDate.getMonth() - 1);
             dateDisplay.setText(this.formatMonthYear(this.currentDate));
-            this.updateCalendarGrid(grid);
+            if (grid.children.length > 0) {
+                this.updateGridContent(grid);
+            } else {
+                this.updateCalendarGrid(grid);
+            }
         });
 
         nextButton.addEventListener('click', () => {
             this.currentDate.setMonth(this.currentDate.getMonth() + 1);
             dateDisplay.setText(this.formatMonthYear(this.currentDate));
-            this.updateCalendarGrid(grid);
+            if (grid.children.length > 0) {
+                this.updateGridContent(grid);
+            } else {
+                this.updateCalendarGrid(grid);
+            }
         });
 
         backButton.addEventListener('click', (e) => {
@@ -247,7 +255,11 @@ export class CalendarComponent extends Component {
             await command.execute();
             this.currentDate = new Date();
             dateDisplay.setText(this.formatMonthYear(this.currentDate));
-            this.updateCalendarGrid(grid);
+            if (grid.children.length > 0) {
+                this.updateGridContent(grid);
+            } else {
+                this.updateCalendarGrid(grid);
+            }
         });
 
         document.addEventListener('click', (e) => {
@@ -330,6 +342,13 @@ export class CalendarComponent extends Component {
     }
 
     private async updateCalendarGrid(grid: HTMLElement) {
+        // Don't recreate the entire grid if it already exists and just needs content updates
+        if (grid.children.length > 0) {
+            // Just update the content indicators without recreating the entire grid
+            await this.updateGridContent(grid);
+            return;
+        }
+        
         grid.empty();
         
         const daysInMonth = this.getDaysInMonth(this.currentDate.getFullYear(), this.currentDate.getMonth());
@@ -378,11 +397,52 @@ export class CalendarComponent extends Component {
             const handleDaySelect = (e: Event) => {
                 e.preventDefault();
                 e.stopPropagation();
+                this.log.debug(`Day ${day} clicked, handling selection`);
                 this.selectDate(day);
             };
 
             dayEl.addEventListener('click', handleDaySelect);
             dayEl.addEventListener('touchend', handleDaySelect);
+        }
+    }
+    
+    private async updateGridContent(grid: HTMLElement) {
+        // Update only the content indicators without recreating the grid
+        const dayElements = grid.querySelectorAll('.streams-calendar-day:not(.empty)');
+        
+        for (let i = 0; i < dayElements.length; i++) {
+            const dayEl = dayElements[i] as HTMLElement;
+            const day = i + 1;
+            
+            // Clear existing content indicators
+            const dotContainer = dayEl.querySelector('.streams-dot-container');
+            if (dotContainer) {
+                dotContainer.empty();
+            }
+            
+            // Update viewed state
+            const currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
+            const dateString = currentDate.toISOString().split('T')[0];
+            
+            dayEl.removeClass('viewed');
+            if (dateString === this.currentViewedDate) {
+                dayEl.addClass('viewed');
+            }
+            
+            // Update today state
+            dayEl.removeClass('today');
+            if (this.isToday(currentDate)) {
+                dayEl.addClass('today');
+            }
+            
+            // Update content indicators
+            const content = await this.getContentIndicator(currentDate);
+            if (content.exists && dotContainer) {
+                const dots = content.size === 'small' ? 1 : content.size === 'medium' ? 2 : 3;
+                for (let j = 0; j < dots; j++) {
+                    dotContainer.createDiv('streams-content-dot');
+                }
+            }
         }
     }
 
@@ -408,8 +468,10 @@ export class CalendarComponent extends Component {
     }
 
     private async selectDate(day: number) {
+        this.log.debug(`selectDate called for day: ${day}`);
         const selectedDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
         this.currentViewedDate = selectedDate.toISOString().split('T')[0];
+        
         const command = new OpenStreamDateCommand(this.app, this.selectedStream, selectedDate, this.reuseCurrentTab);
         await command.execute();
         this.updateTodayButton();
@@ -428,9 +490,17 @@ export class CalendarComponent extends Component {
         if (this.expanded) {
             const grid = this.grid;
             if (grid) {
-                setTimeout(() => {
-                    this.updateCalendarGrid(grid);
-                }, 10);
+                if (grid.children.length > 0) {
+                    // Grid already exists, just update content
+                    setTimeout(() => {
+                        this.updateGridContent(grid);
+                    }, 10);
+                } else {
+                    // Grid doesn't exist yet, create it
+                    setTimeout(() => {
+                        this.updateCalendarGrid(grid);
+                    }, 10);
+                }
             }
         }
     }
@@ -520,9 +590,9 @@ export class CalendarComponent extends Component {
             changeStreamText.setText(stream.name);
         }
         
-        // Update the calendar component for the new stream
+        // Only update the calendar grid if it exists and needs content updates
         if (this.grid) {
-            this.updateCalendarGrid(this.grid);
+            this.updateGridContent(this.grid);
         }
         
         // Close the dropdown
@@ -575,7 +645,11 @@ export class CalendarComponent extends Component {
         this.updateTodayButton();
         
         if (this.grid) {
-            this.updateCalendarGrid(this.grid);
+            if (this.grid.children.length > 0) {
+                this.updateGridContent(this.grid);
+            } else {
+                this.updateCalendarGrid(this.grid);
+            }
         }
     }
 

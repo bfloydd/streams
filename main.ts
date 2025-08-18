@@ -21,7 +21,7 @@ export default class StreamsPlugin extends Plugin {
 	private ribbonIconsByStream: Map<string, {today?: HTMLElement, view?: HTMLElement}> = new Map();
 	commandsByStreamId: Map<string, string> = new Map();
 	viewCommandsByStreamId: Map<string, string> = new Map();
-	calendarComponents: Map<string, CalendarComponent> = new Map();
+	private calendarComponents: Map<string, CalendarComponent> = new Map();
 	public log: Logger;
 
 	async onload() {
@@ -269,9 +269,10 @@ export default class StreamsPlugin extends Plugin {
 	}
 	
 	onunload() {
-		this.log.info('Unloading Streams plugin');
+		this.log.debug('Unloading Streams plugin');
+		
 		this.cleanupResources();
-		this.log.info('Streams plugin unloaded');
+		this.log.debug('Streams plugin unloaded');
 	}
 
 	private cleanupResources(): void {
