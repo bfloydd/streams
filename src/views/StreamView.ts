@@ -1,4 +1,4 @@
-import { App, ItemView, MarkdownRenderer, TFile, WorkspaceLeaf, Plugin } from 'obsidian';
+import { App, ItemView, MarkdownRenderer, TFile, TFolder, WorkspaceLeaf, Plugin } from 'obsidian';
 import { Stream } from '../../types';
 import { Logger } from '../utils/Logger';
 
@@ -315,13 +315,11 @@ export class StreamView extends ItemView {
         }
     }
 
-    getState(): any {
-        return {
-            streamId: this.stream.id,
-        };
+    getState(): { streamId: string } {
+        return { streamId: this.stream.id };
     }
 
-    async setState(state: any): Promise<void> {
+    async setState(state: { streamId: string }): Promise<void> {
         if (state.streamId !== this.stream.id) {
             this.log.debug(`Stream changed from ${this.stream.id} to ${state.streamId}`);
             

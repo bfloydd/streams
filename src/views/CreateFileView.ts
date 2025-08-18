@@ -45,7 +45,7 @@ export class CreateFileView extends ItemView {
         }
     }
 
-    getState(): any {
+    getState(): { stream: Stream; date: string; filePath: string } {
         const dateISOString = this.date instanceof Date ? this.date.toISOString() : new Date().toISOString();
         
         return {
@@ -55,7 +55,7 @@ export class CreateFileView extends ItemView {
         };
     }
 
-    async setState(state: any, result?: any): Promise<void> {
+    async setState(state: { stream?: Stream; date?: string | Date; filePath?: string }, result?: unknown): Promise<void> {
         if (state) {
             this.log.debug(`Setting state with: ${JSON.stringify(state)}`);
             
@@ -83,7 +83,7 @@ export class CreateFileView extends ItemView {
                             this.log.debug(`Extracted date from filepath: ${this.date.toISOString()}`);
                         } else {
                             this.date = new Date();
-                            this.log.debug(`Using current date as fallback: ${this.date.toISOString()}`);
+                            this.log.debug(`Using today as final fallback: ${this.date.toISOString()}`);
                         }
                     }
                     
@@ -99,7 +99,7 @@ export class CreateFileView extends ItemView {
             }
             
             const filePathChanged = oldFilePath !== this.filePath;
-            const isJustTitleUpdate = result && result.isTitleRefresh;
+            const isJustTitleUpdate = result && (result as any).isTitleRefresh;
             
             if ((filePathChanged || dateChanged) && !isJustTitleUpdate) {
                 this.log.debug(`State changed significantly, refreshing view`);

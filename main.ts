@@ -301,8 +301,8 @@ export default class StreamsPlugin extends Plugin {
 
 		// Update calendar when create file state changes
 		this.registerEvent(
-			// @ts-ignore - Custom event not in type definitions
-			this.app.workspace.on('streams-create-file-state-changed', (view: any) => {
+			// @ts-ignore - Custom event not in Obsidian type definitions
+			this.app.workspace.on('streams-create-file-state-changed', (view: { leaf?: WorkspaceLeaf }) => {
 				this.log.debug('Create file state changed, updating calendar component');
 				if (view && view.leaf) {
 					this.updateCalendarComponentForCreateView(view.leaf);
@@ -356,7 +356,6 @@ export default class StreamsPlugin extends Plugin {
 			return;
 		}
 
-		// Log streams for debugging
 		this.log.debug(`Looking for stream matching file: ${filePath}`);
 		this.log.debug('Available streams:', this.settings.streams.map(s => ({
 			name: s.name,
@@ -574,20 +573,15 @@ export default class StreamsPlugin extends Plugin {
 		}
 		
 		// Migrate from old property names
-		// @ts-ignore - Accessing old property names for migration
-		if (stream['showInRibbon'] !== undefined && stream.showTodayInRibbon === undefined) {
-			// @ts-ignore - Accessing old property names for migration
-			stream.showTodayInRibbon = stream['showInRibbon'];
-			// @ts-ignore - Accessing old property names for migration
-			delete stream['showInRibbon'];
+		const streamAny = stream as any; // Temporary for migration
+		if (streamAny.showInRibbon !== undefined && stream.showTodayInRibbon === undefined) {
+			stream.showTodayInRibbon = streamAny.showInRibbon;
+			delete streamAny.showInRibbon;
 		}
 		
-		// @ts-ignore - Accessing old property names for migration
-		if (stream['showViewInRibbon'] !== undefined && stream.showFullStreamInRibbon === undefined) {
-			// @ts-ignore - Accessing old property names for migration
-			stream.showFullStreamInRibbon = stream['showViewInRibbon'];
-			// @ts-ignore - Accessing old property names for migration
-			delete stream['showViewInRibbon'];
+		if (streamAny.showViewInRibbon !== undefined && stream.showFullStreamInRibbon === undefined) {
+			stream.showFullStreamInRibbon = streamAny.showViewInRibbon;
+			delete streamAny.showViewInRibbon;
 		}
 		
 		// Set default values if undefined
@@ -691,8 +685,7 @@ export default class StreamsPlugin extends Plugin {
 	}
 
 	private updateIconVisibility(icon: HTMLElement, visible: boolean): void {
-		// Log visibility state
-		        const wasVisible = !icon.classList.contains('streams-icon-hidden') && !icon.classList.contains('streams-plugin-hidden');
+		const wasVisible = !icon.classList.contains('streams-icon-hidden') && !icon.classList.contains('streams-plugin-hidden');
 		
 		// Get stream info for styling
 		const streamId = icon.getAttribute('data-stream-id');

@@ -19,6 +19,13 @@ interface ViewWithContentEl extends View {
     contentEl: HTMLElement;
 }
 
+interface PluginInterface {
+    settings: {
+        calendarCompactState: boolean;
+    };
+    saveSettings(): void;
+}
+
 export class CalendarComponent extends Component {
     private component: HTMLElement;
     private expanded: boolean = false;
@@ -33,10 +40,10 @@ export class CalendarComponent extends Component {
     private reuseCurrentTab: boolean;
     private streamsDropdown: HTMLElement | null = null;
     private streams: Stream[];
-    private toggleButton: HTMLElement; // New toggle button reference
-    private plugin: any; // Reference to the main plugin for accessing settings
+    private toggleButton: HTMLElement;
+    private plugin: PluginInterface | null;
 
-    constructor(leaf: WorkspaceLeaf, stream: Stream, app: App, reuseCurrentTab: boolean = false, streams: Stream[] = [], plugin: any = null) {
+    constructor(leaf: WorkspaceLeaf, stream: Stream, app: App, reuseCurrentTab: boolean = false, streams: Stream[] = [], plugin: PluginInterface | null = null) {
         super();
         this.log.debug('Creating calendar component for stream:', stream.name);
         this.selectedStream = stream;
@@ -598,39 +605,42 @@ export class CalendarComponent extends Component {
     }
 
     private toggleCompact() {
-        this.plugin.settings.calendarCompactState = !this.plugin.settings.calendarCompactState;
-        this.component.toggleClass('streams-calendar-compact', this.plugin.settings.calendarCompactState);
-        this.updateToggleButtonIcon();
-        
-        // Update toggle button positioning based on compact state
-        if (this.toggleButton) {
-            if (this.plugin.settings.calendarCompactState) {
-                // In compact mode, position the button at the right edge
-                this.toggleButton.style.right = '0';
-                this.toggleButton.style.borderRadius = '6px';
-                this.toggleButton.style.border = '1px solid rgba(0, 0, 0, 0.05)';
-            } else {
-                // In normal mode, position the button to the right of the collapsed view
-                this.toggleButton.style.right = '-15px';
-                this.toggleButton.style.borderRadius = '0 6px 6px 0';
-                this.toggleButton.style.border = '1px solid rgba(0, 0, 0, 0.05)';
-                this.toggleButton.style.borderLeft = 'none';
+        if (this.plugin) {
+            this.plugin.settings.calendarCompactState = !this.plugin.settings.calendarCompactState;
+            this.component.toggleClass('streams-calendar-compact', this.plugin.settings.calendarCompactState);
+            this.updateToggleButtonIcon();
+            
+            // Update toggle button positioning based on compact state
+            if (this.toggleButton) {
+                if (this.plugin.settings.calendarCompactState) {
+                    // In compact mode, position the button at the right edge
+                    this.toggleButton.style.right = '0';
+                    this.toggleButton.style.borderRadius = '6px';
+                    this.toggleButton.style.border = '1px solid rgba(0, 0, 0, 0.05)';
+                } else {
+                    // In normal mode, position the button to the right of the collapsed view
+                    this.toggleButton.style.right = '-15px';
+                    this.toggleButton.style.borderRadius = '0 6px 6px 0';
+                    this.toggleButton.style.border = '1px solid rgba(0, 0, 0, 0.05)';
+                    this.toggleButton.style.borderLeft = 'none';
+                }
             }
+            
+            // Save the settings to persist the compact state
+            if (this.plugin && this.plugin.saveSettings) {
+                this.plugin.saveSettings();
+            }
+            
+            this.log.debug(`Calendar compact state toggled to: ${this.plugin.settings.calendarCompactState}`);
         }
-        
-        // Save the settings to persist the compact state
-        if (this.plugin && this.plugin.saveSettings) {
-            this.plugin.saveSettings();
-        }
-        
-        this.log.debug(`Calendar compact state toggled to: ${this.plugin.settings.calendarCompactState}`);
     }
 
     private updateToggleButtonIcon() {
         if (this.toggleButton) {
-            this.toggleButton.toggleClass('streams-calendar-toggle-button-compact', this.plugin.settings.calendarCompactState);
+            const isCompact = this.plugin?.settings.calendarCompactState || false;
+            this.toggleButton.toggleClass('streams-calendar-toggle-button-compact', isCompact);
             // Use chevron icons to indicate expand/collapse
-            setIcon(this.toggleButton, this.plugin.settings.calendarCompactState ? 'chevron-right' : 'chevron-left');
+            setIcon(this.toggleButton, isCompact ? 'chevron-right' : 'chevron-left');
         }
     }
 
@@ -638,22 +648,24 @@ export class CalendarComponent extends Component {
      * Reset the compact state to default (non-compact)
      */
     public resetCompactState() {
-        this.plugin.settings.calendarCompactState = false;
-        this.component.removeClass('streams-calendar-compact');
-        
-        // Reset toggle button positioning to normal mode
-        if (this.toggleButton) {
-            this.toggleButton.style.right = '-20px';
-            this.toggleButton.style.borderRadius = '0 6px 6px 0';
-            this.toggleButton.style.border = '1px solid rgba(0, 0, 0, 0.05)';
-            this.toggleButton.style.borderLeft = 'none';
-        }
-        
-        this.updateToggleButtonIcon();
-        
-        // Save the settings to persist the reset state
-        if (this.plugin && this.plugin.saveSettings) {
-            this.plugin.saveSettings();
+        if (this.plugin) {
+            this.plugin.settings.calendarCompactState = false;
+            this.component.removeClass('streams-calendar-compact');
+            
+            // Reset toggle button positioning to normal mode
+            if (this.toggleButton) {
+                this.toggleButton.style.right = '-20px';
+                this.toggleButton.style.borderRadius = '0 6px 6px 0';
+                this.toggleButton.style.border = '1px solid rgba(0, 0, 0, 0.05)';
+                this.toggleButton.style.borderLeft = 'none';
+            }
+            
+            this.updateToggleButtonIcon();
+            
+            // Save the settings to persist the reset state
+            if (this.plugin && this.plugin.saveSettings) {
+                this.plugin.saveSettings();
+            }
         }
     }
 
@@ -661,6 +673,6 @@ export class CalendarComponent extends Component {
      * Get the current compact state
      */
     public isCompact(): boolean {
-        return this.plugin.settings.calendarCompactState;
+        return this.plugin?.settings.calendarCompactState || false;
     }
 } 

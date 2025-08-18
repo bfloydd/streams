@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting, Notice, TFolder, MarkdownView } from 'obsidian';
+import { App, PluginSettingTab, Setting, Notice, TFolder, MarkdownView, DropdownComponent } from 'obsidian';
 import StreamsPlugin from './main';
 import { Stream, StreamsSettings, LucideIcon } from './types';
 
@@ -320,23 +320,23 @@ export class StreamsSettingTab extends PluginSettingTab {
                 }));
     }
 
-    private populateIconDropdown(dropdown: any) {
-        const iconCategories = {
-            'Files & documents': ['file-text', 'file', 'files', 'folder', 'book', 'notebook', 'diary'],
-            'Communication': ['message-circle', 'message-square', 'mail', 'inbox', 'send'],
-            'Time & planning': ['alarm-check', 'calendar', 'clock', 'timer', 'history'],
-            'UI elements': ['home', 'settings', 'search', 'bookmark', 'star', 'heart', 'layout-dashboard'],
-            'Content': ['text', 'edit', 'pencil', 'pen', 'list', 'check-square'],
-            'Media': ['image', 'video', 'music', 'camera'],
-            'Weather': ['sun', 'moon', 'cloud', 'umbrella'],
-            'Misc': ['user', 'users', 'tag', 'flag', 'bookmark', 'link']
-        } as const;
+    private populateIconDropdown(dropdown: DropdownComponent) {
+		const iconCategories = {
+			'Files & documents': ['file-text', 'file', 'files', 'folder', 'book', 'notebook', 'diary'],
+			'Communication': ['message-circle', 'message-square', 'mail', 'inbox', 'send'],
+			'Time & planning': ['alarm-check', 'calendar', 'clock', 'timer', 'history'],
+			'UI elements': ['home', 'settings', 'search', 'bookmark', 'star', 'heart', 'layout-dashboard'],
+			'Content': ['text', 'edit', 'pencil', 'pen', 'list', 'check-square'],
+			'Media': ['image', 'video', 'music', 'camera'],
+			'Weather': ['sun', 'moon', 'cloud', 'umbrella'],
+			'Misc': ['user', 'users', 'tag', 'flag', 'bookmark', 'link']
+		} as const;
 
-        Object.entries(iconCategories).forEach(([category, icons]) => {
-            dropdown.addOption(`---${category}---`, category);
-            icons.forEach(icon => dropdown.addOption(icon, icon));
-        });
-    }
+		Object.entries(iconCategories).forEach(([category, icons]) => {
+			dropdown.addOption(`---${category}---`, category);
+			icons.forEach(icon => dropdown.addOption(icon, icon));
+		});
+	}
 
     private async validateFolderPath(path: string): Promise<boolean> {
         if (!path) return false;
