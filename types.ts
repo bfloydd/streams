@@ -38,4 +38,5 @@ export interface StreamsSettings {
     streams: Stream[];
     showCalendarComponent: boolean;
     reuseCurrentTab: boolean;
+    calendarCompactState: boolean;
 } 

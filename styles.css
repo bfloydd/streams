@@ -177,13 +177,36 @@
     z-index: 1000;
 }
 
+/* Mobile-specific toggle button adjustments */
+.is-mobile .streams-calendar-toggle-button {
+    width: 20px; /* Slightly smaller on mobile */
+    height: 48px; /* Proportional to mobile size */
+    right: -16px; /* Adjusted for mobile to ensure full visibility */
+}
+
+.is-phone .streams-calendar-toggle-button {
+    width: 18px; /* Even smaller on phones */
+    height: 44px; /* Proportional to phone size */
+    right: -14px; /* Adjusted for phones to ensure full visibility */
+}
+
+.is-mobile .streams-calendar-toggle-button svg {
+    width: 14px; /* Smaller icon on mobile */
+    height: 14px;
+}
+
+.is-phone .streams-calendar-toggle-button svg {
+    width: 12px; /* Even smaller icon on phones */
+    height: 12px;
+}
+
 .streams-calendar-collapsed {
     position: absolute;
     top: 0;
     right: 0;
     padding: 4px 0 0 0;
     cursor: pointer;
-    transition: box-shadow 0.2s ease;
+    transition: box-shadow 0.2s ease, width 0.3s ease, opacity 0.3s ease;
     background-color: var(--background-secondary);
     border-radius: 6px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
@@ -590,6 +613,100 @@
 
 .streams-today-button-expanded {
     opacity: 0;
+}
+
+/* Toggle button for compact view */
+.streams-calendar-toggle-button {
+    position: absolute;
+    top: 6px; /* Match the collapsed view's top padding */
+    right: -15px; /* Position to the right of the collapsed view, ensuring full visibility */
+    width: 15px;
+    height: 52px; /* Reduced height to better match the widget */
+    background-color: var(--background-secondary);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-left: none;
+    border-radius: 0 6px 6px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, transform 0.1s ease, right 0.3s ease, border-radius 0.3s ease;
+    z-index: 1001;
+    pointer-events: auto;
+}
+
+.streams-calendar-toggle-button:hover {
+    background-color: var(--interactive-hover);
+    transform: scale(1.02);
+}
+
+.streams-calendar-toggle-button:active {
+    transform: scale(0.98);
+    background-color: var(--interactive-accent);
+}
+
+.streams-calendar-toggle-button svg {
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+}
+
+.streams-calendar-toggle-button:hover svg {
+    color: var(--text-normal);
+}
+
+/* Compact view styles */
+.streams-calendar-compact .streams-calendar-collapsed {
+    width: 0; /* Hide the collapsed view completely */
+    min-width: 0;
+    padding: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.streams-calendar-compact .streams-calendar-nav-controls {
+    display: none; /* Hide navigation controls */
+}
+
+.streams-calendar-compact .streams-calendar-change-stream {
+    display: none; /* Hide stream change section */
+}
+
+.streams-calendar-compact .streams-calendar-streams-dropdown {
+    display: none; /* Hide streams dropdown */
+}
+
+/* Adjust toggle button position for compact view */
+.streams-calendar-compact .streams-calendar-toggle-button {
+    right: -2px; /* Position tighter to the right edge */
+    width:24px; /* Make it narrower */
+    height: 40px; /* Make it shorter */
+    border-radius: 6px; /* Full border radius since no left border */
+    border: 1px solid rgba(0, 0, 0, 0.05); /* Full border */
+}
+
+/* Mobile-specific compact view adjustments */
+.is-mobile .streams-calendar-compact .streams-calendar-collapsed {
+    width: 0; /* Hide completely on mobile too */
+    min-width: 0;
+}
+
+.is-phone .streams-calendar-compact .streams-calendar-collapsed {
+    width: 0; /* Hide completely on phones too */
+    min-width: 0;
+}
+
+.is-mobile .streams-calendar-compact .streams-calendar-toggle-button {
+    right: -2px; /* Position tighter to the right edge */
+    width: 20px; /* Even smaller on mobile */
+    height: 36px; /* Proportional to mobile size */
+}
+
+.is-phone .streams-calendar-compact .streams-calendar-toggle-button {
+    right: -2px; /* Position tighter to the right edge */
+    width: 18px; /* Even smaller on phones */
+    height: 32px; /* Proportional to phone size */
 }
 
 /*********************************************************

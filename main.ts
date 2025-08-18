@@ -12,7 +12,8 @@ import { OpenStreamViewCommand } from './src/commands/OpenStreamViewCommand';
 const DEFAULT_SETTINGS: StreamsSettings = {
 	streams: [],
 	showCalendarComponent: true,
-	reuseCurrentTab: false
+	reuseCurrentTab: false,
+	calendarCompactState: false
 }
 
 export default class StreamsPlugin extends Plugin {
@@ -398,7 +399,7 @@ export default class StreamsPlugin extends Plugin {
 
 		if (stream) {
 			this.log.debug(`File belongs to stream: ${stream.name} (${stream.folder})`);
-			const component = new CalendarComponent(leaf, stream, this.app, this.settings.reuseCurrentTab, this.settings.streams);
+			const component = new CalendarComponent(leaf, stream, this.app, this.settings.reuseCurrentTab, this.settings.streams, this);
 			const componentId = filePath || crypto.randomUUID();
 			this.calendarComponents.set(componentId, component);
 			this.log.debug('Calendar component created successfully');
@@ -496,7 +497,7 @@ export default class StreamsPlugin extends Plugin {
 			});
 			
 			// Create the calendar component
-			const component = new CalendarComponent(leaf, stream, this.app, this.settings.reuseCurrentTab, this.settings.streams);
+			const component = new CalendarComponent(leaf, stream, this.app, this.settings.reuseCurrentTab, this.settings.streams, this);
 			
 			// Set current viewed date
 			const formattedDate = dateString.split('T')[0];
@@ -760,6 +761,20 @@ export default class StreamsPlugin extends Plugin {
 				this.refreshAllCalendarComponents();
 				
 				new Notice(`Calendar component ${this.settings.showCalendarComponent ? 'shown' : 'hidden'}`);
+			}
+		});
+		
+		this.addCommand({
+			id: 'toggle-calendar-compact',
+			name: 'Toggle calendar compact mode',
+			callback: () => {
+				this.settings.calendarCompactState = !this.settings.calendarCompactState;
+				this.saveSettings();
+				
+				// Immediately refresh all components to apply the new compact state
+				this.refreshAllCalendarComponents();
+				
+				new Notice(`Calendar compact mode ${this.settings.calendarCompactState ? 'enabled' : 'disabled'}`);
 			}
 		});
 	}
