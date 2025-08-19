@@ -154,11 +154,22 @@ export default class StreamsPlugin extends Plugin {
 	}
 	
 	private createAllStreamsIcon(): void {
+		// Main All Streams dashboard button
 		this.addRibbonIcon(
 			'layout-dashboard',
-			'Streams: View All Streams',
+			'Streams: View all streams',
 			() => {
 				const command = new OpenAllStreamsViewCommand(this.app);
+				command.execute();
+			}
+		);
+		
+		// Open Current Stream Today button
+		this.addRibbonIcon(
+			'calendar',
+			'Streams: Open today for current stream',
+			() => {
+				const command = new OpenCurrentStreamTodayCommand(this.app, this.settings.streams, this.settings.reuseCurrentTab);
 				command.execute();
 			}
 		);

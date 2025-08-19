@@ -34,6 +34,11 @@ The new All Streams view provides a comprehensive overview of all your configure
 - **Ribbon Button**: Click the dashboard icon in the left sidebar
 - **Command Palette**: Use "Open All Streams View"
 
+## Quick Actions
+The plugin provides several ribbon buttons for quick access:
+- **📊 Dashboard Icon**: Opens the All Streams dashboard view
+- **📅 Calendar Icon**: Automatically opens today's note for the current stream context
+
 This view displays each stream as a card showing:
 - Total number of files
 - Files created this year and month
@@ -41,10 +46,14 @@ This view displays each stream as a card showing:
 - Quick action buttons to open today's note or view the full stream
 
 ## Commands
-The plugin provides several commands accessible via the Command Palette:
+The plugin provides several commands accessible via the Command Palette and ribbon buttons:
 
 - **Open Current Stream Today**: Automatically detects which stream the current view belongs to and opens that stream's today note. This works whether you're in a file that belongs to a stream, a stream view, or a create file view. This is useful when you want to quickly jump to today's note for the current stream context.
+  - **Command Palette**: "Open Current Stream Today"
+  - **Ribbon Button**: 📅 Calendar icon in the left sidebar
 - **Open All Streams View**: Opens the dashboard view showing all streams.
+  - **Command Palette**: "Open All Streams View"
+  - **Ribbon Button**: 📊 Dashboard icon in the left sidebar
 - **Toggle calendar component**: Shows/hides the calendar component.
 - **Toggle calendar compact mode**: Switches between compact and full calendar display.
 
