@@ -4,7 +4,7 @@ import { Stream, StreamsSettings, LucideIcon } from './types';
 import { CalendarComponent } from './src/components/CalendarComponent';
 import { Logger, LogLevel } from './src/utils/Logger';
 import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
-import { OpenCurrentStreamTodayCommand } from './src/commands/OpenCurrentStreamTodayCommand';
+import { OpenTodayCurrentStreamCommand } from './src/commands/OpenTodayCurrentStreamCommand';
 import { StreamSelectionModal } from './src/modals/StreamSelectionModal';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from './src/views/CreateFileView';
 import { STREAM_VIEW_TYPE, StreamView } from './src/views/StreamView';
@@ -170,7 +170,7 @@ export default class StreamsPlugin extends Plugin {
 			'calendar',
 			'Streams: Open today for current stream',
 			() => {
-				const command = new OpenCurrentStreamTodayCommand(this.app, this.settings.streams, this.settings.reuseCurrentTab, this);
+				const command = new OpenTodayCurrentStreamCommand(this.app, this.settings.streams, this.settings.reuseCurrentTab, this);
 				command.execute();
 			}
 		);
@@ -838,7 +838,7 @@ export default class StreamsPlugin extends Plugin {
 			id: 'open-current-stream-today',
 			name: 'Open Current Stream Today',
 			callback: () => {
-				const command = new OpenCurrentStreamTodayCommand(this.app, this.settings.streams, this.settings.reuseCurrentTab, this);
+				const command = new OpenTodayCurrentStreamCommand(this.app, this.settings.streams, this.settings.reuseCurrentTab, this);
 				command.execute();
 			}
 		});

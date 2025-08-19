@@ -11,6 +11,11 @@ interface StreamsPlugin extends Plugin {
     };
 }
 
+// Interface for the streams plugin
+interface StreamsPlugin {
+    setActiveStream(streamId: string): void;
+}
+
 // Interface for accessing app.plugins
 interface AppWithPlugins extends App {
     plugins: {
@@ -52,6 +57,9 @@ export class StreamView extends ItemView {
 
     async onOpen(): Promise<void> {
         this.log.debug(`Opening stream view for: ${this.stream.name}`);
+        
+        // Set this as the active stream in the main plugin
+        this.setActiveStream();
         
         const container = this.containerEl.children[1];
         container.empty();
@@ -374,6 +382,19 @@ export class StreamView extends ItemView {
         if (this.observer) {
             this.observer.disconnect();
             this.observer = null;
+        }
+    }
+    
+    private setActiveStream(): void {
+        // Set this as the active stream in the main plugin
+        try {
+            const appWithPlugins = this.app as unknown as AppWithPlugins;
+            const plugin = appWithPlugins.plugins.plugins['streams'];
+            if (plugin?.setActiveStream) {
+                plugin.setActiveStream(this.stream.id);
+            }
+        } catch (error) {
+            this.log.error('Error setting active stream:', error);
         }
     }
 

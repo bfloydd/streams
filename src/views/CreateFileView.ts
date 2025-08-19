@@ -2,6 +2,20 @@ import { App, TFile, WorkspaceLeaf, ItemView, normalizePath, setIcon } from 'obs
 import { Stream } from '../../types';
 import { Logger } from '../utils/Logger';
 
+// Interface for the streams plugin
+interface StreamsPlugin {
+    setActiveStream(streamId: string): void;
+}
+
+// Interface for accessing app.plugins
+interface AppWithPlugins extends App {
+    plugins: {
+        plugins: {
+            'streams': StreamsPlugin;
+        };
+    };
+}
+
 export const CREATE_FILE_VIEW_TYPE = 'streams-create-file-view';
 
 export class CreateFileView extends ItemView {
@@ -139,6 +153,9 @@ export class CreateFileView extends ItemView {
     }
 
     async onOpen(): Promise<void> {
+        // Set this as the active stream in the main plugin
+        this.setActiveStream();
+        
         this.contentEl.empty();
         this.contentEl.addClass('streams-create-file-container');
         
@@ -268,6 +285,19 @@ export class CreateFileView extends ItemView {
             this.log.debug(`Updated tab title to: ${this.getDisplayText()}`);
         } catch (error) {
             this.log.error('Error updating tab title:', error);
+        }
+    }
+    
+    private setActiveStream(): void {
+        // Set this as the active stream in the main plugin
+        try {
+            const appWithPlugins = this.app as unknown as AppWithPlugins;
+            const plugin = appWithPlugins.plugins.plugins['streams'];
+            if (plugin?.setActiveStream) {
+                plugin.setActiveStream(this.stream.id);
+            }
+        } catch (error) {
+            this.log.error('Error setting active stream:', error);
         }
     }
 } 

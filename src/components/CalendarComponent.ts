@@ -25,7 +25,6 @@ interface PluginInterface {
     };
     saveSettings(): void;
     setActiveStream(streamId: string): void;
-    getActiveStream(): Stream | null;
 }
 
 export class CalendarComponent extends Component {
