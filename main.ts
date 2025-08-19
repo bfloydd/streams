@@ -7,7 +7,9 @@ import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
 import { StreamSelectionModal } from './src/modals/StreamSelectionModal';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from './src/views/CreateFileView';
 import { STREAM_VIEW_TYPE, StreamView } from './src/views/StreamView';
+import { ALL_STREAMS_VIEW_TYPE, AllStreamsView } from './src/views/AllStreamsView';
 import { OpenStreamViewCommand } from './src/commands/OpenStreamViewCommand';
+import { OpenAllStreamsViewCommand } from './src/commands/OpenAllStreamsViewCommand';
 
 const DEFAULT_SETTINGS: StreamsSettings = {
 	streams: [],
@@ -36,6 +38,7 @@ export default class StreamsPlugin extends Plugin {
 		this.initializeMobileIntegration();
 		this.registerCalendarCommands();
 		this.registerLogCommands();
+		this.registerAllStreamsCommands();
 
 		this.addSettingTab(new StreamsSettingTab(this.app, this));
 		this.initializeActiveView();
@@ -99,6 +102,12 @@ export default class StreamsPlugin extends Plugin {
 			STREAM_VIEW_TYPE,
 			(leaf) => this.createStreamViewFromState(leaf)
 		);
+		
+		// Register AllStreamsView
+		this.registerView(
+			ALL_STREAMS_VIEW_TYPE,
+			(leaf) => new AllStreamsView(leaf, this.app)
+		);
 	}
 	
 	private createStreamViewFromState(leaf: WorkspaceLeaf): StreamView {
@@ -131,6 +140,9 @@ export default class StreamsPlugin extends Plugin {
 	}
 	
 	private initializeAllRibbonIcons(): void {
+		// Create the main All Streams ribbon icon
+		this.createAllStreamsIcon();
+		
 		// Create icons for all streams (even if hidden)
 		this.settings.streams.forEach(stream => {
 			this.createStreamIcons(stream);
@@ -140,6 +152,17 @@ export default class StreamsPlugin extends Plugin {
 		this.updateAllIconVisibility();
 	}
 	
+	private createAllStreamsIcon(): void {
+		this.addRibbonIcon(
+			'layout-dashboard',
+			'Streams: View All Streams',
+			() => {
+				const command = new OpenAllStreamsViewCommand(this.app);
+				command.execute();
+			}
+		);
+	}
+
 	private createStreamIcons(stream: Stream): void {
 		// Get or create entry for this stream
 		let streamIcons = this.ribbonIconsByStream.get(stream.id);
@@ -739,6 +762,17 @@ export default class StreamsPlugin extends Plugin {
 			if (stream.addViewCommand) {
 				this.addStreamViewCommand(stream);
 				this.log.debug(`Added View Full Stream command for stream ${stream.name}`);
+			}
+		});
+	}
+
+	private registerAllStreamsCommands(): void {
+		this.addCommand({
+			id: 'open-all-streams-view',
+			name: 'Open All Streams View',
+			callback: () => {
+				const command = new OpenAllStreamsViewCommand(this.app);
+				command.execute();
 			}
 		});
 	}
