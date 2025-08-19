@@ -39,4 +39,5 @@ export interface StreamsSettings {
     showCalendarComponent: boolean;
     reuseCurrentTab: boolean;
     calendarCompactState: boolean;
+    activeStreamId?: string; // ID of the currently active/selected stream
 } 

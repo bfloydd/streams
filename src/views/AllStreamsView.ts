@@ -14,6 +14,11 @@ interface AppWithInternal extends App {
     };
 }
 
+// Interface for the streams plugin
+interface StreamsPlugin {
+    setActiveStream(streamId: string): void;
+}
+
 export const ALL_STREAMS_VIEW_TYPE = 'streams-all-streams-view';
 
 export class AllStreamsView extends ItemView {
@@ -256,6 +261,9 @@ export class AllStreamsView extends ItemView {
     }
 
     private openTodayStream(stream: Stream): void {
+        // Set this as the active stream first
+        this.setActiveStream(stream);
+        
         // Use the existing command to open today's stream
         try {
             const appWithInternal = this.app as AppWithInternal;
@@ -268,6 +276,9 @@ export class AllStreamsView extends ItemView {
     }
 
     private openStreamView(stream: Stream): void {
+        // Set this as the active stream first
+        this.setActiveStream(stream);
+        
         // Use the existing command to open the full stream view
         try {
             const appWithInternal = this.app as AppWithInternal;
@@ -300,6 +311,15 @@ export class AllStreamsView extends ItemView {
                 const command = new OpenStreamViewCommand(this.app, stream);
                 command.execute();
             });
+        }
+    }
+    
+    private setActiveStream(stream: Stream): void {
+        // Set this as the active stream in the main plugin
+        const appWithInternal = this.app as AppWithInternal;
+        const plugin = appWithInternal.plugins.plugins['streams'] as StreamsPlugin;
+        if (plugin && plugin.setActiveStream) {
+            plugin.setActiveStream(stream.id);
         }
     }
 

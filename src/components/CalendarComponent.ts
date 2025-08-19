@@ -24,6 +24,8 @@ interface PluginInterface {
         calendarCompactState: boolean;
     };
     saveSettings(): void;
+    setActiveStream(streamId: string): void;
+    getActiveStream(): Stream | null;
 }
 
 export class CalendarComponent extends Component {
@@ -598,6 +600,11 @@ export class CalendarComponent extends Component {
         // Close the dropdown
         if (this.streamsDropdown) {
             this.streamsDropdown.style.display = 'none';
+        }
+        
+        // Set this as the active stream in the main plugin
+        if (this.plugin && this.plugin.setActiveStream) {
+            this.plugin.setActiveStream(stream.id);
         }
         
         // Navigate to the selected stream's daily note

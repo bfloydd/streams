@@ -13,8 +13,17 @@ export class OpenCurrentStreamTodayCommand implements Command {
     constructor(
         private app: App,
         private streams: Stream[],
-        private reuseCurrentTab: boolean = false
+        private reuseCurrentTab: boolean = false,
+        private plugin?: any // The main plugin instance to access calendar components
     ) {}
+    
+    // Interface for the plugin instance
+    private getPluginInterface() {
+        return this.plugin as {
+            getActiveStream(): Stream | null;
+            calendarComponents?: Map<string, any>;
+        };
+    }
 
     async execute(): Promise<void> {
         log.debug('Executing OpenCurrentStreamTodayCommand');
@@ -31,7 +40,7 @@ export class OpenCurrentStreamTodayCommand implements Command {
         
         if (!currentStream) {
             log.debug('No current stream found, cannot open today note');
-            new Notice('No stream context found. Please open a file that belongs to a stream, or use a stream-specific view.');
+            new Notice('No active stream found. Please open a stream view or file to establish stream context.');
             return;
         }
         
@@ -40,6 +49,22 @@ export class OpenCurrentStreamTodayCommand implements Command {
     }
     
     private findCurrentStream(): Stream | null {
+        // First priority: Get the active stream from the main plugin
+        const pluginInterface = this.getPluginInterface();
+        if (pluginInterface && pluginInterface.getActiveStream) {
+            const activeStream = pluginInterface.getActiveStream();
+            if (activeStream) {
+                log.debug(`Found active stream from plugin: ${activeStream.name}`);
+                return activeStream;
+            }
+        }
+        
+        // Fallback: Check if there's an active calendar component
+        const streamFromCalendar = this.findStreamFromActiveCalendar();
+        if (streamFromCalendar) {
+            return streamFromCalendar;
+        }
+        
         const activeLeaf = this.app.workspace.activeLeaf;
         if (!activeLeaf) {
             log.debug('No active leaf found');
@@ -106,6 +131,67 @@ export class OpenCurrentStreamTodayCommand implements Command {
         }
         
         log.debug('No stream found in current view');
+        return null;
+    }
+    
+    private findStreamFromActiveCalendar(): Stream | null {
+        if (!this.plugin || !this.plugin.calendarComponents) {
+            log.debug('No plugin or calendar components available');
+            return null;
+        }
+        
+        // Get the active leaf to find the current view context
+        const activeLeaf = this.app.workspace.activeLeaf;
+        if (!activeLeaf) {
+            log.debug('No active leaf for calendar component lookup');
+            return null;
+        }
+        
+        const view = activeLeaf.view;
+        if (!view) {
+            log.debug('No view for calendar component lookup');
+            return null;
+        }
+        
+        // Try to find a calendar component that matches the current view
+        for (const [componentId, component] of this.plugin.calendarComponents) {
+            try {
+                // Check if this component is attached to the current view
+                if (component.component && component.component.parentElement) {
+                    const parentView = this.findParentView(component.component.parentElement);
+                    if (parentView === view) {
+                        log.debug(`Found active calendar component for stream: ${component.selectedStream.name}`);
+                        return component.selectedStream;
+                    }
+                }
+            } catch (error) {
+                log.debug('Error checking calendar component:', error);
+            }
+        }
+        
+        log.debug('No active calendar component found');
+        return null;
+    }
+    
+    private findParentView(element: HTMLElement): any {
+        // Walk up the DOM tree to find the view element
+        let current = element;
+        while (current && current.parentElement) {
+            if (current.classList.contains('markdown-view') || 
+                current.classList.contains('streams-create-file-container') ||
+                current.classList.contains('streams-view-container')) {
+                // Find the closest leaf that contains this element
+                const leaves = this.app.workspace.getLeavesOfType('markdown');
+                for (const leaf of leaves) {
+                    const view = leaf.view as any; // Cast to access contentEl
+                    if (view && view.contentEl && view.contentEl.contains(current)) {
+                        return view;
+                    }
+                }
+                break;
+            }
+            current = current.parentElement;
+        }
         return null;
     }
     

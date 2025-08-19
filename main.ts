@@ -16,7 +16,8 @@ const DEFAULT_SETTINGS: StreamsSettings = {
 	streams: [],
 	showCalendarComponent: true,
 	reuseCurrentTab: false,
-	calendarCompactState: false
+	calendarCompactState: false,
+	activeStreamId: undefined
 }
 
 export default class StreamsPlugin extends Plugin {
@@ -169,7 +170,7 @@ export default class StreamsPlugin extends Plugin {
 			'calendar',
 			'Streams: Open today for current stream',
 			() => {
-				const command = new OpenCurrentStreamTodayCommand(this.app, this.settings.streams, this.settings.reuseCurrentTab);
+				const command = new OpenCurrentStreamTodayCommand(this.app, this.settings.streams, this.settings.reuseCurrentTab, this);
 				command.execute();
 			}
 		);
@@ -437,6 +438,10 @@ export default class StreamsPlugin extends Plugin {
 			const component = new CalendarComponent(leaf, stream, this.app, this.settings.reuseCurrentTab, this.settings.streams, this);
 			const componentId = filePath || crypto.randomUUID();
 			this.calendarComponents.set(componentId, component);
+			
+			// Set this as the active stream
+			this.setActiveStream(stream.id);
+			
 			this.log.debug('Calendar component created successfully');
 		} else {
 			this.log.debug('File does not belong to any stream');
@@ -538,6 +543,9 @@ export default class StreamsPlugin extends Plugin {
 			const formattedDate = dateString.split('T')[0];
 			component.setCurrentViewedDate(formattedDate);
 			
+			// Set this as the active stream
+			this.setActiveStream(stream.id);
+			
 			const componentId = 'create-file-view-' + stream.id;
 			this.calendarComponents.set(componentId, component);
 			
@@ -581,6 +589,43 @@ export default class StreamsPlugin extends Plugin {
 		this.calendarComponents.forEach(component => {
 			component.updateStreamsList(this.settings.streams);
 		});
+	}
+	
+	/**
+	 * Set the currently active stream
+	 */
+	public setActiveStream(streamId: string): void {
+		this.settings.activeStreamId = streamId;
+		this.saveSettings();
+		this.log.debug(`Set active stream to: ${streamId}`);
+	}
+	
+	/**
+	 * Get the currently active stream
+	 */
+	public getActiveStream(): Stream | null {
+		if (!this.settings.activeStreamId) {
+			return null;
+		}
+		
+		const activeStream = this.settings.streams.find(s => s.id === this.settings.activeStreamId);
+		if (!activeStream) {
+			// Clear invalid active stream ID
+			this.settings.activeStreamId = undefined;
+			this.saveSettings();
+			return null;
+		}
+		
+		return activeStream;
+	}
+	
+	/**
+	 * Clear the currently active stream
+	 */
+	public clearActiveStream(): void {
+		this.settings.activeStreamId = undefined;
+		this.saveSettings();
+		this.log.debug('Cleared active stream');
 	}
 
 	async loadSettings() {
@@ -793,7 +838,7 @@ export default class StreamsPlugin extends Plugin {
 			id: 'open-current-stream-today',
 			name: 'Open Current Stream Today',
 			callback: () => {
-				const command = new OpenCurrentStreamTodayCommand(this.app, this.settings.streams, this.settings.reuseCurrentTab);
+				const command = new OpenCurrentStreamTodayCommand(this.app, this.settings.streams, this.settings.reuseCurrentTab, this);
 				command.execute();
 			}
 		});
