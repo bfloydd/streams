@@ -40,4 +40,5 @@ export interface StreamsSettings {
     reuseCurrentTab: boolean;
     calendarCompactState: boolean;
     activeStreamId?: string; // ID of the currently active/selected stream
+    debugLoggingEnabled: boolean; // Whether debug logging is enabled by default
 } 

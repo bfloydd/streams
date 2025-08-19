@@ -56,6 +56,26 @@ export class StreamsSettingTab extends PluginSettingTab {
                     new Notice(`Calendar will start ${value ? 'compact' : 'expanded'}`);
                 }));
                 
+        new Setting(containerEl)
+            .setName('Enable debug logging')
+            .setDesc('Enable debug logging for the Streams plugin (can also be toggled via command palette)')
+            .addToggle(toggle => toggle
+                .setValue(this.plugin.settings.debugLoggingEnabled)
+                .onChange(async (value) => {
+                    this.plugin.settings.debugLoggingEnabled = value;
+                    
+                    // Apply the setting immediately
+                    if (value) {
+                        this.plugin.log.on();
+                    } else {
+                        this.plugin.log.off();
+                    }
+                    
+                    await this.plugin.saveSettings();
+                    
+                    new Notice(`Debug logging ${value ? 'enabled' : 'disabled'}`);
+                }));
+                
         new Setting(containerEl).setName('Streams').setHeading();
 
         new Setting(containerEl)

@@ -103,6 +103,10 @@ export class CalendarComponent extends Component {
                 const match = currentFile.basename.match(/^\d{4}-\d{2}-\d{2}/);
                 if (match) {
                     this.currentViewedDate = match[0];
+                    // Set the currentDate to match the viewed date so the calendar shows the correct month
+                    const [year, month, day] = match[0].split('-').map(n => parseInt(n, 10));
+                    this.currentDate = new Date(year, month - 1, day); // month is 0-indexed
+                    this.log.debug(`Set currentDate to match viewed date: ${this.currentViewedDate} -> ${this.currentDate.toISOString()}`);
                 }
             }
             
@@ -698,7 +702,7 @@ export class CalendarComponent extends Component {
         
         if (dateString) {
             const [year, month, day] = dateString.split('-').map(n => parseInt(n, 10));
-            this.currentDate = new Date(year, month - 1, 1);
+            this.currentDate = new Date(year, month - 1, day); // Use the exact day, not just the first of the month
         }
         
         this.updateTodayButton();
