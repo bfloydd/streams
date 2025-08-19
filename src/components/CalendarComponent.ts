@@ -294,10 +294,16 @@ export class CalendarComponent extends Component {
             return;
         }
 
+        // Use timezone-safe date comparison instead of toISOString()
         const today = new Date();
-        const todayFormatted = today.toISOString().split('T')[0];
+        const todayYear = today.getFullYear();
+        const todayMonth = today.getMonth();
+        const todayDay = today.getDate();
         
-        if (this.currentViewedDate === todayFormatted) {
+        // Parse the viewed date components
+        const [viewedYear, viewedMonth, viewedDay] = this.currentViewedDate.split('-').map(n => parseInt(n, 10));
+        
+        if (viewedYear === todayYear && viewedMonth === todayMonth + 1 && viewedDay === todayDay) {
             this.todayButton.setText('TODAY');
             this.log.debug(`Current date is today, showing "TODAY"`);
         } else {
@@ -376,7 +382,8 @@ export class CalendarComponent extends Component {
             const dotContainer = dayEl.createDiv('streams-dot-container');
             
             const currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-            const dateString = currentDate.toISOString().split('T')[0];
+            // Use timezone-safe date string creation instead of toISOString()
+            const dateString = this.formatDateString(currentDate);
             
             if (dateString === this.currentViewedDate) {
                 dayEl.addClass('viewed');
@@ -423,7 +430,7 @@ export class CalendarComponent extends Component {
             
             // Update viewed state
             const currentDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-            const dateString = currentDate.toISOString().split('T')[0];
+            const dateString = this.formatDateString(currentDate);
             
             dayEl.removeClass('viewed');
             if (dateString === this.currentViewedDate) {
@@ -454,6 +461,13 @@ export class CalendarComponent extends Component {
         });
     }
 
+    private formatDateString(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     private formatMonthYear(date: Date): string {
         return date.toLocaleDateString('en-US', { 
             month: 'long', 
@@ -463,6 +477,7 @@ export class CalendarComponent extends Component {
 
     private isToday(date: Date): boolean {
         const today = new Date();
+        // Compare individual components to avoid timezone issues
         return date.getDate() === today.getDate() && 
                date.getMonth() === today.getMonth() && 
                date.getFullYear() === today.getFullYear();
@@ -471,7 +486,7 @@ export class CalendarComponent extends Component {
     private async selectDate(day: number) {
         this.log.debug(`selectDate called for day: ${day}`);
         const selectedDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
-        this.currentViewedDate = selectedDate.toISOString().split('T')[0];
+        this.currentViewedDate = this.formatDateString(selectedDate);
         
         const command = new OpenStreamDateCommand(this.app, this.selectedStream, selectedDate, this.reuseCurrentTab);
         await command.execute();
@@ -631,7 +646,7 @@ export class CalendarComponent extends Component {
             await command.execute();
             
             // Update the current viewed date
-            this.currentViewedDate = targetDate.toISOString().split('T')[0];
+            this.currentViewedDate = this.formatDateString(targetDate);
             this.updateTodayButton();
             
         } catch (error) {
