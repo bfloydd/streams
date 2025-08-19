@@ -2,6 +2,18 @@ import { App, ItemView, TFile, TFolder, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../types';
 import { Logger } from '../utils/Logger';
 
+// Interface for accessing internal Obsidian properties
+interface AppWithInternal extends App {
+    plugins: {
+        plugins: {
+            [key: string]: any;
+        };
+    };
+    commands: {
+        executeCommandById: (commandId: string) => void;
+    };
+}
+
 export const ALL_STREAMS_VIEW_TYPE = 'streams-all-streams-view';
 
 export class AllStreamsView extends ItemView {
@@ -36,7 +48,8 @@ export class AllStreamsView extends ItemView {
         container.addClass('streams-all-streams-container');
 
         // Get streams from plugin settings
-        const plugin = this.app.plugins.plugins['streams'];
+        const appWithInternal = this.app as AppWithInternal;
+        const plugin = appWithInternal.plugins.plugins['streams'];
         if (plugin) {
             this.streams = plugin.settings.streams;
         }
@@ -245,7 +258,8 @@ export class AllStreamsView extends ItemView {
     private openTodayStream(stream: Stream): void {
         // Use the existing command to open today's stream
         try {
-            this.app.commands.executeCommandById(`open-${stream.id}`);
+            const appWithInternal = this.app as AppWithInternal;
+            appWithInternal.commands.executeCommandById(`open-${stream.id}`);
         } catch (error) {
             this.log.error('Error executing today command:', error);
             // Fallback: try to open the stream directly
@@ -256,7 +270,8 @@ export class AllStreamsView extends ItemView {
     private openStreamView(stream: Stream): void {
         // Use the existing command to open the full stream view
         try {
-            this.app.commands.executeCommandById(`view-${stream.id}`);
+            const appWithInternal = this.app as AppWithInternal;
+            appWithInternal.commands.executeCommandById(`view-${stream.id}`);
         } catch (error) {
             this.log.error('Error executing view command:', error);
             // Fallback: try to open the stream view directly
@@ -266,7 +281,8 @@ export class AllStreamsView extends ItemView {
 
     private async openStreamDate(stream: Stream, date: Date): Promise<void> {
         // Direct fallback for opening stream date
-        const plugin = this.app.plugins.plugins['streams'];
+        const appWithInternal = this.app as AppWithInternal;
+        const plugin = appWithInternal.plugins.plugins['streams'];
         if (plugin) {
             // Import and use the utility function directly
             const { openStreamDate } = await import('../utils/streamUtils');
@@ -276,7 +292,8 @@ export class AllStreamsView extends ItemView {
 
     private openStreamViewDirect(stream: Stream): void {
         // Direct fallback for opening stream view
-        const plugin = this.app.plugins.plugins['streams'];
+        const appWithInternal = this.app as AppWithInternal;
+        const plugin = appWithInternal.plugins.plugins['streams'];
         if (plugin) {
             // Import and use the command directly
             import('../commands/OpenStreamViewCommand').then(({ OpenStreamViewCommand }) => {
