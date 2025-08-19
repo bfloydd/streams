@@ -4,6 +4,7 @@ import { Stream, StreamsSettings, LucideIcon } from './types';
 import { CalendarComponent } from './src/components/CalendarComponent';
 import { Logger, LogLevel } from './src/utils/Logger';
 import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
+import { OpenCurrentStreamTodayCommand } from './src/commands/OpenCurrentStreamTodayCommand';
 import { StreamSelectionModal } from './src/modals/StreamSelectionModal';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from './src/views/CreateFileView';
 import { STREAM_VIEW_TYPE, StreamView } from './src/views/StreamView';
@@ -772,6 +773,16 @@ export default class StreamsPlugin extends Plugin {
 			name: 'Open All Streams View',
 			callback: () => {
 				const command = new OpenAllStreamsViewCommand(this.app);
+				command.execute();
+			}
+		});
+		
+		// Add command to open current stream's today note
+		this.addCommand({
+			id: 'open-current-stream-today',
+			name: 'Open Current Stream Today',
+			callback: () => {
+				const command = new OpenCurrentStreamTodayCommand(this.app, this.settings.streams, this.settings.reuseCurrentTab);
 				command.execute();
 			}
 		});

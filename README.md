@@ -39,3 +39,20 @@ This view displays each stream as a card showing:
 - Files created this year and month
 - Last modified date
 - Quick action buttons to open today's note or view the full stream
+
+## Commands
+The plugin provides several commands accessible via the Command Palette:
+
+- **Open Current Stream Today**: Automatically detects which stream the current view belongs to and opens that stream's today note. This works whether you're in a file that belongs to a stream, a stream view, or a create file view. This is useful when you want to quickly jump to today's note for the current stream context.
+- **Open All Streams View**: Opens the dashboard view showing all streams.
+- **Toggle calendar component**: Shows/hides the calendar component.
+- **Toggle calendar compact mode**: Switches between compact and full calendar display.
+
+Individual stream commands are also available if enabled in stream settings:
+- **Stream Name, today**: Opens today's note for a specific stream.
+- **Open full view: Stream Name**: Opens the full stream view for a specific stream.
+
+### Keyboard Shortcuts
+You can assign custom keyboard shortcuts to any of these commands through Obsidian's Settings → Hotkeys. Some recommended shortcuts:
+- **Open Current Stream Today**: `Ctrl+Shift+T` (or `Cmd+Shift+T` on Mac)
+- **Open All Streams View**: `Ctrl+Shift+A` (or `Cmd+Shift+A` on Mac)
