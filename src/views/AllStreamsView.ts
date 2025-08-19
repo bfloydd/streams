@@ -16,7 +16,7 @@ interface AppWithInternal extends App {
 
 // Interface for the streams plugin
 interface StreamsPlugin {
-    setActiveStream(streamId: string): void;
+    	setActiveStream(streamId: string, force?: boolean): void;
 }
 
 export const ALL_STREAMS_VIEW_TYPE = 'streams-all-streams-view';
@@ -316,10 +316,11 @@ export class AllStreamsView extends ItemView {
     
     private setActiveStream(stream: Stream): void {
         // Set this as the active stream in the main plugin
+        // This is a user-initiated action (clicking on a stream), so force the change
         const appWithInternal = this.app as AppWithInternal;
         const plugin = appWithInternal.plugins.plugins['streams'] as StreamsPlugin;
         if (plugin && plugin.setActiveStream) {
-            plugin.setActiveStream(stream.id);
+            plugin.setActiveStream(stream.id, true);
         }
     }
 

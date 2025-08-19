@@ -1,4 +1,34 @@
 /*********************************************************
+ * GLOBAL STREAM INDICATOR STYLES
+ *********************************************************/
+
+.streams-global-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 8px;
+    margin-left: 8px;
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-normal);
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.streams-global-indicator:hover {
+    background: var(--background-modifier-hover);
+    border-color: var(--text-accent);
+    color: var(--text-accent);
+}
+
+.streams-global-indicator:active {
+    transform: scale(0.95);
+}
+
+/*********************************************************
  * ALL STREAMS VIEW STYLES
  *********************************************************/
 

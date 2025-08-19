@@ -95,9 +95,7 @@ export async function createDailyNote(app: App, folder: string): Promise<TFile |
 }
 
 export async function openStreamDate(app: App, stream: Stream, date: Date = new Date(), reuseCurrentTab: boolean = false): Promise<void> {
-    log.debug(`==== OPEN STREAM DATE START ====`);
-    log.debug(`Date provided: ${date.toISOString()}`);
-    log.debug(`Reuse current tab: ${reuseCurrentTab}`);
+	log.debug(`Opening stream date: ${date.toISOString()}, reuse tab: ${reuseCurrentTab}`);
     
     if (!(date instanceof Date) || isNaN(date.getTime())) {
         log.error(`Invalid date provided: ${date}`);
@@ -182,9 +180,8 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
         });
         log.debug(`Set view state with date: ${date.toISOString()} for file: ${filePath}`);
         
-        app.workspace.setActiveLeaf(leaf, { focus: true });
-        log.debug(`==== OPEN STREAM DATE END (create view) ====`);
-        return;
+        		app.workspace.setActiveLeaf(leaf, { focus: true });
+		return;
     }
 
     if (file instanceof TFile) {

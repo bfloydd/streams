@@ -4,7 +4,7 @@ import { Logger } from '../utils/Logger';
 
 // Interface for the streams plugin
 interface StreamsPlugin {
-    setActiveStream(streamId: string): void;
+    	setActiveStream(streamId: string, force?: boolean): void;
 }
 
 // Interface for accessing app.plugins
@@ -290,11 +290,12 @@ export class CreateFileView extends ItemView {
     
     private setActiveStream(): void {
         // Set this as the active stream in the main plugin
+        // This is a user-initiated action (opening a create file view), so force the change
         try {
             const appWithPlugins = this.app as unknown as AppWithPlugins;
             const plugin = appWithPlugins.plugins.plugins['streams'];
             if (plugin?.setActiveStream) {
-                plugin.setActiveStream(this.stream.id);
+                plugin.setActiveStream(this.stream.id, true);
             }
         } catch (error) {
             this.log.error('Error setting active stream:', error);

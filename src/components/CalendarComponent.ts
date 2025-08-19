@@ -22,9 +22,10 @@ interface ViewWithContentEl extends View {
 interface PluginInterface {
     settings: {
         calendarCompactState: boolean;
+        activeStreamId?: string;
     };
     saveSettings(): void;
-    setActiveStream(streamId: string): void;
+    setActiveStream(streamId: string, force?: boolean): void;
 }
 
 export class CalendarComponent extends Component {
@@ -43,6 +44,26 @@ export class CalendarComponent extends Component {
     private streams: Stream[];
     private toggleButton: HTMLElement;
     private plugin: PluginInterface | null;
+    
+    /**
+     * Get the stream name to display (active stream if available, otherwise selected stream)
+     */
+    private getDisplayStreamName(): string {
+        if (this.plugin?.settings?.activeStreamId) {
+            const activeStream = this.streams.find(s => s.id === this.plugin!.settings.activeStreamId);
+            if (activeStream) {
+                return activeStream.name;
+            }
+        }
+        return this.selectedStream.name;
+    }
+    
+    /**
+     * Get the active stream ID (from plugin settings) or fall back to selected stream ID
+     */
+    private getActiveStreamId(): string {
+        return this.plugin?.settings?.activeStreamId || this.selectedStream.id;
+    }
 
     constructor(leaf: WorkspaceLeaf, stream: Stream, app: App, reuseCurrentTab: boolean = false, streams: Stream[] = [], plugin: PluginInterface | null = null) {
         super();
@@ -52,6 +73,14 @@ export class CalendarComponent extends Component {
         this.reuseCurrentTab = reuseCurrentTab;
         this.streams = streams;
         this.plugin = plugin;
+        
+        // Log if display stream differs from calendar stream
+        if (this.plugin?.settings?.activeStreamId) {
+            const activeStream = this.streams.find(s => s.id === this.plugin!.settings.activeStreamId);
+            if (activeStream && activeStream.id !== stream.id) {
+                this.log.debug(`Calendar: ${stream.name}, Display: ${activeStream.name}`);
+            }
+        }
         
         this.component = document.createElement('div');
         this.component.addClass('streams-calendar-component');
@@ -192,7 +221,7 @@ export class CalendarComponent extends Component {
         // Create the "Change Stream" section
         const changeStreamSection = collapsedView.createDiv('streams-calendar-change-stream');
         const changeStreamText = changeStreamSection.createDiv('streams-calendar-change-stream-text');
-        changeStreamText.setText(this.selectedStream.name);
+        changeStreamText.setText(this.getDisplayStreamName());
         changeStreamSection.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleStreamsDropdown();
@@ -207,7 +236,7 @@ export class CalendarComponent extends Component {
         const todayNavButton = topNav.createDiv('streams-calendar-today-nav');
         todayNavButton.setText('Today');
         const streamName = topNav.createDiv('streams-calendar-name');
-        streamName.setText(this.selectedStream.name);
+        streamName.setText(this.getDisplayStreamName());
         const backButton = topNav.createDiv('streams-calendar-back');
         setIcon(backButton, 'chevron-up');
         backButton.setAttr('aria-label', 'Collapse calendar');
@@ -573,7 +602,9 @@ export class CalendarComponent extends Component {
             const streamItem = this.streamsDropdown!.createDiv('streams-calendar-stream-item');
             
             // Add a class to indicate if this is the currently selected stream
-            if (stream.id === this.selectedStream.id) {
+            // Use the active stream ID if available, otherwise use the selected stream
+            const isSelected = stream.id === this.getActiveStreamId();
+            if (isSelected) {
                 streamItem.addClass('streams-calendar-stream-item-selected');
             }
             
@@ -583,7 +614,7 @@ export class CalendarComponent extends Component {
             streamName.setText(stream.name);
             
             // Add a checkmark for the currently selected stream
-            if (stream.id === this.selectedStream.id) {
+            if (isSelected) {
                 const checkmark = streamItem.createDiv('streams-calendar-stream-item-checkmark');
                 setIcon(checkmark, 'check');
             }
@@ -606,6 +637,12 @@ export class CalendarComponent extends Component {
             changeStreamText.setText(stream.name);
         }
         
+        // Also update the stream name in the expanded view
+        const expandedStreamName = this.component.querySelector('.streams-calendar-name');
+        if (expandedStreamName) {
+            expandedStreamName.setText(stream.name);
+        }
+        
         // Only update the calendar grid if it exists and needs content updates
         if (this.grid) {
             this.updateGridContent(this.grid);
@@ -617,8 +654,9 @@ export class CalendarComponent extends Component {
         }
         
         // Set this as the active stream in the main plugin
+        // This is a user-initiated action, so force the change
         if (this.plugin && this.plugin.setActiveStream) {
-            this.plugin.setActiveStream(stream.id);
+            this.plugin.setActiveStream(stream.id, true);
         }
         
         // Navigate to the selected stream's daily note
