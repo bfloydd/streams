@@ -7,8 +7,6 @@ import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
 import { OpenTodayCurrentStreamCommand } from './src/commands/OpenTodayCurrentStreamCommand';
 import { StreamSelectionModal } from './src/modals/StreamSelectionModal';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from './src/views/CreateFileView';
-import { ALL_STREAMS_VIEW_TYPE, AllStreamsView } from './src/views/AllStreamsView';
-import { OpenAllStreamsViewCommand } from './src/commands/OpenAllStreamsViewCommand';
 import { ToggleDebugLoggingCommand } from './src/commands/ToggleDebugLoggingCommand';
 
 const DEFAULT_SETTINGS: StreamsSettings = {
@@ -50,7 +48,6 @@ export default class StreamsPlugin extends Plugin {
 		this.initializeMobileIntegration();
 		this.registerCalendarCommands();
 		this.registerLogCommands();
-		this.registerAllStreamsCommands();
 
 		this.addSettingTab(new StreamsSettingTab(this.app, this));
 		this.initializeActiveView();
@@ -219,18 +216,10 @@ export default class StreamsPlugin extends Plugin {
 		);
 		
 		
-		// Register AllStreamsView
-		this.registerView(
-			ALL_STREAMS_VIEW_TYPE,
-			(leaf) => new AllStreamsView(leaf, this.app)
-		);
 	}
 	
 	
 	private initializeAllRibbonIcons(): void {
-		// Create the main All Streams ribbon icon
-		this.createAllStreamsIcon();
-		
 		// Create icons for all streams (even if hidden)
 		this.settings.streams.forEach(stream => {
 			this.createStreamIcons(stream);
@@ -241,16 +230,6 @@ export default class StreamsPlugin extends Plugin {
 	}
 	
 	private createAllStreamsIcon(): void {
-		// Main All Streams dashboard button
-		this.addRibbonIcon(
-			'layout-dashboard',
-			'Streams: View all streams',
-			() => {
-				const command = new OpenAllStreamsViewCommand(this.app);
-				command.execute();
-			}
-		);
-		
 		// Open Current Stream Today button
 		this.addRibbonIcon(
 			'calendar',
@@ -1074,26 +1053,6 @@ export default class StreamsPlugin extends Plugin {
 		});
 	}
 
-	private registerAllStreamsCommands(): void {
-		this.addCommand({
-			id: 'open-all-streams-view',
-			name: 'Open All Streams View',
-			callback: () => {
-				const command = new OpenAllStreamsViewCommand(this.app);
-				command.execute();
-			}
-		});
-		
-		// Add command to open current stream's today note
-		this.addCommand({
-			id: 'open-current-stream-today',
-			name: 'Open Current Stream Today',
-			callback: () => {
-				const command = new OpenTodayCurrentStreamCommand(this.app, this.settings.streams, this.settings.reuseCurrentTab, this);
-				command.execute();
-			}
-		});
-	}
 
 	private registerCalendarCommands(): void {
 		this.addCommand({
@@ -1110,6 +1069,15 @@ export default class StreamsPlugin extends Plugin {
 			}
 		});
 		
+		// Add command to open current stream's today note
+		this.addCommand({
+			id: 'open-current-stream-today',
+			name: 'Open Current Stream Today',
+			callback: () => {
+				const command = new OpenTodayCurrentStreamCommand(this.app, this.settings.streams, this.settings.reuseCurrentTab, this);
+				command.execute();
+			}
+		});
 	}
 
 	public refreshAllCalendarComponents(): void {

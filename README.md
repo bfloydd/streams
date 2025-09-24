@@ -11,7 +11,6 @@
 - Multiple daily note streams.
 - Full calendar for each stream.
 - New view for missing notes.
-- "All Streams" dashboard view with statistics and quick actions.
 
 ## Getting started
 - Add new stream in settings, "Daily Notes", pointing to where you store your daily notes. There will be a ribbon button and a command to get to Today's Daily Note. Disable core Daily Note plugin.
@@ -26,21 +25,9 @@
 ![Each Stream's Daily Note](assets/demo-today.gif)
 
 
-## All Streams Dashboard
-The new All Streams view provides a comprehensive overview of all your configured streams. Access it via:
-- **Ribbon Button**: Click the dashboard icon in the left sidebar
-- **Command Palette**: Use "Open All Streams View"
-
 ## Quick Actions
 The plugin provides several ribbon buttons for quick access:
-- **📊 Dashboard Icon**: Opens the All Streams dashboard view
 - **📅 Calendar Icon**: Automatically opens today's note for the current stream context
-
-This view displays each stream as a card showing:
-- Total number of files
-- Files created this year and month
-- Last modified date
-- Quick action buttons to open today's note
 
 ## Commands
 The plugin provides several commands accessible via the Command Palette and ribbon buttons:
@@ -48,9 +35,6 @@ The plugin provides several commands accessible via the Command Palette and ribb
 - **Open Current Stream Today**: Automatically detects which stream the current view belongs to and opens that stream's today note. This works whether you're in a file that belongs to a stream, a stream view, or a create file view. This is useful when you want to quickly jump to today's note for the current stream context.
   - **Command Palette**: "Open Current Stream Today"
   - **Ribbon Button**: 📅 Calendar icon in the left sidebar
-- **Open All Streams View**: Opens the dashboard view showing all streams.
-  - **Command Palette**: "Open All Streams View"
-  - **Ribbon Button**: 📊 Dashboard icon in the left sidebar
 - **Toggle calendar component**: Shows/hides the calendar component.
 
 Individual stream commands are also available if enabled in stream settings:
@@ -59,4 +43,3 @@ Individual stream commands are also available if enabled in stream settings:
 ### Keyboard Shortcuts
 You can assign custom keyboard shortcuts to any of these commands through Obsidian's Settings → Hotkeys. Some recommended shortcuts:
 - **Open Current Stream Today**: `Ctrl+Shift+T` (or `Cmd+Shift+T` on Mac)
-- **Open All Streams View**: `Ctrl+Shift+A` (or `Cmd+Shift+A` on Mac)
