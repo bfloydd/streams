@@ -784,30 +784,6 @@ body {
 
 /* Removed old calendar label styles */
 
-.streams-today-icon-border {
-    border-left: 2px solid var(--text-accent);
-}
-
-/* Each border color gets its own class */
-.streams-today-icon-border[data-border-color="var(--text-accent)"] {
-    border-left: 2px solid var(--text-accent);
-}
-
-.streams-today-icon-border[data-border-color="var(--text-normal)"] {
-    border-left: 2px solid var(--text-normal);
-}
-
-.streams-today-icon-border[data-border-color="var(--text-muted)"] {
-    border-left: 2px solid var(--text-muted);
-}
-
-.streams-today-icon-border[data-border-color="var(--text-success)"] {
-    border-left: 2px solid var(--text-success);
-}
-
-.streams-today-icon-border[data-border-color="var(--text-error)"] {
-    border-left: 2px solid var(--text-error);
-}
 
 
 

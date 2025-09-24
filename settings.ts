@@ -77,9 +77,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                         folder: '',
                         icon: 'file-text' as LucideIcon,
                         showTodayInRibbon: true,
-                        addCommand: false,
-                        showTodayBorder: true,
-                        todayBorderColor: 'var(--text-accent)'
+                        addCommand: false
                     };
                     this.plugin.settings.streams.push(newStream);
                     await this.plugin.saveSettings(true);
@@ -154,7 +152,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setValue(stream.showTodayInRibbon)
                 .onChange(async (value) => {
                     stream.showTodayInRibbon = value;
-                    this.plugin.updateStreamTodayIcon(stream);
                     await this.plugin.saveSettings();
                 }));
 
@@ -172,37 +169,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                     });
             });
 
-        new Setting(card)
-            .setName('Show today border')
-            .setDesc('Display a colored border on the left side of the Today icon')
-            .setClass('streams-setting-indent')
-            .addToggle(toggle => toggle
-                .setValue(stream.showTodayBorder ?? true)
-                .onChange(async (value) => {
-                    stream.showTodayBorder = value;
-                    this.plugin.updateStreamTodayIcon(stream);
-                    await this.plugin.saveSettings();
-                    
-                    this.display();
-                }));
-
-        if (stream.showTodayBorder) {
-            new Setting(card)
-                .setName('Border color')
-                .setClass('streams-setting-double-indent')
-                .addText(text => text
-                    .setValue(stream.todayBorderColor ?? 'var(--text-accent)')
-                    .setPlaceholder('var(--text-accent)')
-                    .onChange(async (value) => {
-                        stream.todayBorderColor = value;
-                    })
-                    .then(textComponent => {
-                        textComponent.inputEl.addEventListener('blur', async () => {
-                            this.plugin.updateStreamTodayIcon(stream);
-                            await this.plugin.saveSettings();
-                        });
-                    }));
-        }
 
 
         new Setting(card)

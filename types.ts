@@ -23,9 +23,6 @@ export interface Stream {
     icon: LucideIcon;
     showTodayInRibbon: boolean;
     addCommand: boolean;
-    // Ribbon icon styling options
-    showTodayBorder: boolean;
-    todayBorderColor: string;
 }
 
 export interface StreamsSettings {

@@ -144,12 +144,6 @@ export class AllStreamsView extends ItemView {
             this.openTodayStream(stream);
         });
         
-        // View All button
-        const viewAllBtn = actions.createEl('button', { text: 'View All' });
-        viewAllBtn.className = 'streams-all-streams-card-btn streams-all-streams-card-btn-secondary';
-        viewAllBtn.addEventListener('click', () => {
-            this.openStreamView(stream);
-        });
         
         return card;
     }
@@ -275,20 +269,6 @@ export class AllStreamsView extends ItemView {
         }
     }
 
-    private openStreamView(stream: Stream): void {
-        // Set this as the active stream first
-        this.setActiveStream(stream);
-        
-        // Use the existing command to open the full stream view
-        try {
-            const appWithInternal = this.app as AppWithInternal;
-            appWithInternal.commands.executeCommandById(`view-${stream.id}`);
-        } catch (error) {
-            this.log.error('Error executing view command:', error);
-            // Fallback: try to open the stream view directly
-            this.openStreamViewDirect(stream);
-        }
-    }
 
     private async openStreamDate(stream: Stream, date: Date): Promise<void> {
         // Direct fallback for opening stream date
@@ -301,18 +281,6 @@ export class AllStreamsView extends ItemView {
         }
     }
 
-    private openStreamViewDirect(stream: Stream): void {
-        // Direct fallback for opening stream view
-        const appWithInternal = this.app as AppWithInternal;
-        const plugin = appWithInternal.plugins.plugins['streams'];
-        if (plugin) {
-            // Import and use the command directly
-            import('../commands/OpenStreamViewCommand').then(({ OpenStreamViewCommand }) => {
-                const command = new OpenStreamViewCommand(this.app, stream);
-                command.execute();
-            });
-        }
-    }
     
     private setActiveStream(stream: Stream): void {
         // Set this as the active stream in the main plugin

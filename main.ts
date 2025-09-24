@@ -215,8 +215,6 @@ export default class StreamsPlugin extends Plugin {
 				icon: "calendar", 
 				showTodayInRibbon: false, 
 				addCommand: false, 
-				showTodayBorder: true,
-				todayBorderColor: "var(--text-accent)"
 			}, new Date())
 		);
 		
@@ -288,26 +286,10 @@ export default class StreamsPlugin extends Plugin {
 			// Hide initially, visibility updated later
 			this.updateIconVisibility(streamIcons.today, false);
 			
-			if (stream.showTodayBorder) {
-				this.applyTodayIconStyles(streamIcons.today, stream);
-			}
 		}
 		
 	}
 	
-	private applyTodayIconStyles(icon: HTMLElement, stream: Stream): void {
-		if (!icon) return;
-		
-		try {
-			icon.classList.add('streams-today-icon-border');
-			
-			if (stream.todayBorderColor && stream.todayBorderColor !== 'default') {
-				icon.setAttribute('data-border-color', stream.todayBorderColor);
-			}
-		} catch (error) {
-			this.log.error('Error applying today icon styles:', error);
-		}
-	}
 	
 
 	private updateAllIconVisibility(): void {
@@ -326,16 +308,6 @@ export default class StreamsPlugin extends Plugin {
 		}
 	}
 	
-	public updateStreamTodayIcon(stream: Stream): void {
-		const streamIcons = this.ribbonIconsByStream.get(stream.id);
-		if (streamIcons && streamIcons.today) {
-			streamIcons.today.classList.toggle('streams-today-icon-border', stream.showTodayBorder);
-			
-			if (stream.showTodayBorder) {
-				this.applyTodayIconStyles(streamIcons.today, stream);
-			}
-		}
-	}
 	
 	
 	private removeAllRibbonIcons(): void {
@@ -739,8 +711,6 @@ export default class StreamsPlugin extends Plugin {
 			icon: "file-text",
 			showTodayInRibbon: false,
 			addCommand: false,
-			showTodayBorder: true,
-			todayBorderColor: "var(--text-accent)"
 		};
 	}
 
@@ -963,6 +933,9 @@ export default class StreamsPlugin extends Plugin {
 		this.settings.streams.forEach(stream => {
 			this.migrateStreamSettings(stream);
 		});
+		
+		// Save the cleaned settings after migration
+		await this.saveSettings();
 	}
 	
 	private migrateStreamSettings(stream: Stream): void {
@@ -974,22 +947,23 @@ export default class StreamsPlugin extends Plugin {
 			delete streamAny.showInRibbon;
 		}
 		
+		// Remove deprecated properties that are no longer used
+		delete streamAny.viewIcon;
+		delete streamAny.showFullStreamInRibbon;
+		delete streamAny.addViewCommand;
+		delete streamAny.showTodayBorder;
+		delete streamAny.showViewBorder;
+		delete streamAny.todayBorderColor;
+		delete streamAny.viewBorderColor;
 		
 		// Set default values if undefined
 		if (stream.showTodayInRibbon === undefined) {
 			stream.showTodayInRibbon = false;
 		}
 		
-
-		if (stream.showTodayBorder === undefined) {
-			stream.showTodayBorder = true;
+		if (stream.addCommand === undefined) {
+			stream.addCommand = false;
 		}
-		
-		
-		if (stream.todayBorderColor === undefined) {
-			stream.todayBorderColor = 'var(--text-accent)';
-		}
-		
 	}
 
 	async saveSettings(refreshUI: boolean = false) {
@@ -1076,9 +1050,6 @@ export default class StreamsPlugin extends Plugin {
 			if (streamId) {
 				const stream = this.settings.streams.find(s => s.id === streamId);
 				if (stream) {
-					if (iconType === 'today') {
-						this.applyTodayIconStyles(icon, stream);
-					}
 				}
 			}
 		} else {
