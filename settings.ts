@@ -16,7 +16,7 @@ export class StreamsSettingTab extends PluginSettingTab {
 
         new Setting(containerEl)
             .setName('Show calendar component')
-            .setDesc('Show the calendar component in stream notes')
+            .setDesc('Show the calendar component on all notes')
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.showCalendarComponent)
                 .onChange(async (value) => {
@@ -41,20 +41,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                     new Notice(`Calendar navigation will ${value ? 'reuse' : 'open new'} tabs`);
                 }));
                 
-        new Setting(containerEl)
-            .setName('Calendar compact mode')
-            .setDesc('Start the calendar widget in compact mode (collapsed to just the toggle button)')
-            .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.calendarCompactState)
-                .onChange(async (value) => {
-                    this.plugin.settings.calendarCompactState = value;
-                    await this.plugin.saveSettings();
-                    
-                    // Refresh all calendar components to apply the new compact state
-                    this.plugin.refreshAllCalendarComponents();
-                    
-                    new Notice(`Calendar will start ${value ? 'compact' : 'expanded'}`);
-                }));
                 
         new Setting(containerEl)
             .setName('Enable debug logging')

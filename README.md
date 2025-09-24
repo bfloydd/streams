@@ -55,7 +55,6 @@ The plugin provides several commands accessible via the Command Palette and ribb
   - **Command Palette**: "Open All Streams View"
   - **Ribbon Button**: 📊 Dashboard icon in the left sidebar
 - **Toggle calendar component**: Shows/hides the calendar component.
-- **Toggle calendar compact mode**: Switches between compact and full calendar display.
 
 Individual stream commands are also available if enabled in stream settings:
 - **Stream Name, today**: Opens today's note for a specific stream.

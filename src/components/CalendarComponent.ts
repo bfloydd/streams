@@ -21,7 +21,6 @@ interface ViewWithContentEl extends View {
 
 interface PluginInterface {
     settings: {
-        calendarCompactState: boolean;
         activeStreamId?: string;
     };
     saveSettings(): void;
@@ -42,7 +41,6 @@ export class CalendarComponent extends Component {
     private reuseCurrentTab: boolean;
     private streamsDropdown: HTMLElement | null = null;
     private streams: Stream[];
-    private toggleButton: HTMLElement;
     private plugin: PluginInterface | null;
     
     /**
@@ -85,10 +83,6 @@ export class CalendarComponent extends Component {
         this.component = document.createElement('div');
         this.component.addClass('streams-calendar-component');
         
-        // Initialize compact state from plugin settings if available
-        if (this.plugin && this.plugin.settings && this.plugin.settings.calendarCompactState) {
-            this.component.addClass('streams-calendar-compact');
-        }
         
         let contentContainer: HTMLElement | null = null;
         const viewType = leaf.view.getViewType();
@@ -110,8 +104,7 @@ export class CalendarComponent extends Component {
                 }
             }
             
-            // Add the fixed position class for markdown views
-            this.component.addClass('streams-calendar-component-fixed');
+            // No need for fixed position class - the CSS handles positioning
         } else if (viewType === CREATE_FILE_VIEW_TYPE) {
             // Cast to unknown first, then to ViewWithContentEl to avoid TypeScript errors
             const view = leaf.view as unknown as ViewWithContentEl;
@@ -128,15 +121,13 @@ export class CalendarComponent extends Component {
                 this.log.error('Error getting date from CreateFileView state:', error);
             }
             
-            // Don't add fixed position class for create file view
-            // The CSS will correctly position it via .streams-create-file-container .streams-calendar-component
+            // No need for fixed position class - the CSS handles positioning
         } else {
             // Cast to unknown first, then to ViewWithContentEl to avoid TypeScript errors
             const view = leaf.view as unknown as ViewWithContentEl;
             contentContainer = view.contentEl;
             
-            // Add the fixed position class for other view types
-            this.component.addClass('streams-calendar-component-fixed');
+            // No need for fixed position class - the CSS handles positioning
         }
         
         if (!contentContainer) {
@@ -170,28 +161,6 @@ export class CalendarComponent extends Component {
         const collapsedView = this.component.createDiv('streams-calendar-collapsed');
         const expandedView = this.component.createDiv('streams-calendar-expanded');
         
-        // Create the toggle button for compact view OUTSIDE of collapsed view
-        this.toggleButton = this.component.createDiv('streams-calendar-toggle-button');
-        this.toggleButton.setAttribute('aria-label', 'Toggle compact view');
-        this.toggleButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.toggleCompact();
-        });
-        
-        // Initialize toggle button state based on current compact state
-        if (this.plugin && this.plugin.settings && this.plugin.settings.calendarCompactState) {
-            this.toggleButton.style.right = '0';
-            this.toggleButton.style.borderRadius = '6px';
-            this.toggleButton.style.border = '1px solid rgba(0, 0, 0, 0.05)';
-        } else {
-            this.toggleButton.style.right = '-15px';
-            this.toggleButton.style.borderRadius = '0 6px 6px 0';
-            this.toggleButton.style.border = '1px solid rgba(0, 0, 0, 0.05)';
-            this.toggleButton.style.borderLeft = 'none';
-        }
-        
-        this.updateToggleButtonIcon();
-        
         collapsedView.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleExpanded(collapsedView, expandedView);
@@ -221,6 +190,7 @@ export class CalendarComponent extends Component {
             this.log.debug("RIGHT ARROW CLICKED - Going to NEXT day");
             await this.navigateToAdjacentDay(1);
         });
+        
 
         // Create the "Change Stream" section
         const changeStreamSection = collapsedView.createDiv('streams-calendar-change-stream');
@@ -241,9 +211,6 @@ export class CalendarComponent extends Component {
         todayNavButton.setText('Today');
         const streamName = topNav.createDiv('streams-calendar-name');
         streamName.setText(this.getDisplayStreamName());
-        const backButton = topNav.createDiv('streams-calendar-back');
-        setIcon(backButton, 'chevron-up');
-        backButton.setAttr('aria-label', 'Collapse calendar');
 
         const header = expandedView.createDiv('streams-calendar-header');
         const prevButton = header.createDiv('streams-calendar-nav');
@@ -278,10 +245,6 @@ export class CalendarComponent extends Component {
             }
         });
 
-        backButton.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.toggleExpanded(collapsedView, expandedView);
-        });
 
         todayNavButton.addEventListener('click', async (e) => {
             e.stopPropagation();
@@ -317,37 +280,6 @@ export class CalendarComponent extends Component {
         });
     }
 
-    private updateTodayButton() {
-        this.log.debug(`Updating today button with currentViewedDate: ${this.currentViewedDate}`);
-        
-        if (!this.currentViewedDate) {
-            const today = new Date();
-            this.todayButton.setText(this.formatDate(today));
-            this.log.debug(`No current viewed date, showing today: ${this.formatDate(today)}`);
-            return;
-        }
-
-        // Use timezone-safe date comparison instead of toISOString()
-        const today = new Date();
-        const todayYear = today.getFullYear();
-        const todayMonth = today.getMonth();
-        const todayDay = today.getDate();
-        
-        // Parse the viewed date components
-        const [viewedYear, viewedMonth, viewedDay] = this.currentViewedDate.split('-').map(n => parseInt(n, 10));
-        
-        if (viewedYear === todayYear && viewedMonth === todayMonth + 1 && viewedDay === todayDay) {
-            this.todayButton.setText('TODAY');
-            this.log.debug(`Current date is today, showing "TODAY"`);
-        } else {
-            // Explicitly parse date components to avoid timezone issues
-            const viewedDate = this.parseViewedDate(this.currentViewedDate);
-            
-            const formattedDate = this.formatDate(viewedDate);
-            this.todayButton.setText(formattedDate);
-            this.log.debug(`Current date is not today, showing formatted date: ${formattedDate}`);
-        }
-    }
 
     private async getContentIndicator(date: Date): Promise<ContentIndicator> {
         const year = date.getFullYear();
@@ -531,11 +463,6 @@ export class CalendarComponent extends Component {
         expandedView.toggleClass('streams-calendar-expanded-active', this.expanded);
         collapsedView.toggleClass('streams-today-button-expanded', this.expanded);
         
-        // Hide toggle button when expanded to avoid interference
-        if (this.toggleButton) {
-            this.toggleButton.style.display = this.expanded ? 'none' : 'flex';
-        }
-        
         if (this.expanded) {
             const grid = this.grid;
             if (grid) {
@@ -553,6 +480,39 @@ export class CalendarComponent extends Component {
             }
         }
     }
+
+    private updateTodayButton() {
+        this.log.debug(`Updating today button with currentViewedDate: ${this.currentViewedDate}`);
+        
+        if (!this.currentViewedDate) {
+            const today = new Date();
+            this.todayButton.setText(this.formatDate(today));
+            this.log.debug(`No current viewed date, showing today: ${this.formatDate(today)}`);
+            return;
+        }
+
+        // Use timezone-safe date comparison instead of toISOString()
+        const today = new Date();
+        const todayYear = today.getFullYear();
+        const todayMonth = today.getMonth();
+        const todayDay = today.getDate();
+        
+        // Parse the viewed date components
+        const [viewedYear, viewedMonth, viewedDay] = this.currentViewedDate.split('-').map(n => parseInt(n, 10));
+        
+        if (viewedYear === todayYear && viewedMonth === todayMonth + 1 && viewedDay === todayDay) {
+            this.todayButton.setText('TODAY');
+            this.log.debug(`Current date is today, showing "TODAY"`);
+        } else {
+            // Explicitly parse date components to avoid timezone issues
+            const viewedDate = this.parseViewedDate(this.currentViewedDate);
+            
+            const formattedDate = this.formatDate(viewedDate);
+            this.todayButton.setText(formattedDate);
+            this.log.debug(`Current date is not today, showing formatted date: ${formattedDate}`);
+        }
+    }
+
 
     public destroy() {
         this.log.debug('Destroying calendar component');
@@ -641,10 +601,10 @@ export class CalendarComponent extends Component {
             changeStreamText.setText(stream.name);
         }
         
-        // Also update the stream name in the expanded view
-        const expandedStreamName = this.component.querySelector('.streams-calendar-name');
-        if (expandedStreamName) {
-            expandedStreamName.setText(stream.name);
+        // Also update the stream name in the view
+        const streamNameElement = this.component.querySelector('.streams-calendar-name');
+        if (streamNameElement) {
+            streamNameElement.setText(stream.name);
         }
         
         // Only update the calendar grid if it exists and needs content updates
@@ -741,75 +701,4 @@ export class CalendarComponent extends Component {
         return new Date(year, month, 0).getDate();
     }
 
-    private toggleCompact() {
-        if (this.plugin) {
-            this.plugin.settings.calendarCompactState = !this.plugin.settings.calendarCompactState;
-            this.component.toggleClass('streams-calendar-compact', this.plugin.settings.calendarCompactState);
-            this.updateToggleButtonIcon();
-            
-            // Update toggle button positioning based on compact state
-            if (this.toggleButton) {
-                if (this.plugin.settings.calendarCompactState) {
-                    // In compact mode, position the button at the right edge
-                    this.toggleButton.style.right = '0';
-                    this.toggleButton.style.borderRadius = '6px';
-                    this.toggleButton.style.border = '1px solid rgba(0, 0, 0, 0.05)';
-                } else {
-                    // In normal mode, position the button to the right of the collapsed view
-                    this.toggleButton.style.right = '-15px';
-                    this.toggleButton.style.borderRadius = '0 6px 6px 0';
-                    this.toggleButton.style.border = '1px solid rgba(0, 0, 0, 0.05)';
-                    this.toggleButton.style.borderLeft = 'none';
-                }
-            }
-            
-            // Save the settings to persist the compact state
-            if (this.plugin && this.plugin.saveSettings) {
-                this.plugin.saveSettings();
-            }
-            
-            this.log.debug(`Calendar compact state toggled to: ${this.plugin.settings.calendarCompactState}`);
-        }
-    }
-
-    private updateToggleButtonIcon() {
-        if (this.toggleButton) {
-            const isCompact = this.plugin?.settings.calendarCompactState || false;
-            this.toggleButton.toggleClass('streams-calendar-toggle-button-compact', isCompact);
-            // Use chevron icons to indicate expand/collapse
-            setIcon(this.toggleButton, isCompact ? 'chevron-right' : 'chevron-left');
-        }
-    }
-
-    /**
-     * Reset the compact state to default (non-compact)
-     */
-    public resetCompactState() {
-        if (this.plugin) {
-            this.plugin.settings.calendarCompactState = false;
-            this.component.removeClass('streams-calendar-compact');
-            
-            // Reset toggle button positioning to normal mode
-            if (this.toggleButton) {
-                this.toggleButton.style.right = '-20px';
-                this.toggleButton.style.borderRadius = '0 6px 6px 0';
-                this.toggleButton.style.border = '1px solid rgba(0, 0, 0, 0.05)';
-                this.toggleButton.style.borderLeft = 'none';
-            }
-            
-            this.updateToggleButtonIcon();
-            
-            // Save the settings to persist the reset state
-            if (this.plugin && this.plugin.saveSettings) {
-                this.plugin.saveSettings();
-            }
-        }
-    }
-
-    /**
-     * Get the current compact state
-     */
-    public isCompact(): boolean {
-        return this.plugin?.settings.calendarCompactState || false;
-    }
 } 

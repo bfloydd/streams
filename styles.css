@@ -338,12 +338,6 @@
     align-items: center;
 }
 
-.streams-calendar-back {
-    cursor: pointer;
-    padding: 4px 8px;
-    color: var(--text-muted);
-    font-size: 16px;
-}
 
 .streams-calendar-name {
     font-weight: 600;
@@ -358,114 +352,43 @@
     font-size: 12px;
 }
 
-.streams-calendar-back:hover,
 .streams-calendar-today-nav:hover {
     color: var(--text-normal);
 }
 
 .streams-calendar-component {
-    position: absolute;
-    top: -18px;
-    right: 16px;
-    z-index: 1000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;
     font-size: 12px;
-    margin-right: 0;
-    pointer-events: none;
-    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.2));
+    margin: 0;
+    pointer-events: auto;
+    background: var(--background-primary);
+    border-bottom: 1px solid var(--background-modifier-border);
+    box-shadow: none;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
 }
 
-/* For calendar component on markdown views */
-.streams-markdown-view-content {
-    position: relative;
+/* Ensure content starts below the fixed bar */
+body {
+    padding-top: 32px !important;
 }
 
-/* For CalendarComponent.ts positions that were previously inline */
-.streams-calendar-component-fixed {
-    position: absolute;
-    z-index: 1000;
-    top: 5px;
-    right: 16px;
-}
 
-/* Mobile-specific positioning for the calendar component */
-.is-mobile .streams-calendar-component {
-    position: absolute;
-    top: 5px;
-    right: 16px;
-    z-index: 1000;
-    font-size: 12px;
-    margin-right: 0;
-    pointer-events: none;
-}
+
+
 
 .is-phone .streams-calendar-component {
     font-size: 11px;
 }
 
-/* Positioning for create file view - applies to both desktop and mobile */
-.streams-create-file-container .streams-calendar-component {
-    position: absolute;
-    top: 5px;
-    right: 16px;
-    margin-right: 0;
-    z-index: 1000;
-}
 
-/* Ensure consistent positioning for create file view on mobile */
-.is-mobile .streams-create-file-container .streams-calendar-component {
-    position: absolute;
-    top: 5px;
-    right: 16px;
-    margin-right: 0;
-    z-index: 1000;
-}
 
-/* Mobile-specific toggle button adjustments */
-.is-mobile .streams-calendar-toggle-button {
-    width: 20px; /* Slightly smaller on mobile */
-    height: 48px; /* Proportional to mobile size */
-    right: -16px; /* Adjusted for mobile to ensure full visibility */
-}
-
-.is-phone .streams-calendar-toggle-button {
-    width: 18px; /* Even smaller on phones */
-    height: 44px; /* Proportional to phone size */
-    right: -14px; /* Adjusted for phones to ensure full visibility */
-}
-
-.is-mobile .streams-calendar-toggle-button svg {
-    width: 14px; /* Smaller icon on mobile */
-    height: 14px;
-}
-
-.is-phone .streams-calendar-toggle-button svg {
-    width: 12px; /* Even smaller icon on phones */
-    height: 12px;
-}
-
-.streams-calendar-collapsed {
-    position: absolute;
-    top: 0;
-    right: 0;
-    padding: 4px 0 0 0;
-    cursor: pointer;
-    transition: box-shadow 0.2s ease, width 0.3s ease, opacity 0.3s ease;
-    background-color: var(--background-secondary);
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    min-width: 120px;
-    width: 120px;
-    text-align: center;
-    white-space: nowrap;
-    user-select: none;
-    z-index: 1000;
-    pointer-events: auto;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.streams-calendar-collapsed:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-}
 
 /* Calendar label */
 .streams-calendar-label {
@@ -474,33 +397,117 @@
     margin-bottom: 2px;
 }
 
-.streams-calendar-nav-controls {
+
+.streams-calendar-collapsed {
+    position: relative;
+    top: 0;
+    right: 0;
+    padding: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background-color: var(--background-secondary);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+    width: 100%;
+    text-align: left;
+    white-space: nowrap;
+    user-select: none;
+    z-index: 1000;
+    pointer-events: auto;
+    border: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-top: 2px;
-    background-color: var(--background-primary-alt);
-    border-radius: 4px;
-    padding: 2px 2px;
+    flex: 1;
+    margin-bottom: 8px;
+}
+
+.streams-calendar-collapsed:hover {
+    background-color: var(--background-primary);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+}
+
+.streams-calendar-nav-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin: 0;
+    background-color: transparent;
+    border-radius: 0;
+    padding: 0;
     border: none;
+    gap: 12px;
+    flex: 1;
+}
+
+.streams-calendar-day-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+    background-color: var(--background-modifier-hover);
+    border: 1px solid var(--background-modifier-border);
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.streams-calendar-day-nav:hover {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    transform: scale(1.05);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.streams-calendar-day-nav:active {
+    background-color: var(--interactive-accent-hover);
+    transform: scale(0.95);
+}
+
+.streams-calendar-today-button {
+    white-space: nowrap;
+    pointer-events: none;
+    flex: 0 0 auto;
+    text-align: center;
+    font-weight: 600;
+    color: var(--text-normal);
+    margin: 0 8px;
+    font-size: 15px;
+    min-width: 60px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: var(--background-modifier-hover);
 }
 
 .streams-calendar-change-stream {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 4px 8px;
-    border-radius: 4px;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
     color: var(--text-muted);
-    margin-top: 4px;
+    margin: 0;
+    flex: 1;
+    justify-content: center;
+    background-color: var(--background-modifier-hover);
+    border: 1px solid var(--background-modifier-border);
+    font-weight: 500;
 }
 
 .streams-calendar-change-stream:hover {
-    background-color: var(--interactive-hover);
-    color: var(--text-normal);
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .streams-calendar-change-stream-icon {
@@ -515,8 +522,9 @@
 }
 
 .streams-calendar-change-stream-text {
-    font-size: 0.7em;
+    font-size: 14px;
     font-weight: 500;
+    color: inherit;
 }
 
 /* Streams dropdown styles */
@@ -593,14 +601,16 @@
     color: var(--text-on-accent);
 }
 
+
 .streams-calendar-expanded {
-    position: relative;
-    top: 0;
+    position: absolute;
+    top: 100%;
+    left: 0;
     right: 0;
     padding: 16px;
-    width: 280px;
+    width: 100%;
     background-color: var(--background-secondary);
-    border-radius: 8px;
+    border-radius: 0 0 8px 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     opacity: 0;
     transition: all 0.3s ease;
@@ -610,11 +620,17 @@
     flex-direction: column;
     align-items: center;
     transform-origin: top center;
+    max-height: 400px;
+    overflow-y: auto;
 }
 
 .streams-calendar-expanded-active {
     opacity: 1;
     pointer-events: auto;
+}
+
+.streams-today-button-expanded {
+    opacity: 0;
 }
 
 .streams-calendar-nav {
@@ -698,42 +714,6 @@
     width: 32px; /* Fixed width for headers */
 }
 
-.streams-calendar-day-nav {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 28px;
-    border-radius: 4px;
-    cursor: pointer;
-    color: var(--text-normal);
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    background-color: var(--background-primary);
-    border: none;
-    font-size: 16px;
-}
-
-.streams-calendar-day-nav:hover {
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-    transform: scale(1.05);
-}
-
-.streams-calendar-day-nav:active {
-    background-color: var(--interactive-accent-hover);
-    transform: scale(0.95);
-}
-
-.streams-calendar-today-button {
-    white-space: nowrap;
-    pointer-events: none;
-    flex: 1;
-    text-align: center;
-    font-weight: 600;
-    color: var(--text-accent);
-    margin: 0 8px;
-    font-size: 0.8em;
-}
 
 .streams-calendar-grid {
     display: grid !important;
@@ -854,103 +834,8 @@
     border-left: 2px solid var(--text-error);
 }
 
-.streams-today-button-expanded {
-    opacity: 0;
-}
 
-/* Toggle button for compact view */
-.streams-calendar-toggle-button {
-    position: absolute;
-    top: 6px; /* Match the collapsed view's top padding */
-    right: -15px; /* Position to the right of the collapsed view, ensuring full visibility */
-    width: 15px;
-    height: 52px; /* Reduced height to better match the widget */
-    background-color: var(--background-secondary);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    border-left: none;
-    border-radius: 0 6px 6px 0;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s ease, transform 0.1s ease, right 0.3s ease, border-radius 0.3s ease;
-    z-index: 1001;
-    pointer-events: auto;
-}
 
-.streams-calendar-toggle-button:hover {
-    background-color: var(--interactive-hover);
-    transform: scale(1.02);
-}
-
-.streams-calendar-toggle-button:active {
-    transform: scale(0.98);
-    background-color: var(--interactive-accent);
-}
-
-.streams-calendar-toggle-button svg {
-    width: 16px;
-    height: 16px;
-    color: var(--text-muted);
-}
-
-.streams-calendar-toggle-button:hover svg {
-    color: var(--text-normal);
-}
-
-/* Compact view styles */
-.streams-calendar-compact .streams-calendar-collapsed {
-    width: 0; /* Hide the collapsed view completely */
-    min-width: 0;
-    padding: 0;
-    overflow: hidden;
-    opacity: 0;
-    pointer-events: none;
-}
-
-.streams-calendar-compact .streams-calendar-nav-controls {
-    display: none; /* Hide navigation controls */
-}
-
-.streams-calendar-compact .streams-calendar-change-stream {
-    display: none; /* Hide stream change section */
-}
-
-.streams-calendar-compact .streams-calendar-streams-dropdown {
-    display: none; /* Hide streams dropdown */
-}
-
-/* Adjust toggle button position for compact view */
-.streams-calendar-compact .streams-calendar-toggle-button {
-    right: -2px; /* Position tighter to the right edge */
-    width:24px; /* Make it narrower */
-    height: 40px; /* Make it shorter */
-    border-radius: 6px; /* Full border radius since no left border */
-    border: 1px solid rgba(0, 0, 0, 0.05); /* Full border */
-}
-
-/* Mobile-specific compact view adjustments */
-.is-mobile .streams-calendar-compact .streams-calendar-collapsed {
-    width: 0; /* Hide completely on mobile too */
-    min-width: 0;
-}
-
-.is-phone .streams-calendar-compact .streams-calendar-collapsed {
-    width: 0; /* Hide completely on phones too */
-    min-width: 0;
-}
-
-.is-mobile .streams-calendar-compact .streams-calendar-toggle-button {
-    right: -2px; /* Position tighter to the right edge */
-    width: 20px; /* Even smaller on mobile */
-    height: 36px; /* Proportional to mobile size */
-}
-
-.is-phone .streams-calendar-compact .streams-calendar-toggle-button {
-    right: -2px; /* Position tighter to the right edge */
-    width: 18px; /* Even smaller on phones */
-    height: 32px; /* Proportional to phone size */
-}
 
 /*********************************************************
  * CREATE FILE VIEW STYLES
@@ -1191,6 +1076,10 @@
     max-width: none;
     padding: 30px 20px;
     border-radius: 8px;
+}
+
+.is-mobile .streams-create-file-container {
+    padding: 20px;
 }
 
 .is-phone .streams-create-file-date {
