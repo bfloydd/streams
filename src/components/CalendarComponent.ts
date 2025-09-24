@@ -3,6 +3,7 @@ import { Stream } from '../../types';
 import { Logger } from '../utils/Logger';
 import { OpenStreamDateCommand } from '../commands/OpenStreamDateCommand';
 import { OpenTodayStreamCommand } from '../commands/OpenTodayStreamCommand';
+import { OpenTodayCurrentStreamCommand } from '../commands/OpenTodayCurrentStreamCommand';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from '../views/CreateFileView';
 
 interface ContentIndicator {
@@ -189,6 +190,16 @@ export class CalendarComponent extends Component {
             e.stopPropagation();
             this.log.debug("RIGHT ARROW CLICKED - Going to NEXT day");
             await this.navigateToAdjacentDay(1);
+        });
+        
+        const homeButton = navControls.createDiv('streams-calendar-home-button');
+        setIcon(homeButton, 'home');
+        homeButton.setAttribute('aria-label', 'Go to current stream today');
+        homeButton.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            this.log.debug("HOME BUTTON CLICKED - Going to current stream today");
+            const command = new OpenTodayCurrentStreamCommand(this.app, this.streams, this.reuseCurrentTab, this.plugin);
+            await command.execute();
         });
         
 
