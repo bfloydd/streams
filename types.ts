@@ -21,17 +21,11 @@ export interface Stream {
     name: string;
     folder: string;
     icon: LucideIcon;
-    viewIcon: LucideIcon;
     showTodayInRibbon: boolean;
-    
-    showFullStreamInRibbon: boolean;
     addCommand: boolean;
-    addViewCommand: boolean;
     // Ribbon icon styling options
     showTodayBorder: boolean;
-    showViewBorder: boolean;
     todayBorderColor: string;
-    viewBorderColor: string;
 }
 
 export interface StreamsSettings {

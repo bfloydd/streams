@@ -809,30 +809,6 @@ body {
     border-left: 2px solid var(--text-error);
 }
 
-/* For custom colors that don't use CSS variables */
-.streams-view-icon-border {
-    border-left: 2px solid var(--text-success);
-}
-
-.streams-view-icon-border[data-border-color="var(--text-accent)"] {
-    border-left: 2px solid var(--text-accent);
-}
-
-.streams-view-icon-border[data-border-color="var(--text-normal)"] {
-    border-left: 2px solid var(--text-normal);
-}
-
-.streams-view-icon-border[data-border-color="var(--text-muted)"] {
-    border-left: 2px solid var(--text-muted);
-}
-
-.streams-view-icon-border[data-border-color="var(--text-success)"] {
-    border-left: 2px solid var(--text-success);
-}
-
-.streams-view-icon-border[data-border-color="var(--text-error)"] {
-    border-left: 2px solid var(--text-error);
-}
 
 
 
@@ -950,122 +926,6 @@ body {
     height: 18px;
 }
 
-/*********************************************************
- * STREAM VIEW STYLES
- *********************************************************/
- 
-.streams-view-container {
-    display: flex;
-    flex-direction: column;
-    padding: 12px 8px;
-    height: 100%;
-    overflow-y: auto;
-    background-color: var(--background-primary-alt);
-}
-
-.streams-view-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 12px;
-    margin-bottom: 16px;
-    border-radius: 6px;
-    background-color: var(--background-secondary);
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-.streams-view-header h2 {
-    margin: 0;
-    font-size: 1.8em;
-    color: var(--text-normal);
-}
-
-.streams-view-content {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 0;
-}
-
-.streams-view-date-section {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px 10px;
-    margin-bottom: 16px;
-    border-radius: 6px;
-    background-color: var(--background-secondary);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.streams-view-date-header {
-    cursor: pointer;
-    padding: 4px 0 8px;
-    margin-bottom: 8px;
-    transition: color 0.2s ease;
-    border-bottom: 1px solid var(--background-modifier-border);
-}
-
-.streams-view-date-header:hover {
-    color: var(--text-accent);
-}
-
-.streams-view-date-header h3 {
-    margin: 0;
-    font-size: 1.5em;
-    font-weight: 600;
-    color: var(--text-accent);
-}
-
-.streams-view-date-content {
-    padding: 4px 8px;
-    border-left: 3px solid var(--background-modifier-border);
-    background-color: var(--background-primary);
-    border-radius: 0 4px 4px 0;
-}
-
-.streams-view-date-content img {
-    max-width: 100%;
-    height: auto;
-    border-radius: 4px;
-    margin: 8px 0;
-}
-
-.streams-view-date-content .internal-embed {
-    margin: 12px 0;
-}
-
-.streams-view-date-content .internal-embed.is-loaded {
-    display: block;
-    max-width: 100%;
-}
-
-.streams-view-scroll-trigger {
-    height: 50px;
-    width: 100%;
-    opacity: 0;
-    margin: 20px 0 100px 0;
-    position: relative;
-}
-
-.streams-view-end-marker {
-    margin-top: 20px;
-    margin-bottom: 100px;
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 0;
-    opacity: 0;
-    height: 1px;
-}
-
-.streams-view-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 64px 0;
-    text-align: center;
-}
 
 /*********************************************************
  * RESPONSIVE STYLES
@@ -1086,51 +946,6 @@ body {
     font-size: 1.5em;
 }
 
-.is-mobile .streams-view-container {
-    padding: 8px 4px;
-}
-
-.is-mobile .streams-view-date-section {
-    padding: 10px 8px;
-    margin-bottom: 12px;
-}
-
-.is-mobile .streams-view-header {
-    padding: 8px;
-    margin-bottom: 12px;
-}
-
-.is-mobile .streams-view-header h2 {
-    font-size: 1.5em;
-}
-
-.is-mobile .streams-view-date-content {
-    padding: 6px 12px;
-}
-
-.is-mobile .streams-view-date-content img {
-    max-width: 100%;
-    height: auto;
-}
-
-.is-phone .streams-view-container {
-    padding: 6px 2px;
-}
-
-.is-phone .streams-view-date-section {
-    padding: 8px 6px;
-    margin-bottom: 8px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-.is-phone .streams-view-date-header h3 {
-    font-size: 1.3em;
-}
-
-.is-phone .streams-view-date-content .internal-embed {
-    max-width: calc(100vw - 40px);
-    overflow-x: auto;
-}
 
 /*********************************************************
  * UTILITY STYLES

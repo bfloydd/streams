@@ -76,15 +76,10 @@ export class StreamsSettingTab extends PluginSettingTab {
                         name: 'New Stream',
                         folder: '',
                         icon: 'file-text' as LucideIcon,
-                        viewIcon: 'layout-dashboard' as LucideIcon,
                         showTodayInRibbon: true,
-                        showFullStreamInRibbon: false,
                         addCommand: false,
-                        addViewCommand: false,
                         showTodayBorder: true,
-                        showViewBorder: true,
-                        todayBorderColor: 'var(--text-accent)',
-                        viewBorderColor: 'var(--text-success)'
+                        todayBorderColor: 'var(--text-accent)'
                     };
                     this.plugin.settings.streams.push(newStream);
                     await this.plugin.saveSettings(true);
@@ -116,7 +111,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                 })
                 .then(textComponent => {
                                     textComponent.inputEl.addEventListener('blur', async () => {
-                    this.plugin.addStreamViewCommand(stream);
                     await this.plugin.saveSettings();
                     this.plugin.updateAllCalendarComponents();
                 });
@@ -210,62 +204,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                     }));
         }
 
-        new Setting(card)
-            .setName('View full stream in ribbon')
-            .setDesc('Show the "View Full Stream" button in the sidebar ribbon')
-            .addToggle(toggle => toggle
-                .setValue(stream.showFullStreamInRibbon)
-                .onChange(async (value) => {
-                    stream.showFullStreamInRibbon = value;
-                    this.plugin.updateStreamViewIcon(stream);
-                    await this.plugin.saveSettings();
-                }));
-                
-        new Setting(card)
-            .setName('View icon')
-            .setDesc('Icon for the "View Full Stream" ribbon button')
-            .setClass('streams-setting-indent')
-            .addDropdown(dropdown => {
-                this.populateIconDropdown(dropdown);
-                dropdown
-                    .setValue(stream.viewIcon || stream.icon)
-                    .onChange(async (value: LucideIcon) => {
-                        stream.viewIcon = value;
-                        await this.plugin.saveSettings(true);
-                    });
-            });
-
-        new Setting(card)
-            .setName('Show view border')
-            .setDesc('Display a colored border on the left side of the View icon')
-            .setClass('streams-setting-indent')
-            .addToggle(toggle => toggle
-                .setValue(stream.showViewBorder ?? true)
-                .onChange(async (value) => {
-                    stream.showViewBorder = value;
-                    this.plugin.updateStreamViewIcon(stream);
-                    await this.plugin.saveSettings();
-                    
-                    this.display();
-                }));
-
-        if (stream.showViewBorder) {
-            new Setting(card)
-                .setName('Border color')
-                .setClass('streams-setting-double-indent')
-                .addText(text => text
-                    .setValue(stream.viewBorderColor ?? 'var(--text-success)')
-                    .setPlaceholder('var(--text-success)')
-                    .onChange(async (value) => {
-                        stream.viewBorderColor = value;
-                    })
-                    .then(textComponent => {
-                        textComponent.inputEl.addEventListener('blur', async () => {
-                            this.plugin.updateStreamViewIcon(stream);
-                            await this.plugin.saveSettings();
-                        });
-                    }));
-        }
 
         new Setting(card)
             .setName('Add command: open today')
@@ -286,24 +224,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                     await this.plugin.saveSettings();
                 }));
 
-        new Setting(card)
-            .setName('Add command: view full stream')
-            .setDesc('Add a view command to the command palette')
-            .addToggle(toggle => toggle
-                .setValue(stream.addViewCommand ?? false)
-                .onChange(async (value) => {
-                    stream.addViewCommand = value;
-                    this.plugin.toggleStreamViewCommand(stream);
-                    
-                    if (value) {
-                        setTimeout(() => {
-                            this.plugin.initializeStreamCommands();
-                            new Notice(`Added "${stream.name}, full stream" to command palette`);
-                        }, 100);
-                    }
-                    
-                    await this.plugin.saveSettings();
-                }));
 
         new Setting(card)
             .setName('Delete stream')
@@ -319,7 +239,6 @@ export class StreamsSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettings(true);
 					
 					this.plugin.removeStreamCommand(stream.id);
-					this.plugin.removeStreamViewCommand(stream.id);
 					this.plugin.updateAllCalendarComponents();
 					
 					this.display();

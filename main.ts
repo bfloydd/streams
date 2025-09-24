@@ -7,9 +7,7 @@ import { OpenTodayStreamCommand } from './src/commands/OpenTodayStreamCommand';
 import { OpenTodayCurrentStreamCommand } from './src/commands/OpenTodayCurrentStreamCommand';
 import { StreamSelectionModal } from './src/modals/StreamSelectionModal';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from './src/views/CreateFileView';
-import { STREAM_VIEW_TYPE, StreamView } from './src/views/StreamView';
 import { ALL_STREAMS_VIEW_TYPE, AllStreamsView } from './src/views/AllStreamsView';
-import { OpenStreamViewCommand } from './src/commands/OpenStreamViewCommand';
 import { OpenAllStreamsViewCommand } from './src/commands/OpenAllStreamsViewCommand';
 import { ToggleDebugLoggingCommand } from './src/commands/ToggleDebugLoggingCommand';
 
@@ -23,9 +21,8 @@ const DEFAULT_SETTINGS: StreamsSettings = {
 
 export default class StreamsPlugin extends Plugin {
 	settings: StreamsSettings;
-	private ribbonIconsByStream: Map<string, {today?: HTMLElement, view?: HTMLElement}> = new Map();
+	private ribbonIconsByStream: Map<string, {today?: HTMLElement}> = new Map();
 	commandsByStreamId: Map<string, string> = new Map();
-	viewCommandsByStreamId: Map<string, string> = new Map();
 	private calendarComponents: Map<string, CalendarComponent> = new Map();
 	public log: Logger;
 	private isInitializing: boolean = true;
@@ -198,7 +195,7 @@ export default class StreamsPlugin extends Plugin {
 	
 	private logInitialState(): void {
 		this.settings.streams.forEach(stream => {
-			this.log.debug(`Stream ${stream.name}: Today=${stream.showTodayInRibbon}, View=${stream.showFullStreamInRibbon}`);
+			this.log.debug(`Stream ${stream.name}: Today=${stream.showTodayInRibbon}`);
 		});
 		
 		if (this.settings.activeStreamId) {
@@ -216,23 +213,13 @@ export default class StreamsPlugin extends Plugin {
 				name: "", 
 				folder: "", 
 				icon: "calendar", 
-				viewIcon: "list", 
 				showTodayInRibbon: false, 
-				showFullStreamInRibbon: false, 
 				addCommand: false, 
-				addViewCommand: false,
 				showTodayBorder: true,
-				showViewBorder: true,
-				todayBorderColor: "var(--text-accent)",
-				viewBorderColor: "var(--text-success)"
+				todayBorderColor: "var(--text-accent)"
 			}, new Date())
 		);
 		
-		// Register StreamView
-		this.registerView(
-			STREAM_VIEW_TYPE,
-			(leaf) => this.createStreamViewFromState(leaf)
-		);
 		
 		// Register AllStreamsView
 		this.registerView(
@@ -241,42 +228,6 @@ export default class StreamsPlugin extends Plugin {
 		);
 	}
 	
-	private createStreamViewFromState(leaf: WorkspaceLeaf): StreamView {
-		const state = leaf.getViewState();
-		const streamId = state?.state?.streamId;
-		let stream = this.settings.streams.find(s => s.id === streamId);
-		
-		// If no stream found in view state, try to use the saved active stream
-		if (!stream && this.settings.activeStreamId) {
-			stream = this.settings.streams.find(s => s.id === this.settings.activeStreamId);
-			this.log.debug(`View state missing streamId, using saved active stream: ${stream?.name || 'Unknown'} (${this.settings.activeStreamId})`);
-		}
-		
-		// Fall back to first stream only if no active stream is saved
-		if (!stream && this.settings.streams.length > 0) {
-			stream = this.settings.streams[0];
-			this.log.debug(`No active stream saved, falling back to first stream: ${stream.name}`);
-		} else if (!stream) {
-			stream = {
-				id: "default",
-				name: "Default Stream",
-				folder: "",
-				icon: "file-text",
-				viewIcon: "list",
-				showTodayInRibbon: false,
-				showFullStreamInRibbon: false,
-				addCommand: false,
-				addViewCommand: false,
-				showTodayBorder: true,
-				showViewBorder: true,
-				todayBorderColor: "var(--text-accent)",
-				viewBorderColor: "var(--text-success)"
-			};
-			this.log.debug('No streams configured, using default stream');
-		}
-		
-		return new StreamView(leaf, this.app, stream);
-	}
 	
 	private initializeAllRibbonIcons(): void {
 		// Create the main All Streams ribbon icon
@@ -342,26 +293,6 @@ export default class StreamsPlugin extends Plugin {
 			}
 		}
 		
-		// Create View icon if needed
-		if (!streamIcons.view) {
-			this.log.debug(`Creating View icon for stream ${stream.id}, initial visibility: ${stream.showFullStreamInRibbon}`);
-			
-			streamIcons.view = this.addRibbonIcon(
-				stream.viewIcon || stream.icon,
-				`Streams: ${stream.name}, full`,
-				() => {
-					const command = new OpenStreamViewCommand(this.app, stream);
-					command.execute();
-				}
-			);
-			
-			// Hide initially, visibility updated later
-			this.updateIconVisibility(streamIcons.view, false);
-			
-			if (stream.showViewBorder) {
-				this.applyViewIconStyles(streamIcons.view, stream);
-			}
-		}
 	}
 	
 	private applyTodayIconStyles(icon: HTMLElement, stream: Stream): void {
@@ -378,19 +309,6 @@ export default class StreamsPlugin extends Plugin {
 		}
 	}
 	
-	private applyViewIconStyles(icon: HTMLElement, stream: Stream): void {
-		if (!icon) return;
-		
-		try {
-			icon.classList.add('streams-view-icon-border');
-			
-			if (stream.viewBorderColor && stream.viewBorderColor !== 'default') {
-				icon.setAttribute('data-border-color', stream.viewBorderColor);
-			}
-		} catch (error) {
-			this.log.error('Error applying view icon styles:', error);
-		}
-	}
 
 	private updateAllIconVisibility(): void {
 		this.settings.streams.forEach(stream => {
@@ -405,9 +323,6 @@ export default class StreamsPlugin extends Plugin {
 				this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
 			}
 			
-			if (streamIcons.view) {
-				this.updateIconVisibility(streamIcons.view, stream.showFullStreamInRibbon);
-			}
 		}
 	}
 	
@@ -422,21 +337,10 @@ export default class StreamsPlugin extends Plugin {
 		}
 	}
 	
-	public updateStreamViewIcon(stream: Stream): void {
-		const streamIcons = this.ribbonIconsByStream.get(stream.id);
-		if (streamIcons && streamIcons.view) {
-			streamIcons.view.classList.toggle('streams-view-icon-border', stream.showViewBorder);
-			
-			if (stream.showViewBorder) {
-				this.applyViewIconStyles(streamIcons.view, stream);
-			}
-		}
-	}
 	
 	private removeAllRibbonIcons(): void {
 		this.ribbonIconsByStream.forEach((icons) => {
 			if (icons.today) icons.today.detach();
-			if (icons.view) icons.view.detach();
 		});
 		this.ribbonIconsByStream.clear();
 	}
@@ -463,7 +367,6 @@ export default class StreamsPlugin extends Plugin {
 		}
 		
 		this.commandsByStreamId.clear();
-		this.viewCommandsByStreamId.clear();
 	}
 	
 	private registerEventHandlers(): void {
@@ -722,35 +625,6 @@ export default class StreamsPlugin extends Plugin {
 		}
 	}
 
-	public addStreamViewCommand(stream: Stream) {
-		const streamId = stream.id;
-		
-		// Skip if command already exists
-		if (this.viewCommandsByStreamId.has(streamId)) {
-			return;
-		}
-		
-		const commandId = `view-${streamId}`;
-		this.addCommand({
-			id: commandId,
-			name: `Open full view: ${stream.name}`,
-			callback: () => {
-				const command = new OpenStreamViewCommand(this.app, stream);
-				command.execute();
-			}
-		});
-
-		this.viewCommandsByStreamId.set(streamId, commandId);
-	}
-
-	public removeStreamViewCommand(streamId: string) {
-		const commandId = this.viewCommandsByStreamId.get(streamId);
-		if (commandId) {
-			this.removeCommand(commandId);
-			this.viewCommandsByStreamId.delete(streamId);
-			this.log.debug(`Removed View Full Stream command for stream ${streamId}`);
-		}
-	}
 
 	public updateAllCalendarComponents() {
 		this.calendarComponents.forEach(component => {
@@ -863,15 +737,10 @@ export default class StreamsPlugin extends Plugin {
 			name: "Default Stream",
 			folder: "",
 			icon: "file-text",
-			viewIcon: "list",
 			showTodayInRibbon: false,
-			showFullStreamInRibbon: false,
 			addCommand: false,
-			addViewCommand: false,
 			showTodayBorder: true,
-			showViewBorder: true,
-			todayBorderColor: "var(--text-accent)",
-			viewBorderColor: "var(--text-success)"
+			todayBorderColor: "var(--text-accent)"
 		};
 	}
 
@@ -1097,10 +966,6 @@ export default class StreamsPlugin extends Plugin {
 	}
 	
 	private migrateStreamSettings(stream: Stream): void {
-		// Add viewIcon if missing
-		if (!stream.viewIcon) {
-			stream.viewIcon = stream.icon;
-		}
 		
 		// Migrate from old property names
 		const streamAny = stream as any; // Temporary for migration
@@ -1109,35 +974,22 @@ export default class StreamsPlugin extends Plugin {
 			delete streamAny.showInRibbon;
 		}
 		
-		if (streamAny.showViewInRibbon !== undefined && stream.showFullStreamInRibbon === undefined) {
-			stream.showFullStreamInRibbon = streamAny.showViewInRibbon;
-			delete streamAny.showViewInRibbon;
-		}
 		
 		// Set default values if undefined
 		if (stream.showTodayInRibbon === undefined) {
 			stream.showTodayInRibbon = false;
 		}
 		
-		if (stream.showFullStreamInRibbon === undefined) {
-			stream.showFullStreamInRibbon = false;
-		}
 
 		if (stream.showTodayBorder === undefined) {
 			stream.showTodayBorder = true;
 		}
 		
-		if (stream.showViewBorder === undefined) {
-			stream.showViewBorder = true;
-		}
 		
 		if (stream.todayBorderColor === undefined) {
 			stream.todayBorderColor = 'var(--text-accent)';
 		}
 		
-		if (stream.viewBorderColor === undefined) {
-			stream.viewBorderColor = 'var(--text-success)';
-		}
 	}
 
 	async saveSettings(refreshUI: boolean = false) {
@@ -1154,7 +1006,7 @@ export default class StreamsPlugin extends Plugin {
 	
 	private logSavedSettings(): void {
 		this.settings.streams.forEach(stream => {
-			this.log.debug(`Stream ${stream.name}: Today=${stream.showTodayInRibbon}, View=${stream.showFullStreamInRibbon}`);
+			this.log.debug(`Stream ${stream.name}: Today=${stream.showTodayInRibbon}`);
 		});
 	}
 
@@ -1171,17 +1023,6 @@ export default class StreamsPlugin extends Plugin {
 		this.log.debug(`Toggled Open Today command for stream ${stream.id} to ${stream.addCommand}`);
 	}
 	
-	public toggleStreamViewCommand(stream: Stream) {
-		// Remove existing view command first
-		this.removeStreamViewCommand(stream.id);
-		
-		// Add if enabled
-		if (stream.addViewCommand) {
-			this.addStreamViewCommand(stream);
-		}
-		
-		this.log.debug(`Toggled View Full Stream command for stream ${stream.id} to ${stream.addViewCommand}`);
-	}
 
 	private addStreamCommand(stream: Stream) {
 		const commandId = `open-${stream.id}`;
@@ -1237,8 +1078,6 @@ export default class StreamsPlugin extends Plugin {
 				if (stream) {
 					if (iconType === 'today') {
 						this.applyTodayIconStyles(icon, stream);
-					} else if (iconType === 'view') {
-						this.applyViewIconStyles(icon, stream);
 					}
 				}
 			}
@@ -1261,11 +1100,6 @@ export default class StreamsPlugin extends Plugin {
 				this.log.debug(`Added Open Today command for stream ${stream.name}`);
 			}
 			
-			// Add "View Full Stream" command if enabled
-			if (stream.addViewCommand) {
-				this.addStreamViewCommand(stream);
-				this.log.debug(`Added View Full Stream command for stream ${stream.name}`);
-			}
 		});
 	}
 
