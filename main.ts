@@ -56,14 +56,6 @@ export default class StreamsPlugin extends Plugin {
 		// Set up DOM observer to prevent duplicates
 		this.setupDuplicatePrevention();
 		
-		// Final refresh to ensure all calendar components are created
-		setTimeout(() => {
-			this.refreshCalendarComponentsForNewViews();
-		}, 500);
-		
-		// Set up periodic refresh to ensure calendar components stay visible
-		this.setupPeriodicRefresh();
-		
 		// Create global stream indicator
 		this.createGlobalStreamIndicator();
 		
@@ -650,19 +642,6 @@ export default class StreamsPlugin extends Plugin {
 			showTodayInRibbon: false,
 			addCommand: false,
 		};
-	}
-
-	private setupPeriodicRefresh(): void {
-		// Refresh calendar components every 2 seconds to ensure they stay visible
-		setInterval(() => {
-			if (!this.isInitializing) {
-				this.refreshCalendarComponentsForNewViews();
-				// Also ensure global stream indicator exists
-				this.ensureGlobalStreamIndicator();
-			}
-		}, 2000);
-		
-		this.log.debug('Periodic calendar component refresh enabled (every 2 seconds)');
 	}
 
 	private setupDuplicatePrevention(): void {
