@@ -465,6 +465,7 @@
     width: 32px;
     height: 32px;
     justify-content: center;
+    cursor: pointer;
 }
 
 /* Hover effect removed */
@@ -492,6 +493,7 @@
     font-size: 12px;
     text-align: center;
     width: 32px; /* Fixed width for headers */
+    cursor: default;
 }
 
 
