@@ -169,7 +169,7 @@
 
 .streams-markdown-view-content .streams-calendar-component {
     position: absolute;
-    top: 0;
+    top: 10px;
 }
 
 /* Ensure content starts below the streams bar */
