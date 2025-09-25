@@ -417,9 +417,6 @@
     pointer-events: auto;
 }
 
-.streams-today-button-expanded {
-}
-
 .streams-calendar-nav {
     cursor: pointer;
     color: var(--text-normal);
