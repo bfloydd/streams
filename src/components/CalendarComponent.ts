@@ -214,7 +214,7 @@ export class CalendarComponent extends Component {
         });
 
         // Create the streams dropdown
-        this.streamsDropdown = collapsedView.createDiv('streams-calendar-streams-dropdown');
+        this.streamsDropdown = changeStreamSection.createDiv('streams-calendar-streams-dropdown');
         this.streamsDropdown.style.display = 'none';
         this.populateStreamsDropdown();
 
