@@ -66,20 +66,18 @@ export class CalendarComponent extends Component {
 
     constructor(leaf: WorkspaceLeaf, stream: Stream, app: App, reuseCurrentTab: boolean = false, streams: Stream[] = [], plugin: PluginInterface | null = null) {
         super();
-        this.log.debug('Creating calendar component for stream:', stream.name);
+        
+        // Remove any existing calendar components before creating new one
+        const existingComponents = document.querySelectorAll('.streams-calendar-component');
+        existingComponents.forEach(component => {
+            component.remove();
+        });
+        
         this.selectedStream = stream;
         this.app = app;
         this.reuseCurrentTab = reuseCurrentTab;
         this.streams = streams;
         this.plugin = plugin;
-        
-        // Log if display stream differs from calendar stream
-        if (this.plugin?.settings?.activeStreamId) {
-            const activeStream = this.streams.find(s => s.id === this.plugin!.settings.activeStreamId);
-            if (activeStream && activeStream.id !== stream.id) {
-                this.log.debug(`Calendar: ${stream.name}, Display: ${activeStream.name}`);
-            }
-        }
         
         this.component = document.createElement('div');
         this.component.addClass('streams-calendar-component');
@@ -640,8 +638,6 @@ export class CalendarComponent extends Component {
         
         // Refresh the dropdown to update visual indicators
         this.refreshStreamsDropdown();
-        
-        this.log.debug(`Switched to stream: ${stream.name}`);
     }
 
     private async navigateToStreamDailyNote(stream: Stream) {
@@ -655,14 +651,12 @@ export class CalendarComponent extends Component {
             }
             
             // Use the existing OpenStreamDateCommand which properly handles stream navigation
-            // This will maintain tab titles, stream context, and use the reuseCurrentTab setting
             const command = new OpenStreamDateCommand(this.app, stream, targetDate, this.reuseCurrentTab);
             await command.execute();
             
             // Update the current viewed date
             this.currentViewedDate = this.formatDateString(targetDate);
             this.updateTodayButton();
-            
         } catch (error) {
             this.log.error('Error navigating to stream daily note:', error);
         }

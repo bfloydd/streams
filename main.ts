@@ -53,6 +53,9 @@ export default class StreamsPlugin extends Plugin {
 		this.initializeActiveView();
 		this.logInitialState();
 		
+		// Set up DOM observer to prevent duplicates
+		this.setupDuplicatePrevention();
+		
 		// Final refresh to ensure all calendar components are created
 		setTimeout(() => {
 			this.refreshCalendarComponentsForNewViews();
@@ -433,37 +436,18 @@ export default class StreamsPlugin extends Plugin {
 	}
 
 	public updateCalendarComponent(leaf: WorkspaceLeaf) {
-		const view = leaf.view as MarkdownView;
-		const filePath = view.file?.path;
-		
-		this.log.debug(`Updating calendar component for file: ${filePath}`);
-		this.log.debug(`Current calendar components: ${this.calendarComponents.size}`);
-
-		const leafHash = this.hashLeaf(leaf);
-		const componentId = filePath ? `${filePath}-${leafHash}` : `leaf-${leafHash}`;
-		
-		this.log.debug(`Leaf hash: ${leafHash}, Component ID: ${componentId}`);
-		
-		const existingComponent = this.calendarComponents.get(componentId);
-		if (existingComponent) {
-			this.log.debug(`Destroying existing calendar component for: ${componentId}`);
-			existingComponent.destroy();
-			this.calendarComponents.delete(componentId);
-		}
-
 		if (!this.settings.showCalendarComponent) {
-			this.log.debug(`Not creating calendar component. Component enabled: ${this.settings.showCalendarComponent}`);
+			this.removeAllCalendarComponents();
 			return;
 		}
 
+		const view = leaf.view as MarkdownView;
+		const filePath = view.file?.path;
 		const stream = (filePath ? this.getStreamForFile(filePath) : null) || this.getDefaultStream();
 		
-		this.log.debug(`Creating calendar component for file: ${filePath || 'no file'} with stream: ${stream.name}`);
+		// Create calendar component (DOM observer will handle duplicates)
 		const component = new CalendarComponent(leaf, stream, this.app, this.settings.reuseCurrentTab, this.settings.streams, this);
-		this.calendarComponents.set(componentId, component);
-		
-		this.log.debug(`Calendar component created successfully for: ${componentId}`);
-		this.log.debug(`Calendar components after update: ${this.calendarComponents.size}`);
+		this.calendarComponents.set('single-component', component);
 	}
 
 	private async showStreamSelectionModal(filePath: string) {
@@ -590,70 +574,39 @@ export default class StreamsPlugin extends Plugin {
 	}
 
 	public forceRefreshAllCalendarComponents() {
-		this.log.debug('Force refreshing all calendar components');
-		
+		this.refreshCalendarComponentsForNewViews();
+	}
+
+	/**
+	 * Remove all calendar components from DOM and memory
+	 * Simple and reliable cleanup
+	 */
+	private removeAllCalendarComponents() {
+		// Remove from memory
 		this.calendarComponents.forEach(component => {
 			component.destroy();
 		});
 		this.calendarComponents.clear();
 		
-		this.refreshCalendarComponentsForNewViews();
-		
-		this.log.debug(`Force refresh complete. Total components: ${this.calendarComponents.size}`);
+		// Remove from DOM
+		const existingComponents = document.querySelectorAll('.streams-calendar-component');
+		existingComponents.forEach(component => {
+			component.remove();
+		});
 	}
 
+
 	public refreshCalendarComponentsForNewViews() {
-		this.log.debug('Refreshing calendar components for all views');
-		
-		const allLeaves = this.app.workspace.getLeavesOfType('markdown');
-		this.log.debug(`Found ${allLeaves.length} markdown leaves`);
-		
-		this.log.debug('Current calendar components:', Array.from(this.calendarComponents.keys()));
-		
-		allLeaves.forEach((leaf, index) => {
-			const view = leaf.view as MarkdownView;
-			if (view?.file?.path) {
-				const filePath = view.file.path;
-				const leafHash = this.hashLeaf(leaf);
-				const componentId = `${filePath}-${leafHash}`;
-				
-				this.log.debug(`Leaf ${index}: ${filePath} -> hash: ${leafHash} -> componentId: ${componentId}`);
-				
-				if (!this.calendarComponents.has(componentId)) {
-					this.log.debug(`Creating missing calendar component for file: ${filePath} in leaf: ${leafHash}`);
-					this.updateCalendarComponent(leaf);
-				} else {
-					this.log.debug(`Calendar component already exists for file: ${filePath} in leaf: ${leafHash}`);
-				}
-			} else {
-				this.log.debug(`Leaf ${index}: no file path`);
-			}
-		});
-		
-		this.log.debug(`Total calendar components after refresh: ${this.calendarComponents.size}`);
-		this.log.debug('Final calendar components:', Array.from(this.calendarComponents.keys()));
+		const activeLeaf = this.app.workspace.activeLeaf;
+		if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
+			this.updateCalendarComponent(activeLeaf);
+		}
 	}
 
 	public ensureCalendarComponentForFile(filePath: string) {
-		this.log.debug(`Ensuring calendar component exists for file: ${filePath}`);
-		
-		const leaf = this.app.workspace.getLeavesOfType('markdown').find(leaf => {
-			const view = leaf.view as MarkdownView;
-			return view?.file?.path === filePath;
-		});
-		
-		if (leaf) {
-			const leafHash = this.hashLeaf(leaf);
-			const componentId = `${filePath}-${leafHash}`;
-			
-			if (!this.calendarComponents.has(componentId)) {
-				this.log.debug(`Creating missing calendar component for file: ${filePath} in leaf: ${leafHash}`);
-				this.updateCalendarComponent(leaf);
-			} else {
-				this.log.debug(`Calendar component already exists for file: ${filePath} in leaf: ${leafHash}`);
-			}
-		} else {
-			this.log.debug(`No leaf found for file: ${filePath}`);
+		const activeLeaf = this.app.workspace.activeLeaf;
+		if (activeLeaf && activeLeaf.view instanceof MarkdownView) {
+			this.updateCalendarComponent(activeLeaf);
 		}
 	}
 
@@ -710,6 +663,29 @@ export default class StreamsPlugin extends Plugin {
 		}, 2000);
 		
 		this.log.debug('Periodic calendar component refresh enabled (every 2 seconds)');
+	}
+
+	private setupDuplicatePrevention(): void {
+		// Set up a DOM observer to catch and remove duplicate calendar components
+		const observer = new MutationObserver((mutations) => {
+			mutations.forEach((mutation) => {
+				if (mutation.type === 'childList') {
+					const calendarComponents = document.querySelectorAll('.streams-calendar-component');
+					if (calendarComponents.length > 1) {
+						// Keep only the first one, remove the rest
+						for (let i = 1; i < calendarComponents.length; i++) {
+							calendarComponents[i].remove();
+						}
+					}
+				}
+			});
+		});
+
+		// Start observing
+		observer.observe(document.body, {
+			childList: true,
+			subtree: true
+		});
 	}
 
 	private createGlobalStreamIndicator(): void {
@@ -822,9 +798,8 @@ export default class StreamsPlugin extends Plugin {
 		this.saveSettings();
 		
 		if (previousStreamId !== streamId) {
-			const newStream = this.settings.streams.find(s => s.id === streamId);
-			const previousStream = previousStreamId ? this.settings.streams.find(s => s.id === previousStreamId) : null;
-			this.log.debug(`Active stream changed: ${previousStream?.name || 'None'} → ${newStream?.name || 'Unknown'}`);
+			// Remove all existing calendar components when switching streams
+			this.removeAllCalendarComponents();
 			
 			// Update the global stream indicator
 			this.updateGlobalStreamIndicator();
