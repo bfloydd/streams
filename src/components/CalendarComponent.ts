@@ -161,11 +161,6 @@ export class CalendarComponent extends Component {
     private initializeComponent() {
         const collapsedView = this.component.createDiv('streams-calendar-collapsed');
         const expandedView = this.component.createDiv('streams-calendar-expanded');
-        
-        collapsedView.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.toggleExpanded(collapsedView, expandedView);
-        });
 
         // Create the navigation controls
         const navControls = collapsedView.createDiv('streams-calendar-nav-controls');
@@ -182,6 +177,12 @@ export class CalendarComponent extends Component {
         const todayButton = navControls.createDiv('streams-calendar-today-button');
         this.todayButton = todayButton;
         this.updateTodayButton();
+        
+        // Add click handler to TODAY button to open calendar
+        todayButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            this.toggleExpanded(collapsedView, expandedView);
+        });
         
         const nextDayButton = navControls.createDiv('streams-calendar-day-nav next-day');
         nextDayButton.setText('→');
