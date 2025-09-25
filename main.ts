@@ -247,13 +247,10 @@ export default class StreamsPlugin extends Plugin {
 	
 	
 	public initializeAllRibbonIcons(): void {
-		// Create icons for all streams (even if hidden)
+		// Create icons for all streams based on their visibility settings
 		this.settings.streams.forEach(stream => {
 			this.createStreamIcons(stream);
 		});
-		
-		// Update visibility based on settings
-		this.updateAllIconVisibility();
 	}
 	
 	private createAllStreamsIcon(): void {
@@ -276,8 +273,8 @@ export default class StreamsPlugin extends Plugin {
 			this.ribbonIconsByStream.set(stream.id, streamIcons);
 		}
 		
-		// ALWAYS create the icon, regardless of visibility setting
-		if (!streamIcons.today) {
+		// Only create the icon if it should be visible
+		if (stream.showTodayInRibbon && !streamIcons.today) {
 			this.log.debug(`Creating Today icon for stream ${stream.id}`);
 			
 			streamIcons.today = this.addRibbonIcon(
@@ -288,9 +285,11 @@ export default class StreamsPlugin extends Plugin {
 					command.execute();
 				}
 			);
-			
-			// Set initial visibility
-			this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
+		} else if (!stream.showTodayInRibbon && streamIcons.today) {
+			// Remove the icon if it exists but shouldn't be visible
+			this.log.debug(`Removing Today icon for stream ${stream.id}`);
+			streamIcons.today.detach();
+			streamIcons.today = undefined;
 		}
 	}
 	
@@ -304,16 +303,9 @@ export default class StreamsPlugin extends Plugin {
 	
 	public updateStreamIconVisibility(stream: Stream): void {
 		console.log(`updateStreamIconVisibility called for ${stream.name}, showTodayInRibbon: ${stream.showTodayInRibbon}`);
-		const streamIcons = this.ribbonIconsByStream.get(stream.id);
-		console.log(`Stream icons found:`, streamIcons);
 		
-		if (streamIcons && streamIcons.today) {
-			console.log(`Updating icon visibility for ${stream.name}`);
-			// Just update the CSS visibility - don't create/remove icons
-			this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
-		} else {
-			console.log(`No icon found for ${stream.name}`);
-		}
+		// Use the createStreamIcons method which now handles creation/removal based on visibility
+		this.createStreamIcons(stream);
 	}
 	
 	
@@ -1101,22 +1093,6 @@ export default class StreamsPlugin extends Plugin {
 		}, 1000);
 	}
 
-	private updateIconVisibility(icon: HTMLElement, visible: boolean): void {
-		// Use direct style manipulation for immediate effect
-		if (visible) {
-			icon.style.display = '';
-			icon.style.visibility = 'visible';
-			icon.classList.remove('streams-plugin-hidden');
-			icon.classList.remove('streams-icon-hidden');
-		} else {
-			icon.style.display = 'none';
-			icon.style.visibility = 'hidden';
-			icon.classList.add('streams-plugin-hidden');
-			icon.classList.add('streams-icon-hidden');
-		}
-		
-		this.log.debug(`Icon visibility updated: ${visible ? 'visible' : 'hidden'}`);
-	}
 
 	public initializeStreamCommands(): void {
 		this.log.debug('Initializing stream commands...');
