@@ -7,7 +7,7 @@
     align-items: center;
     padding: 4px 8px;
     margin-left: 8px;
-    background: var(--background-secondary);
+    background: var(--interactive-normal);
     border: 1px solid var(--background-modifier-border);
     border-radius: 4px;
     cursor: pointer;
@@ -19,7 +19,7 @@
 }
 
 .streams-global-indicator:hover {
-    background: var(--background-modifier-hover);
+    background: var(--interactive-hover);
     border-color: var(--text-accent);
     color: var(--text-accent);
 }
@@ -154,11 +154,13 @@
     margin: 0;
     pointer-events: auto;
     border-bottom: 1px solid var(--background-modifier-border);
-    box-shadow: none;
+    /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
     height: 32px;
     display: flex;
     align-items: center;
     padding: 0 14px;
+    /* background: var(--background-primary); */
+    backdrop-filter: blur(8px);
 }
 
 /* Position relative to the content container that contains cm-panels */
@@ -201,9 +203,10 @@
     right: 0;
     padding: 0;
     transition: all 0.2s ease;
-    background-color: var(--background-secondary);
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: var(--background-primary);
+    /* border: 1px solid var(--background-modifier-border); */
+    /* border-radius: 6px; */
+    /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
     min-width: 200px;
     width: 100%;
     text-align: left;
@@ -211,7 +214,6 @@
     user-select: none;
     z-index: 1000;
     pointer-events: auto;
-    border: none;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -230,7 +232,7 @@
     border-radius: 0;
     padding: 0;
     border: none;
-    gap: 12px;
+    gap: 8px;
     flex: 1;
 }
 
@@ -240,14 +242,20 @@
     justify-content: center;
     width: 28px;
     height: 28px;
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     color: var(--text-muted);
     transition: all 0.2s ease;
-    background-color: var(--background-modifier-hover);
+    background-color: var(--interactive-normal);
     border: 1px solid var(--background-modifier-border);
     font-size: 14px;
     font-weight: 500;
+}
+
+.streams-calendar-day-nav:hover {
+    background-color: var(--interactive-hover);
+    color: var(--text-normal);
+    border-color: var(--text-accent);
 }
 
 /* Hover effect removed */
@@ -268,9 +276,16 @@
     min-width: 60px;
     padding: 4px 8px;
     border-radius: 4px;
-    background-color: var(--background-modifier-hover);
+    background-color: var(--interactive-normal);
+    border: 1px solid var(--background-modifier-border);
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
+}
+
+.streams-calendar-today-button:hover {
+    background-color: var(--interactive-hover);
+    border-color: var(--text-accent);
+    color: var(--text-accent);
 }
 
 .streams-calendar-change-stream {
@@ -279,21 +294,42 @@
     justify-content: center;
     gap: 6px;
     padding: 6px 12px;
-    border-radius: 6px;
+    border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
     color: var(--text-muted);
     margin: 0;
     justify-content: center;
-    background-color: var(--background-modifier-hover);
+    background-color: var(--interactive-normal);
     border: 1px solid var(--background-modifier-border);
     font-weight: 500;
     position: relative;
 }
 
+.streams-calendar-change-stream:hover {
+    background-color: var(--interactive-hover);
+    color: var(--text-normal);
+    border-color: var(--text-accent);
+}
+
 .streams-calendar-home-button {
     cursor: pointer;
     transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    background-color: var(--interactive-normal);
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-muted);
+}
+
+.streams-calendar-home-button:hover {
+    background-color: var(--interactive-hover);
+    color: var(--text-normal);
+    border-color: var(--text-accent);
 }
 
 /* Hover effect removed */
@@ -322,9 +358,10 @@
     right: 0;
     width: auto;
     min-width: 200px;
-    background-color: var(--background-secondary);
-    border-radius: 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     z-index: 10000;
     overflow: visible;
 }
@@ -334,16 +371,23 @@
     align-items: center;
     padding: 8px 12px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: all 0.2s ease;
     border-bottom: 1px solid var(--background-modifier-border);
+    color: var(--text-normal);
 }
 
 .streams-calendar-stream-item:last-child {
     border-bottom: none;
+    border-radius: 0 0 6px 6px;
+}
+
+.streams-calendar-stream-item:first-child {
+    border-radius: 6px 6px 0 0;
 }
 
 .streams-calendar-stream-item:hover {
     background-color: var(--interactive-hover);
+    color: var(--text-accent);
 }
 
 .streams-calendar-stream-item-icon {
@@ -397,9 +441,10 @@
     padding: 16px;
     width: auto;
     min-width: 264px;
-    background-color: var(--background-secondary);
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
     border-radius: 0 0 8px 8px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     opacity: 0;
     transition: all 0.3s ease;
     z-index: 1005;
@@ -451,16 +496,24 @@
     flex-direction: column;
     align-items: center;
     gap: 2px;
-    border: none;
+    border: 1px solid transparent;
     padding: 4px;
     border-radius: 4px;
-    transition: background-color 0.2s ease, transform 0.1s ease;
+    transition: all 0.2s ease;
     min-width: 32px; /* Fixed width for day cells */
     min-height: 32px; /* Fixed height for day cells */
     width: 32px;
     height: 32px;
     justify-content: center;
     cursor: pointer;
+    background-color: var(--background-primary);
+    color: var(--text-normal);
+}
+
+.streams-calendar-day:hover {
+    background-color: var(--interactive-hover);
+    border-color: var(--text-accent);
+    color: var(--text-accent);
 }
 
 /* Hover effect removed */
@@ -499,7 +552,8 @@
     width: 264px;
     padding: 8px;
     box-sizing: border-box;
-    background-color: var(--background-primary);
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
     border-radius: 6px;
     margin: 0;
 }
@@ -526,8 +580,9 @@
 
 .streams-calendar-day.viewed {
     border-color: var(--text-accent);
-    background-color: var(--background-primary-alt);
-    box-shadow: none;
+    background-color: var(--interactive-hover);
+    color: var(--text-accent);
+    font-weight: 600;
 }
 
 .streams-dot-container {
@@ -546,11 +601,11 @@
 /* Hover effect removed */
 
 .streams-calendar-day.today {
-    color: var(--text-accent);
+    color: var(--text-on-accent);
     font-weight: 600;
-    background-color: var(--background-primary-alt);
-    border: 1px solid var(--text-accent);
-    box-shadow: none;
+    background-color: var(--interactive-accent);
+    border: 1px solid var(--interactive-accent);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .streams-calendar-day.today .streams-content-dot {
