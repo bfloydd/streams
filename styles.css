@@ -154,12 +154,10 @@
     margin: 0;
     pointer-events: auto;
     border-bottom: 1px solid var(--background-modifier-border);
-    /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
     height: 32px;
     display: flex;
     align-items: center;
     padding: 0 14px;
-    /* background: var(--background-primary); */
     backdrop-filter: blur(8px);
 }
 
