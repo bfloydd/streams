@@ -201,6 +201,17 @@ export class CalendarComponent extends Component {
             await command.execute();
         });
         
+        const settingsButton = navControls.createDiv('streams-calendar-settings-button');
+        setIcon(settingsButton, 'settings');
+        settingsButton.setAttribute('aria-label', 'Open Streams plugin settings');
+        settingsButton.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            this.log.debug("SETTINGS BUTTON CLICKED - Opening Streams plugin settings");
+            const setting = (this.app as any).setting;
+            setting.open();
+            setting.openTabById('streams');
+        });
+        
 
         // Create the "Change Stream" section
         const changeStreamSection = collapsedView.createDiv('streams-calendar-change-stream');

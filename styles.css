@@ -330,6 +330,26 @@
     border-color: var(--text-accent);
 }
 
+.streams-calendar-settings-button {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    background-color: var(--interactive-normal);
+    border: 1px solid var(--background-modifier-border);
+    color: var(--text-muted);
+}
+
+.streams-calendar-settings-button:hover {
+    background-color: var(--interactive-hover);
+    color: var(--text-normal);
+    border-color: var(--text-accent);
+}
+
 /* Hover effect removed */
 
 .streams-calendar-change-stream-icon {
