@@ -145,7 +145,7 @@
 }
 
 .streams-calendar-component {
-    position: fixed;
+    position: absolute;
     top: 0;
     left: 0;
     right: 0;
@@ -162,8 +162,18 @@
     padding: 0 14px;
 }
 
-/* Ensure content starts below the fixed bar */
-body {
+/* Position relative to the content container that contains cm-panels */
+.streams-markdown-view-content {
+    position: relative;
+}
+
+.streams-markdown-view-content .streams-calendar-component {
+    position: absolute;
+    top: 0;
+}
+
+/* Ensure content starts below the streams bar */
+.view-content {
     padding-top: 32px !important;
 }
 

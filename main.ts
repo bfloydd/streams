@@ -64,6 +64,8 @@ export default class StreamsPlugin extends Plugin {
 		// Create global stream indicator
 		this.createGlobalStreamIndicator();
 		
+		// No need for dynamic positioning - CSS handles it automatically
+		
 		this.isInitializing = false;
 		this.log.info('Streams plugin loaded');
 	}
@@ -188,6 +190,8 @@ export default class StreamsPlugin extends Plugin {
 				new Notice('Global stream indicator refreshed');
 			}
 		});
+
+		// No positioning commands needed - CSS handles it automatically
 	}
 	
 	private logInitialState(): void {
@@ -316,6 +320,8 @@ export default class StreamsPlugin extends Plugin {
 		if (existingIndicator) {
 			existingIndicator.remove();
 		}
+		
+		// No observers to clean up
 		
 		this.commandsByStreamId.clear();
 	}
@@ -771,6 +777,8 @@ export default class StreamsPlugin extends Plugin {
 			this.createGlobalStreamIndicator();
 		}
 	}
+
+	// Positioning is now handled automatically by CSS - no JavaScript needed
 	
 	/**
 	 * Create a unique identifier for a WorkspaceLeaf
