@@ -153,6 +153,10 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     stream.showTodayInRibbon = value;
                     await this.plugin.saveSettings();
+                    
+                    // Force complete ribbon refresh
+                    this.plugin.removeAllRibbonIcons();
+                    this.plugin.initializeAllRibbonIcons();
                 }));
 
         new Setting(card)

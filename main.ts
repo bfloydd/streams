@@ -186,6 +186,34 @@ export default class StreamsPlugin extends Plugin {
 			}
 		});
 
+		// Add a command to manually clear all stream commands (for debugging)
+		this.addCommand({
+			id: 'clear-all-stream-commands',
+			name: 'Clear all stream commands',
+			callback: () => {
+				this.clearAllStreamCommands();
+				new Notice('All stream commands cleared');
+			}
+		});
+
+		// Add a command to debug what commands are registered
+		this.addCommand({
+			id: 'debug-stream-commands',
+			name: 'Debug stream commands',
+			callback: () => {
+				this.debugStreamCommands();
+			}
+		});
+
+		// Add a command to force complete plugin restart
+		this.addCommand({
+			id: 'force-plugin-restart',
+			name: 'Force plugin restart (nuclear option)',
+			callback: () => {
+				this.forcePluginRestart();
+			}
+		});
+
 		// No positioning commands needed - CSS handles it automatically
 	}
 	
@@ -218,7 +246,7 @@ export default class StreamsPlugin extends Plugin {
 	}
 	
 	
-	private initializeAllRibbonIcons(): void {
+	public initializeAllRibbonIcons(): void {
 		// Create icons for all streams (even if hidden)
 		this.settings.streams.forEach(stream => {
 			this.createStreamIcons(stream);
@@ -248,9 +276,9 @@ export default class StreamsPlugin extends Plugin {
 			this.ribbonIconsByStream.set(stream.id, streamIcons);
 		}
 		
-		// Create Today icon if needed
+		// ALWAYS create the icon, regardless of visibility setting
 		if (!streamIcons.today) {
-			this.log.debug(`Creating Today icon for stream ${stream.id}, initial visibility: ${stream.showTodayInRibbon}`);
+			this.log.debug(`Creating Today icon for stream ${stream.id}`);
 			
 			streamIcons.today = this.addRibbonIcon(
 				stream.icon,
@@ -261,34 +289,36 @@ export default class StreamsPlugin extends Plugin {
 				}
 			);
 			
-			// Hide initially, visibility updated later
-			this.updateIconVisibility(streamIcons.today, false);
-			
+			// Set initial visibility
+			this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
 		}
-		
 	}
 	
 	
 
-	private updateAllIconVisibility(): void {
+	public updateAllIconVisibility(): void {
 		this.settings.streams.forEach(stream => {
 			this.updateStreamIconVisibility(stream);
 		});
 	}
 	
-	private updateStreamIconVisibility(stream: Stream): void {
+	public updateStreamIconVisibility(stream: Stream): void {
+		console.log(`updateStreamIconVisibility called for ${stream.name}, showTodayInRibbon: ${stream.showTodayInRibbon}`);
 		const streamIcons = this.ribbonIconsByStream.get(stream.id);
-		if (streamIcons) {
-			if (streamIcons.today) {
-				this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
-			}
-			
+		console.log(`Stream icons found:`, streamIcons);
+		
+		if (streamIcons && streamIcons.today) {
+			console.log(`Updating icon visibility for ${stream.name}`);
+			// Just update the CSS visibility - don't create/remove icons
+			this.updateIconVisibility(streamIcons.today, stream.showTodayInRibbon);
+		} else {
+			console.log(`No icon found for ${stream.name}`);
 		}
 	}
 	
 	
 	
-	private removeAllRibbonIcons(): void {
+	public removeAllRibbonIcons(): void {
 		this.ribbonIconsByStream.forEach((icons) => {
 			if (icons.today) icons.today.detach();
 		});
@@ -913,7 +943,6 @@ export default class StreamsPlugin extends Plugin {
 			this.log.debug("Settings saved");
 			
 			this.logSavedSettings();
-			this.updateAllIconVisibility();
 		} catch (error) {
 			this.log.error("Error saving settings:", error);
 		}
@@ -930,12 +959,22 @@ export default class StreamsPlugin extends Plugin {
 		// Remove existing command first
 		this.removeStreamCommand(stream.id);
 		
+		// Also remove ribbon icon command if it exists
+		const ribbonCommandId = `Streams: ${stream.name}, today`;
+		try {
+			this.removeCommand(ribbonCommandId);
+			this.log.debug(`Removed ribbon command: ${ribbonCommandId}`);
+		} catch (error) {
+			// Command might not exist, which is fine
+		}
+		
 		// Add if enabled
 		if (stream.addCommand) {
 			this.addStreamCommand(stream);
+			this.log.debug(`Added Open Today command for stream ${stream.name}`);
+		} else {
+			this.log.debug(`Removed Open Today command for stream ${stream.name}`);
 		}
-		
-		this.log.debug(`Toggled Open Today command for stream ${stream.id} to ${stream.addCommand}`);
 	}
 	
 
@@ -967,52 +1006,137 @@ export default class StreamsPlugin extends Plugin {
 		}
 	}
 
-	private updateIconVisibility(icon: HTMLElement, visible: boolean): void {
-		const wasVisible = !icon.classList.contains('streams-icon-hidden') && !icon.classList.contains('streams-plugin-hidden');
+	public clearAllStreamCommands(): void {
+		this.log.debug('Clearing all stream commands...');
 		
-		// Get stream info for styling
-		const streamId = icon.getAttribute('data-stream-id');
-		const iconType = icon.getAttribute('data-icon-type');
+		// First, remove all ribbon icons to clear their commands
+		this.removeAllRibbonIcons();
 		
-		if (visible) {
-			icon.classList.remove('streams-plugin-hidden');
-			icon.classList.remove('streams-icon-hidden');
-			icon.classList.add('streams-icon-visible');
-			
-			// Add to DOM if needed
-			if (!document.body.contains(icon)) {
-				const ribbon = this.app.workspace.containerEl.querySelector(".side-dock-ribbon");
-				if (ribbon) {
-					ribbon.appendChild(icon);
-				}
+		// Clear from our tracking map
+		const commandIds = Array.from(this.commandsByStreamId.values());
+		this.commandsByStreamId.clear();
+		
+		// Remove explicit commands
+		commandIds.forEach(commandId => {
+			try {
+				this.removeCommand(commandId);
+				this.log.debug(`Cleared explicit command: ${commandId}`);
+			} catch (error) {
+				// Command might not exist, which is fine
 			}
-			
-			// Reapply styling
-			if (streamId) {
-				const stream = this.settings.streams.find(s => s.id === streamId);
-				if (stream) {
-				}
+		});
+		
+		// Try to remove ribbon icon commands that might still exist
+		this.settings.streams.forEach(stream => {
+			const ribbonCommandId = `Streams: ${stream.name}, today`;
+			try {
+				this.removeCommand(ribbonCommandId);
+				this.log.debug(`Cleared ribbon command: ${ribbonCommandId}`);
+			} catch (error) {
+				// Command might not exist, which is fine
 			}
-		} else {
-			icon.classList.add('streams-icon-hidden');
-			icon.classList.add('streams-plugin-hidden');
+		});
+		
+		// Force refresh the command palette
+		this.forceRefreshCommandPalette();
+	}
+	
+	private forceRefreshCommandPalette(): void {
+		// Trigger a command palette refresh by dispatching a custom event
+		// This helps ensure the UI updates immediately
+		const event = new CustomEvent('streams-commands-cleared');
+		document.dispatchEvent(event);
+		this.log.debug('Command palette refresh triggered');
+	}
+
+	public debugStreamCommands(): void {
+		this.log.debug('=== STREAM COMMANDS DEBUG ===');
+		this.log.debug(`Commands in tracking map: ${this.commandsByStreamId.size}`);
+		this.commandsByStreamId.forEach((commandId, streamId) => {
+			this.log.debug(`  ${streamId} -> ${commandId}`);
+		});
+		
+		this.log.debug('Stream settings:');
+		this.settings.streams.forEach(stream => {
+			this.log.debug(`  ${stream.name}: addCommand=${stream.addCommand}, showTodayInRibbon=${stream.showTodayInRibbon}`);
+		});
+		
+		// Try to find commands in Obsidian's command registry
+		const allCommands = (this.app as any).commands?.commands;
+		if (allCommands) {
+			const streamCommands = Object.keys(allCommands).filter(id => 
+				id.includes('stream') || 
+				id.includes('Streams:') || 
+				id.includes('today') ||
+				this.settings.streams.some(s => id.includes(s.name))
+			);
+			this.log.debug(`Found ${streamCommands.length} potential stream commands in Obsidian:`);
+			streamCommands.forEach(cmd => {
+				this.log.debug(`  ${cmd}`);
+			});
 		}
 		
-		const isNowVisible = !icon.classList.contains('streams-icon-hidden') && !icon.classList.contains('streams-plugin-hidden');
-		this.log.debug(`Icon visibility update: ${wasVisible ? 'visible' : 'hidden'} → ${isNowVisible ? 'visible' : 'hidden'}`);
+		new Notice(`Debug info logged to console. Found ${this.commandsByStreamId.size} tracked commands.`);
+	}
+
+	public forcePluginRestart(): void {
+		this.log.debug('=== FORCE PLUGIN RESTART ===');
+		
+		// Clear everything
+		this.clearAllStreamCommands();
+		
+		// Remove all ribbon icons
+		this.removeAllRibbonIcons();
+		
+		// Clear all calendar components
+		this.removeAllCalendarComponents();
+		
+		// Force a complete re-initialization
+		setTimeout(() => {
+			this.log.debug('Re-initializing everything...');
+			this.initializeAllRibbonIcons();
+			this.initializeStreamCommands();
+			this.initializeActiveView();
+			new Notice('Plugin force restarted - check if commands are gone');
+		}, 1000);
+	}
+
+	private updateIconVisibility(icon: HTMLElement, visible: boolean): void {
+		// Use direct style manipulation for immediate effect
+		if (visible) {
+			icon.style.display = '';
+			icon.style.visibility = 'visible';
+			icon.classList.remove('streams-plugin-hidden');
+			icon.classList.remove('streams-icon-hidden');
+		} else {
+			icon.style.display = 'none';
+			icon.style.visibility = 'hidden';
+			icon.classList.add('streams-plugin-hidden');
+			icon.classList.add('streams-icon-hidden');
+		}
+		
+		this.log.debug(`Icon visibility updated: ${visible ? 'visible' : 'hidden'}`);
 	}
 
 	public initializeStreamCommands(): void {
 		this.log.debug('Initializing stream commands...');
 		
-		this.settings.streams.forEach(stream => {
-			// Add "Open Today" command if enabled
-			if (stream.addCommand) {
-				this.addStreamCommand(stream);
-				this.log.debug(`Added Open Today command for stream ${stream.name}`);
-			}
-			
-		});
+		// NUCLEAR APPROACH: Clear everything first
+		this.clearAllStreamCommands();
+		
+		// Wait longer to ensure commands are cleared
+		setTimeout(() => {
+			this.log.debug('Re-registering commands after clear...');
+			this.settings.streams.forEach(stream => {
+				// Add "Open Today" command if enabled
+				if (stream.addCommand) {
+					this.addStreamCommand(stream);
+					this.log.debug(`Added Open Today command for stream ${stream.name}`);
+				} else {
+					this.log.debug(`Skipping command for stream ${stream.name} (addCommand: false)`);
+				}
+			});
+		}, 500);
 	}
 
 
