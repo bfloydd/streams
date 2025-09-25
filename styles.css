@@ -221,11 +221,7 @@
     margin-bottom: 8px;
 }
 
-.streams-calendar-collapsed:hover {
-    background-color: var(--background-primary);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    transform: translateY(-1px);
-}
+/* Hover effect removed */
 
 .streams-calendar-nav-controls {
     display: flex;
@@ -256,12 +252,7 @@
     font-weight: 500;
 }
 
-.streams-calendar-day-nav:hover {
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-    transform: scale(1.05);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+/* Hover effect removed */
 
 .streams-calendar-day-nav:active {
     background-color: var(--interactive-accent-hover);
@@ -301,12 +292,7 @@
     font-weight: 500;
 }
 
-.streams-calendar-change-stream:hover {
-    background-color: var(--interactive-accent);
-    color: var(--text-on-accent);
-    transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+/* Hover effect removed */
 
 .streams-calendar-change-stream-icon {
     display: flex;
@@ -446,12 +432,7 @@
     font-size: 16px;
 }
 
-.streams-calendar-nav:hover {
-    color: var(--text-on-accent);
-    background-color: var(--interactive-accent);
-    border-radius: 4px;
-    transform: scale(1.05);
-}
+/* Hover effect removed */
 
 .streams-calendar-nav:active {
     transform: scale(0.95);
@@ -481,11 +462,7 @@
     justify-content: center;
 }
 
-.streams-calendar-day:hover {
-    background-color: var(--interactive-hover);
-    transform: scale(1.05);
-    border-color: var(--background-modifier-border);
-}
+/* Hover effect removed */
 
 .streams-calendar-day:active {
     background-color: var(--interactive-accent);
@@ -564,9 +541,7 @@
     background-color: var(--text-muted);
 }
 
-.streams-calendar-day:hover .streams-content-dot {
-    background-color: var(--text-normal);
-}
+/* Hover effect removed */
 
 .streams-calendar-day.today {
     color: var(--text-accent);
