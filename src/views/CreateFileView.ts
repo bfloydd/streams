@@ -84,8 +84,15 @@ export class CreateFileView extends ItemView {
             if (state.date) {
                 try {
                     if (typeof state.date === 'string') {
-                        this.date = new Date(state.date);
-                        this.log.debug(`Parsed date from string: ${this.date.toISOString()}`);
+                        // Handle YYYY-MM-DD format
+                        if (state.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            const [year, month, day] = state.date.split('-').map(n => parseInt(n, 10));
+                            this.date = new Date(year, month - 1, day); // month is 0-indexed
+                            this.log.debug(`Parsed YYYY-MM-DD date: ${this.date.toISOString()}`);
+                        } else {
+                            this.date = new Date(state.date);
+                            this.log.debug(`Parsed date from string: ${this.date.toISOString()}`);
+                        }
                     } else if (state.date instanceof Date) {
                         this.date = state.date;
                         this.log.debug(`Used date object directly: ${this.date.toISOString()}`);

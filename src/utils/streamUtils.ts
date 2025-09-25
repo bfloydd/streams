@@ -175,10 +175,10 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
             state: { 
                 filePath: filePath, 
                 stream: stream,
-                date: date.toISOString() 
+                date: formatDateToYYYYMMDD(date)
             }
         });
-        log.debug(`Set view state with date: ${date.toISOString()} for file: ${filePath}`);
+        log.debug(`Set view state with date: ${formatDateToYYYYMMDD(date)} for file: ${filePath}`);
         
         		app.workspace.setActiveLeaf(leaf, { focus: true });
 		return;
