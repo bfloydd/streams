@@ -1,6 +1,6 @@
 import { App, TFile, WorkspaceLeaf, ItemView, setIcon } from 'obsidian';
 import { Stream } from '../../shared/types';
-import { Logger } from '../debug-logging/Logger';
+import { centralizedLogger } from '../../shared/centralized-logger';
 
 // Interface for the streams plugin
 interface StreamsPlugin {
@@ -19,7 +19,6 @@ interface AppWithPlugins extends App {
 export const CREATE_FILE_VIEW_TYPE = 'streams-create-file-view';
 
 export class CreateFileView extends ItemView {
-    private log: Logger = new Logger();
     private filePath: string;
     private date: Date;
     private stream: Stream;
@@ -54,7 +53,7 @@ export class CreateFileView extends ItemView {
             
             return fileName.replace('.md', '');
         } catch (error) {
-            this.log.error('Error formatting display text:', error);
+            centralizedLogger.error('Error formatting display text:', error);
             return this.filePath.split('/').pop()?.replace('.md', '') || '';
         }
     }
@@ -71,7 +70,7 @@ export class CreateFileView extends ItemView {
 
     async setState(state: { stream?: Stream; date?: string | Date; filePath?: string }, result?: unknown): Promise<void> {
         if (state) {
-            this.log.debug(`Setting state with: ${JSON.stringify(state)}`);
+            // Setting state
             
             const oldFilePath = this.filePath;
             const oldDate = this.date ? new Date(this.date.getTime()) : null;
@@ -88,23 +87,23 @@ export class CreateFileView extends ItemView {
                         if (state.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
                             const [year, month, day] = state.date.split('-').map(n => parseInt(n, 10));
                             this.date = new Date(year, month - 1, day); // month is 0-indexed
-                            this.log.debug(`Parsed YYYY-MM-DD date: ${this.date.toISOString()}`);
+                            // Parsed YYYY-MM-DD date
                         } else {
                             this.date = new Date(state.date);
-                            this.log.debug(`Parsed date from string: ${this.date.toISOString()}`);
+                            // Parsed date from string
                         }
                     } else if (state.date instanceof Date) {
                         this.date = state.date;
-                        this.log.debug(`Used date object directly: ${this.date.toISOString()}`);
+                        // Used date object directly
                     } else {
                         const filePathMatch = this.filePath.match(/(\d{4}-\d{2}-\d{2})\.md$/);
                         if (filePathMatch && filePathMatch[1]) {
                             const [year, month, day] = filePathMatch[1].split('-').map(n => parseInt(n, 10));
                             this.date = new Date(year, month - 1, day);
-                            this.log.debug(`Extracted date from filepath: ${this.date.toISOString()}`);
+                            // Extracted date from filepath
                         } else {
                             this.date = new Date();
-                            this.log.debug(`Using today as final fallback: ${this.date.toISOString()}`);
+                            // Using today as final fallback
                         }
                     }
                     
@@ -114,7 +113,7 @@ export class CreateFileView extends ItemView {
                         dateChanged = true;
                     }
                 } catch (error) {
-                    this.log.error(`Error parsing date: ${error}`);
+                    centralizedLogger.error(`Error parsing date: ${error}`);
                     this.date = new Date();
                 }
             }
@@ -123,7 +122,7 @@ export class CreateFileView extends ItemView {
             const isJustTitleUpdate = result && (result as any).isTitleRefresh;
             
             if ((filePathChanged || dateChanged) && !isJustTitleUpdate) {
-                this.log.debug(`State changed significantly, refreshing view`);
+                // State changed significantly, refreshing view
                 setTimeout(() => {
                     this.refreshView();
                     this.app.workspace.trigger('streams-create-file-state-changed', this);
@@ -152,10 +151,10 @@ export class CreateFileView extends ItemView {
         const extractedDate = this.extractDateFromFilenameString(this.filePath);
         if (extractedDate) {
             this.date = extractedDate;
-            this.log.debug(`Extracted date from filename fallback: ${this.date.toISOString()}`);
+            // Extracted date from filename fallback
         } else {
             this.date = new Date();
-            this.log.debug(`Using today as final fallback: ${this.date.toISOString()}`);
+            // Using today as final fallback
         }
     }
 
@@ -169,7 +168,7 @@ export class CreateFileView extends ItemView {
         const extractedDate = this.extractDateFromFilenameString(this.filePath);
         if (extractedDate) {
             if (!this.date || this.date.toDateString() !== extractedDate.toDateString()) {
-                this.log.debug(`Updating date from file path: ${extractedDate.toISOString()}`);
+                // Updating date from file path
                 this.date = extractedDate;
             }
         }
@@ -189,15 +188,12 @@ export class CreateFileView extends ItemView {
         
         const dateEl = container.createDiv('streams-create-file-date');
         
-        this.log.debug(`Date for formatting: ${this.date.toISOString()}`);
-        
         if (!(this.date instanceof Date) || isNaN(this.date.getTime())) {
-            this.log.error("Invalid date object, creating a new one");
+            centralizedLogger.error("Invalid date object, creating a new one");
             this.extractDateFromFilename();
         }
         
         const formattedDate = this.formatDate(this.date);
-        this.log.debug(`Formatted date for display: ${formattedDate}`);
         dateEl.setText(formattedDate);
         
         // Create button
@@ -224,7 +220,7 @@ export class CreateFileView extends ItemView {
     }
     
     private formatDate(date: Date): string {
-        this.log.debug(`Formatting date: ${date.toISOString()}`);
+        // Formatting date
         
         try {
             return date.toLocaleDateString('en-US', { 
@@ -234,7 +230,7 @@ export class CreateFileView extends ItemView {
                 day: 'numeric' 
             });
         } catch (error) {
-            this.log.error(`Error formatting date: ${error}`);
+            centralizedLogger.error(`Error formatting date: ${error}`);
             return "Invalid Date";
         }
     }
@@ -250,7 +246,7 @@ export class CreateFileView extends ItemView {
                         await this.app.vault.createFolder(folderPath);
                     }
                 } catch (error) {
-                    this.log.debug('Using existing folder:', folderPath);
+                    // Using existing folder
                 }
             }
             
@@ -260,7 +256,7 @@ export class CreateFileView extends ItemView {
                 await this.leaf.openFile(file);
             }
         } catch (error) {
-            this.log.error('Error creating file:', error);
+            centralizedLogger.error('Error creating file:', error);
         }
     }
 
@@ -282,16 +278,16 @@ export class CreateFileView extends ItemView {
      */
     private updateTabTitle(): void {
         try {
-            this.log.debug('Updating tab title');
+            // Updating tab title
             
             this.leaf.setViewState({
                 type: this.getViewType(),
                 state: this.getState(),
             }, { history: false, isTitleRefresh: true });
             
-            this.log.debug(`Updated tab title to: ${this.getDisplayText()}`);
+            // Updated tab title
         } catch (error) {
-            this.log.error('Error updating tab title:', error);
+            centralizedLogger.error('Error updating tab title:', error);
         }
     }
     
@@ -305,7 +301,7 @@ export class CreateFileView extends ItemView {
                 plugin.setActiveStream(this.stream.id, true);
             }
         } catch (error) {
-            this.log.error('Error setting active stream:', error);
+            centralizedLogger.error('Error setting active stream:', error);
         }
     }
 } 

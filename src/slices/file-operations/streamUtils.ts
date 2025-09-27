@@ -1,9 +1,7 @@
 import { App, TFolder, TFile, MarkdownView, WorkspaceLeaf, normalizePath } from 'obsidian';
 import { Stream } from '../../shared/types';
-import { Logger } from '../debug-logging/Logger';
+import { centralizedLogger } from '../../shared/centralized-logger';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from './CreateFileView';
-
-const log = new Logger();
 
 /**
  * Interface for Obsidian's internal ViewRegistry, which manages all view registrations
@@ -95,35 +93,35 @@ export async function createDailyNote(app: App, folder: string): Promise<TFile |
 }
 
 export async function openStreamDate(app: App, stream: Stream, date: Date = new Date(), reuseCurrentTab: boolean = false): Promise<void> {
-	log.debug(`Opening stream date: ${date.toISOString()}, reuse tab: ${reuseCurrentTab}`);
+	// Opening stream date
     
     if (!(date instanceof Date) || isNaN(date.getTime())) {
-        log.error(`Invalid date provided: ${date}`);
+        centralizedLogger.error(`Invalid date provided: ${date}`);
         return;
     }
     
     const fileName = `${formatDateToYYYYMMDD(date)}.md`;
-    log.debug(`Formatted date: ${formatDateToYYYYMMDD(date)}`);
+    // Formatted date
 
     const folderPath = normalizeFolderPath(stream.folder);
     const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
-    log.debug(`Looking for file at path: ${filePath}`);
+    // Looking for file at path
 
     let file = app.vault.getAbstractFileByPath(filePath);
-    log.debug(`File exists: ${!!file}`);
+    // File exists check
     
     if (!file) {
-        log.debug(`File not found: ${filePath}, showing create file view`);
+        // File not found, showing create file view
         
         if (folderPath) {
             try {
                 const folderExists = app.vault.getAbstractFileByPath(folderPath);
                 if (!folderExists) {
                     await app.vault.createFolder(folderPath);
-                    log.debug(`Created folder: ${folderPath}`);
+                    // Created folder
                 }
             } catch (error) {
-                log.debug('Using existing folder:', folderPath);
+                // log.debug('Using existing folder:', folderPath);
             }
         }
         
@@ -134,16 +132,16 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
             const activeLeaf = app.workspace.activeLeaf;
             if (activeLeaf) {
                 leaf = activeLeaf;
-                log.debug('Reusing current active leaf for CreateFileView (reuseCurrentTab enabled)');
+                // log.debug('Reusing current active leaf for CreateFileView (reuseCurrentTab enabled)');
             } else {
                 // Fallback: look for existing CreateFileView leaves
                 const existingCreateFileViewLeaves = app.workspace.getLeavesOfType(CREATE_FILE_VIEW_TYPE);
                 if (existingCreateFileViewLeaves.length > 0) {
                     leaf = existingCreateFileViewLeaves[0];
-                    log.debug('Reusing existing CreateFileView leaf');
+                    // log.debug('Reusing existing CreateFileView leaf');
                 } else {
                     leaf = app.workspace.getLeaf('tab');
-                    log.debug('Created a new leaf for CreateFileView');
+                    // log.debug('Created a new leaf for CreateFileView');
                 }
             }
         } else {
@@ -151,10 +149,10 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
             const existingCreateFileViewLeaves = app.workspace.getLeavesOfType(CREATE_FILE_VIEW_TYPE);
             if (existingCreateFileViewLeaves.length > 0) {
                 leaf = existingCreateFileViewLeaves[0];
-                log.debug('Reusing existing CreateFileView leaf');
+                // log.debug('Reusing existing CreateFileView leaf');
             } else {
                 leaf = app.workspace.getLeaf('tab');
-                log.debug('Created a new leaf for CreateFileView');
+                // log.debug('Created a new leaf for CreateFileView');
             }
         }
         
@@ -167,7 +165,7 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                 CREATE_FILE_VIEW_TYPE,
                 (newLeaf: WorkspaceLeaf) => new CreateFileView(newLeaf, app, filePath, stream, date)
             );
-            log.debug(`Registered CreateFileView`);
+            // log.debug(`Registered CreateFileView`);
         }
         
         await leaf.setViewState({
@@ -178,7 +176,7 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                 date: formatDateToYYYYMMDD(date)
             }
         });
-        log.debug(`Set view state with date: ${formatDateToYYYYMMDD(date)} for file: ${filePath}`);
+        // log.debug(`Set view state with date: ${formatDateToYYYYMMDD(date)} for file: ${filePath}`);
         
         		app.workspace.setActiveLeaf(leaf, { focus: true });
 		return;
@@ -193,7 +191,7 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                 const activeLeaf = app.workspace.activeLeaf;
                 if (activeLeaf) {
                     leaf = activeLeaf;
-                    log.debug('Reusing current active leaf for markdown view (reuseCurrentTab enabled)');
+                    // log.debug('Reusing current active leaf for markdown view (reuseCurrentTab enabled)');
                 } else {
                     // Fallback: look for existing leaf with the same file
                     const existingLeaf = app.workspace.getLeavesOfType('markdown')
@@ -207,17 +205,17 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                                 const filePath = normalizePath(file.path);
                                 return viewPath === filePath;
                             } catch (e) {
-                                log.debug('Error comparing files:', e);
+                                // log.debug('Error comparing files:', e);
                                 return false;
                             }
                         });
 
                     if (existingLeaf) {
                         leaf = existingLeaf;
-                        log.debug('Found existing leaf with same file');
+                        // log.debug('Found existing leaf with same file');
                     } else {
                         leaf = app.workspace.getLeaf('tab');
-                        log.debug('Created a new leaf for markdown view');
+                        // log.debug('Created a new leaf for markdown view');
                     }
                 }
             } else {
@@ -233,17 +231,17 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                             const filePath = normalizePath(file.path);
                             return viewPath === filePath;
                         } catch (e) {
-                            log.debug('Error comparing files:', e);
+                            // log.debug('Error comparing files:', e);
                             return false;
                         }
                     });
 
                 if (existingLeaf) {
                     leaf = existingLeaf;
-                    log.debug('Found existing leaf with same file');
+                    // log.debug('Found existing leaf with same file');
                 } else {
                     leaf = app.workspace.getLeaf('tab');
-                    log.debug('Created a new leaf for markdown view');
+                    // log.debug('Created a new leaf for markdown view');
                 }
             }
             
@@ -252,7 +250,7 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                 app.workspace.setActiveLeaf(leaf, { focus: true });
             }
         } catch (e) {
-            log.error('Error opening stream date:', e);
+            centralizedLogger.error('Error opening stream date:', e);
         }
     }
 } 

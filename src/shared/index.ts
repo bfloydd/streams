@@ -30,3 +30,6 @@ export * from './memory-manager';
 
 // Service loader
 export * from './service-loader';
+
+// Centralized logging
+export * from './centralized-logger';

@@ -1,5 +1,6 @@
 import { Plugin } from 'obsidian';
 import { SliceService, PluginAwareService } from './interfaces';
+import { centralizedLogger } from './centralized-logger';
 
 /**
  * Simple dependency injection container for managing slice services
@@ -49,7 +50,7 @@ export class SliceContainer {
     async initializeAll(): Promise<void> {
         const initPromises = Array.from(this.services.values()).map(service => 
             service.initialize().catch(error => {
-                console.error(`Failed to initialize service ${service.constructor.name}:`, error);
+                centralizedLogger.error(`Failed to initialize service ${service.constructor.name}:`, error);
             })
         );
         
@@ -64,7 +65,7 @@ export class SliceContainer {
             try {
                 service.cleanup();
             } catch (error) {
-                console.error(`Failed to cleanup service ${service.constructor.name}:`, error);
+                centralizedLogger.error(`Failed to cleanup service ${service.constructor.name}:`, error);
             }
         }
     }

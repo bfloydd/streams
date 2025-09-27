@@ -1,6 +1,7 @@
 import { Plugin } from 'obsidian';
 import { SliceService, PluginAwareService, StreamAwareService, SettingsAwareService } from './interfaces';
 import { Stream, StreamsSettings } from './types';
+import { centralizedLogger } from './centralized-logger';
 
 /**
  * Base class for all slice services
@@ -13,19 +14,11 @@ export abstract class BaseSliceService implements SliceService {
     abstract cleanup(): void;
 
     protected log(message: string, ...args: any[]): void {
-        if (this.plugin && (this.plugin as any).log) {
-            (this.plugin as any).log.debug(message, ...args);
-        } else {
-            console.log(`[${this.constructor.name}] ${message}`, ...args);
-        }
+        centralizedLogger.info(`[${this.constructor.name}] ${message}`, ...args);
     }
 
     protected error(message: string, ...args: any[]): void {
-        if (this.plugin && (this.plugin as any).log) {
-            (this.plugin as any).log.error(message, ...args);
-        } else {
-            console.error(`[${this.constructor.name}] ${message}`, ...args);
-        }
+        centralizedLogger.error(`[${this.constructor.name}] ${message}`, ...args);
     }
 }
 

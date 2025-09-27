@@ -1,6 +1,6 @@
 import { App, WorkspaceLeaf, TFile, MarkdownView, View, Component, setIcon } from 'obsidian';
 import { Stream } from '../../shared/types';
-import { Logger } from '../debug-logging/Logger';
+import { centralizedLogger } from '../../shared/centralized-logger';
 import { OpenStreamDateCommand } from '../file-operations/OpenStreamDateCommand';
 import { OpenTodayStreamCommand } from '../file-operations/OpenTodayStreamCommand';
 import { OpenTodayCurrentStreamCommand } from '../file-operations/OpenTodayCurrentStreamCommand';
@@ -34,7 +34,6 @@ export class CalendarComponent extends Component {
     private currentDate: Date = new Date();
     private selectedStream: Stream;
     private app: App;
-    private log: Logger = new Logger();
     private grid: HTMLElement | null = null;
     private fileModifyHandler: () => void;
     private currentViewedDate: string | null = null;
@@ -85,7 +84,7 @@ export class CalendarComponent extends Component {
         
         let contentContainer: HTMLElement | null = null;
         const viewType = leaf.view.getViewType();
-        this.log.debug(`Creating calendar component for view type: ${viewType}`);
+        // Creating calendar component
         
         if (viewType === 'markdown') {
             const markdownView = leaf.view as MarkdownView;
@@ -99,7 +98,7 @@ export class CalendarComponent extends Component {
                     // Set the currentDate to match the viewed date so the calendar shows the correct month
                     const [year, month, day] = match[0].split('-').map(n => parseInt(n, 10));
                     this.currentDate = new Date(year, month - 1, day); // month is 0-indexed
-                    this.log.debug(`Set currentDate to match viewed date: ${this.currentViewedDate} -> ${this.currentDate.toISOString()}`);
+                    // Set currentDate to match viewed date
                 }
             }
             
@@ -114,10 +113,10 @@ export class CalendarComponent extends Component {
                 if (state && state.date) {
                     const dateString = state.date as string;
                     this.currentViewedDate = dateString.split('T')[0];
-                    this.log.debug(`Set currentViewedDate from state: ${this.currentViewedDate}`);
+                    // Set currentViewedDate from state
                 }
             } catch (error) {
-                this.log.error('Error getting date from CreateFileView state:', error);
+                centralizedLogger.error('Error getting date from CreateFileView state:', error);
             }
             
             // No need for fixed position class - the CSS handles positioning
@@ -130,7 +129,7 @@ export class CalendarComponent extends Component {
         }
         
         if (!contentContainer) {
-            this.log.error('Could not find content container');
+            centralizedLogger.error('Could not find content container');
             return;
         }
 
@@ -168,7 +167,7 @@ export class CalendarComponent extends Component {
         prevDayButton.setAttribute('aria-label', 'Previous day');
         prevDayButton.addEventListener('click', async (e) => {
             e.stopPropagation();
-            this.log.debug("LEFT ARROW CLICKED - Going to PREVIOUS day");
+            // LEFT ARROW CLICKED - Going to PREVIOUS day
             await this.navigateToAdjacentDay(-1);
         });
         
@@ -187,7 +186,7 @@ export class CalendarComponent extends Component {
         nextDayButton.setAttribute('aria-label', 'Next day');
         nextDayButton.addEventListener('click', async (e) => {
             e.stopPropagation();
-            this.log.debug("RIGHT ARROW CLICKED - Going to NEXT day");
+            // RIGHT ARROW CLICKED - Going to NEXT day
             await this.navigateToAdjacentDay(1);
         });
         
@@ -196,7 +195,7 @@ export class CalendarComponent extends Component {
         homeButton.setAttribute('aria-label', 'Go to current stream today');
         homeButton.addEventListener('click', async (e) => {
             e.stopPropagation();
-            this.log.debug("HOME BUTTON CLICKED - Going to current stream today");
+            // HOME BUTTON CLICKED - Going to current stream today
             const command = new OpenTodayCurrentStreamCommand(this.app, this.streams, this.reuseCurrentTab, this.plugin);
             await command.execute();
         });
@@ -206,7 +205,7 @@ export class CalendarComponent extends Component {
         settingsButton.setAttribute('aria-label', 'Open Streams plugin settings');
         settingsButton.addEventListener('click', async (e) => {
             e.stopPropagation();
-            this.log.debug("SETTINGS BUTTON CLICKED - Opening Streams plugin settings");
+            // SETTINGS BUTTON CLICKED - Opening Streams plugin settings
             const setting = (this.app as any).setting;
             setting.open();
             setting.openTabById('streams');
@@ -391,7 +390,7 @@ export class CalendarComponent extends Component {
             const handleDaySelect = (e: Event) => {
                 e.preventDefault();
                 e.stopPropagation();
-                this.log.debug(`Day ${day} clicked, handling selection`);
+                // Day clicked, handling selection
                 this.selectDate(day);
             };
 
@@ -470,7 +469,7 @@ export class CalendarComponent extends Component {
     }
 
     private async selectDate(day: number) {
-        this.log.debug(`selectDate called for day: ${day}`);
+        // selectDate called for day
         const selectedDate = new Date(this.currentDate.getFullYear(), this.currentDate.getMonth(), day);
         this.currentViewedDate = this.formatDateString(selectedDate);
         
@@ -503,12 +502,12 @@ export class CalendarComponent extends Component {
     }
 
     private updateTodayButton() {
-        this.log.debug(`Updating today button with currentViewedDate: ${this.currentViewedDate}`);
+        // Updating today button
         
         if (!this.currentViewedDate) {
             const today = new Date();
             this.todayButton.setText(this.formatDate(today));
-            this.log.debug(`No current viewed date, showing today: ${this.formatDate(today)}`);
+            // No current viewed date, showing today
             return;
         }
 
@@ -523,20 +522,20 @@ export class CalendarComponent extends Component {
         
         if (viewedYear === todayYear && viewedMonth === todayMonth + 1 && viewedDay === todayDay) {
             this.todayButton.setText('TODAY');
-            this.log.debug(`Current date is today, showing "TODAY"`);
+            // Current date is today, showing "TODAY"
         } else {
             // Explicitly parse date components to avoid timezone issues
             const viewedDate = this.parseViewedDate(this.currentViewedDate);
             
             const formattedDate = this.formatDate(viewedDate);
             this.todayButton.setText(formattedDate);
-            this.log.debug(`Current date is not today, showing formatted date: ${formattedDate}`);
+            // Current date is not today, showing formatted date
         }
     }
 
 
     public destroy() {
-        this.log.debug('Destroying calendar component');
+        // Destroying calendar component
         
         if (this.component && this.component.parentElement) {
             this.component.remove();
@@ -549,11 +548,11 @@ export class CalendarComponent extends Component {
     private async navigateToAdjacentDay(offset: number): Promise<void> {
         if (this.currentViewedDate) {
             const currentDate = this.parseViewedDate(this.currentViewedDate);
-            this.log.debug(`Current date before navigation: ${currentDate.toISOString()}`);
+            // Current date before navigation
             
             const targetDate = new Date(currentDate);
             targetDate.setDate(targetDate.getDate() + offset);
-            this.log.debug(`Target date: ${targetDate.toISOString()}`);
+            // Target date
             
             const command = new OpenStreamDateCommand(this.app, this.selectedStream, targetDate, this.reuseCurrentTab);
             await command.execute();
@@ -561,7 +560,7 @@ export class CalendarComponent extends Component {
             const targetDate = new Date();
             targetDate.setDate(targetDate.getDate() + offset);
             const direction = offset > 0 ? "tomorrow" : "yesterday";
-            this.log.debug(`No current date, going to ${direction}: ${targetDate.toISOString()}`);
+            // No current date, going to target
             
             const command = new OpenStreamDateCommand(this.app, this.selectedStream, targetDate, this.reuseCurrentTab);
             await command.execute();
@@ -674,12 +673,12 @@ export class CalendarComponent extends Component {
             this.currentViewedDate = this.formatDateString(targetDate);
             this.updateTodayButton();
         } catch (error) {
-            this.log.error('Error navigating to stream daily note:', error);
+            centralizedLogger.error('Error navigating to stream daily note:', error);
         }
     }
 
     public setCurrentViewedDate(dateString: string): void {
-        this.log.debug(`Setting currentViewedDate explicitly to: ${dateString}`);
+        // Setting currentViewedDate explicitly
         this.currentViewedDate = dateString;
         
         if (dateString) {

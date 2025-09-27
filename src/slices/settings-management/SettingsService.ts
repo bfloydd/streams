@@ -3,6 +3,7 @@ import { SettingsAwareSliceService } from '../../shared/base-slice';
 import { Stream, StreamsSettings, LucideIcon } from '../../shared/types';
 import { StreamsPluginInterface } from '../../shared/interfaces';
 import { eventBus, EVENTS } from '../../shared/event-bus';
+import { centralizedLogger } from '../../shared/centralized-logger';
 
 export class SettingsService extends SettingsAwareSliceService {
     private settingsTab: StreamsSettingTab | null = null;
@@ -31,7 +32,7 @@ export class SettingsService extends SettingsAwareSliceService {
     private notifySettingsChanged(settings: StreamsSettings): void {
         // This will be used to notify other services when settings change
         // For now, we'll implement this when we add event broadcasting
-        console.log('Settings changed:', settings);
+        centralizedLogger.info('Settings changed');
     }
 
     /**

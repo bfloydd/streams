@@ -3,6 +3,7 @@
  */
 
 import { eventBus, EVENTS } from './event-bus';
+import { centralizedLogger } from './centralized-logger';
 
 export interface ErrorContext {
     service: string;
@@ -50,8 +51,8 @@ export class ErrorHandler {
 
         // Log to console in development
         if (process.env.NODE_ENV === 'development') {
-            console.error(`[${context.service}] Error in ${context.method}:`, error);
-            console.error('Context:', context);
+            centralizedLogger.error(`[${context.service}] Error in ${context.method}:`, error);
+            centralizedLogger.error('Context:', context);
         }
     }
 

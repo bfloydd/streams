@@ -3,6 +3,8 @@
  * Allows slices to communicate without tight coupling
  */
 
+import { centralizedLogger } from './centralized-logger';
+
 export interface EventBusEvent {
     type: string;
     data?: any;
@@ -63,7 +65,7 @@ export class EventBus {
                 try {
                     handler(event);
                 } catch (error) {
-                    console.error(`Error in event handler for ${eventType}:`, error);
+                    centralizedLogger.error(`Error in event handler for ${eventType}:`, error);
                 }
             });
         }

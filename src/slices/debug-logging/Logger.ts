@@ -1,8 +1,8 @@
 export enum LogLevel {
-    DEBUG = 0,
-    INFO = 1,
-    WARN = 2,
-    ERROR = 3,
+    ERROR = 0,
+    WARN = 1,
+    INFO = 2,
+    DEBUG = 3,
     NONE = 4
 }
 
@@ -44,7 +44,10 @@ export class Logger {
         } else {
             this.level = level;
         }
-        this.info(`Logging enabled at level: ${LogLevel[this.level]}`);
+        // Only log if not at NONE level to avoid recursion
+        if (this.level !== LogLevel.NONE) {
+            this.info(`Logging enabled at level: ${LogLevel[this.level]}`);
+        }
     }
 
     /**
@@ -53,7 +56,6 @@ export class Logger {
     off(): void {
         this.enabled = false;
         this.level = LogLevel.NONE;
-        this.info('Logging disabled');
     }
 
     /**
@@ -79,20 +81,14 @@ export class Logger {
      * Set logging level from string or boolean
      */
     setLogging(level: string | boolean): void {
-        this.debug('setLogging called with:', level);
         const parsedLevel = Logger.parseLogLevel(level);
-        this.debug('parsed level:', parsedLevel);
         
         if (typeof parsedLevel === 'boolean') {
             this.enabled = parsedLevel;
             this.level = LogLevel.INFO;
-            this.debug(`Logging ${parsedLevel ? 'enabled' : 'disabled'} (level: ${LogLevel[this.level]})`);
-            this.debug('Current state:', { enabled: this.enabled, level: this.level });
         } else {
             this.enabled = true;
             this.level = parsedLevel;
-            this.debug(`Logging level set to ${LogLevel[this.level]}`);
-            this.debug('Current state:', { enabled: this.enabled, level: this.level });
         }
     }
 

@@ -2,6 +2,8 @@
  * Memory Management System
  */
 
+import { centralizedLogger } from './centralized-logger';
+
 export interface MemoryStats {
     used: number;
     total: number;
@@ -91,7 +93,7 @@ export class MemoryManager {
         if (!stats) return;
 
         if (stats.percentage > this.memoryThreshold) {
-            console.warn(`High memory usage detected: ${(stats.percentage * 100).toFixed(1)}%`);
+            centralizedLogger.warn(`High memory usage detected: ${(stats.percentage * 100).toFixed(1)}%`);
             this.performCleanup();
         }
     }
@@ -100,7 +102,7 @@ export class MemoryManager {
      * Perform memory cleanup
      */
     performCleanup(): void {
-        console.log('Performing memory cleanup...');
+        centralizedLogger.info('Performing memory cleanup...');
         
         let cleanedCount = 0;
         this.cleanupTasks.forEach(task => {
@@ -108,11 +110,11 @@ export class MemoryManager {
                 task();
                 cleanedCount++;
             } catch (error) {
-                console.error('Error during cleanup task:', error);
+                centralizedLogger.error('Error during cleanup task:', error);
             }
         });
 
-        console.log(`Memory cleanup completed. ${cleanedCount} tasks executed.`);
+        centralizedLogger.info(`Memory cleanup completed. ${cleanedCount} tasks executed.`);
     }
 
     /**

@@ -3,6 +3,7 @@ import { PluginAwareSliceService, SettingsAwareSliceService } from '../../shared
 import { Logger, LogLevel } from './Logger';
 import { ToggleDebugLoggingCommand } from './ToggleDebugLoggingCommand';
 import { Command } from '../../shared/interfaces';
+import { centralizedLogger } from '../../shared/centralized-logger';
 
 export class DebugLoggingService extends SettingsAwareSliceService {
     private logger: Logger;
@@ -18,10 +19,12 @@ export class DebugLoggingService extends SettingsAwareSliceService {
 
         this.logger = new Logger('Streams');
         
-        // Initialize logging based on settings
+        // Initialize centralized logging based on settings
         const settings = this.getSettings();
         if (settings.debugLoggingEnabled) {
-            this.logger.on(LogLevel.DEBUG);
+            centralizedLogger.enable(LogLevel.DEBUG);
+        } else {
+            centralizedLogger.enable(LogLevel.INFO);
         }
 
         this.initialized = true;
@@ -34,9 +37,9 @@ export class DebugLoggingService extends SettingsAwareSliceService {
 
     onSettingsChanged(settings: any): void {
         if (settings.debugLoggingEnabled) {
-            this.logger.on(LogLevel.DEBUG);
+            centralizedLogger.enable(LogLevel.DEBUG);
         } else {
-            this.logger.off();
+            centralizedLogger.enable(LogLevel.INFO);
         }
     }
 
@@ -69,7 +72,7 @@ export class DebugLoggingService extends SettingsAwareSliceService {
      * Enable debug logging
      */
     enableDebug(): void {
-        this.logger.on(LogLevel.DEBUG);
+        centralizedLogger.enable(LogLevel.DEBUG);
         const plugin = this.getPlugin() as any;
         if (plugin.settings) {
             plugin.settings.debugLoggingEnabled = true;
@@ -80,7 +83,7 @@ export class DebugLoggingService extends SettingsAwareSliceService {
      * Disable debug logging
      */
     disableDebug(): void {
-        this.logger.off();
+        centralizedLogger.enable(LogLevel.INFO);
         const plugin = this.getPlugin() as any;
         if (plugin.settings) {
             plugin.settings.debugLoggingEnabled = false;
