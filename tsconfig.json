@@ -20,5 +20,9 @@
   },
   "include": [
     "**/*.ts"
+  ],
+  "exclude": [
+    "backup/**/*",
+    "node_modules/**/*"
   ]
 }

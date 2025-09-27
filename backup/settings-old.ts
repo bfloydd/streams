@@ -1,6 +1,6 @@
 import { App, PluginSettingTab, Setting, Notice, TFolder, MarkdownView, DropdownComponent } from 'obsidian';
 import StreamsPlugin from './main';
-import { Stream, StreamsSettings, LucideIcon } from './types';
+import { Stream, StreamsSettings, LucideIcon } from './src/shared/types';
 
 export class StreamsSettingTab extends PluginSettingTab {
     plugin: StreamsPlugin;
