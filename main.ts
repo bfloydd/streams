@@ -8,6 +8,7 @@ import { OpenTodayCurrentStreamCommand } from './src/commands/OpenTodayCurrentSt
 import { StreamSelectionModal } from './src/modals/StreamSelectionModal';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from './src/views/CreateFileView';
 import { ToggleDebugLoggingCommand } from './src/commands/ToggleDebugLoggingCommand';
+import { StreamsAPI, StreamInfo, PluginVersion } from './src/api/StreamsAPI';
 
 const DEFAULT_SETTINGS: StreamsSettings = {
 	streams: [],
@@ -17,7 +18,7 @@ const DEFAULT_SETTINGS: StreamsSettings = {
 	debugLoggingEnabled: false
 }
 
-export default class StreamsPlugin extends Plugin {
+export default class StreamsPlugin extends Plugin implements StreamsAPI {
 	settings: StreamsSettings;
 	private ribbonIconsByStream: Map<string, {today?: HTMLElement}> = new Map();
 	commandsByStreamId: Map<string, string> = new Map();
@@ -625,29 +626,6 @@ export default class StreamsPlugin extends Plugin {
 	}
 
 
-	private getStreamForFile(filePath: string): Stream | null {
-		if (!filePath) return null;
-		
-		return this.settings.streams.find(stream => {
-			// Skip streams with empty folders
-			if (!stream.folder || stream.folder.trim() === '') {
-				return false;
-			}
-			
-			// Normalize paths for comparison
-			const normalizedFilePath = filePath.split(/[/\\]/).filter(Boolean);
-			const normalizedStreamPath = stream.folder.split(/[/\\]/).filter(Boolean);
-			
-			// Check if the file path starts with the stream path
-			return normalizedStreamPath.every((part, index) => {
-				// Check bounds
-				if (index >= normalizedFilePath.length) {
-					return false;
-				}
-				return normalizedStreamPath[index] === normalizedFilePath[index];
-			});
-		}) || null;
-	}
 
 	private getDefaultStream(): Stream {
 		// Return the first available stream, or create a default one if none exist
@@ -807,25 +785,6 @@ export default class StreamsPlugin extends Plugin {
 		}
 	}
 	
-	/**
-	 * Get the currently active stream
-	 */
-	public getActiveStream(): Stream | null {
-		if (!this.settings.activeStreamId) {
-			return null;
-		}
-		
-		const activeStream = this.settings.streams.find(s => s.id === this.settings.activeStreamId);
-		if (!activeStream) {
-			// Clear invalid active stream ID
-			this.log.debug(`Invalid active stream ID found: ${this.settings.activeStreamId}, clearing it`);
-			this.settings.activeStreamId = undefined;
-			this.saveSettings();
-			return null;
-		}
-		
-		return activeStream;
-	}
 	
 	/**
 	 * Clear the currently active stream
@@ -1168,5 +1127,149 @@ export default class StreamsPlugin extends Plugin {
 				this.updateCalendarComponentForCreateView(activeLeaf);
 			}
 		}
+	}
+
+	// ============================================================================
+	// PUBLIC API METHODS - Available to other plugins
+	// ============================================================================
+
+	/**
+	 * Get all available streams
+	 * @returns Array of all configured streams
+	 */
+	public getStreams(): Stream[] {
+		return [...this.settings.streams];
+	}
+
+	/**
+	 * Get a specific stream by ID
+	 * @param streamId The unique identifier of the stream
+	 * @returns The stream if found, null otherwise
+	 */
+	public getStream(streamId: string): Stream | null {
+		return this.settings.streams.find(stream => stream.id === streamId) || null;
+	}
+
+	/**
+	 * Get the currently active stream
+	 * @returns The active stream if set, null otherwise
+	 */
+	public getActiveStream(): Stream | null {
+		if (!this.settings.activeStreamId) {
+			return null;
+		}
+		
+		const activeStream = this.settings.streams.find(s => s.id === this.settings.activeStreamId);
+		if (!activeStream) {
+			// Clear invalid active stream ID
+			this.log.debug(`Invalid active stream ID found: ${this.settings.activeStreamId}, clearing it`);
+			this.settings.activeStreamId = undefined;
+			this.saveSettings();
+			return null;
+		}
+		
+		return activeStream;
+	}
+
+	/**
+	 * Get streams that match a specific folder path
+	 * @param folderPath The folder path to search for
+	 * @returns Array of streams that match the folder path
+	 */
+	public getStreamsByFolder(folderPath: string): Stream[] {
+		if (!folderPath) return [];
+		
+		return this.settings.streams.filter(stream => {
+			if (!stream.folder || stream.folder.trim() === '') {
+				return false;
+			}
+			
+			// Normalize paths for comparison
+			const normalizedFilePath = folderPath.split(/[/\\]/).filter(Boolean);
+			const normalizedStreamPath = stream.folder.split(/[/\\]/).filter(Boolean);
+			
+			// Check if the folder path starts with the stream path
+			return normalizedStreamPath.every((part, index) => {
+				if (index >= normalizedFilePath.length) {
+					return false;
+				}
+				return normalizedStreamPath[index] === normalizedFilePath[index];
+			});
+		});
+	}
+
+	/**
+	 * Get the stream that contains a specific file
+	 * @param filePath The file path to check
+	 * @returns The stream that contains this file, null if none found
+	 */
+	public getStreamForFile(filePath: string): Stream | null {
+		if (!filePath) return null;
+		
+		return this.settings.streams.find(stream => {
+			// Skip streams with empty folders
+			if (!stream.folder || stream.folder.trim() === '') {
+				return false;
+			}
+			
+			// Normalize paths for comparison
+			const normalizedFilePath = filePath.split(/[/\\]/).filter(Boolean);
+			const normalizedStreamPath = stream.folder.split(/[/\\]/).filter(Boolean);
+			
+			// Check if the file path starts with the stream path
+			return normalizedStreamPath.every((part, index) => {
+				// Check bounds
+				if (index >= normalizedFilePath.length) {
+					return false;
+				}
+				return normalizedStreamPath[index] === normalizedFilePath[index];
+			});
+		}) || null;
+	}
+
+	/**
+	 * Get basic stream information (name, path, icon) for external use
+	 * @returns Array of basic stream information
+	 */
+	public getStreamInfo(): StreamInfo[] {
+		const activeStreamId = this.settings.activeStreamId;
+		
+		return this.settings.streams.map(stream => ({
+			id: stream.id,
+			name: stream.name,
+			folder: stream.folder,
+			icon: stream.icon,
+			isActive: stream.id === activeStreamId
+		}));
+	}
+
+	/**
+	 * Check if a stream exists
+	 * @param streamId The stream ID to check
+	 * @returns True if the stream exists, false otherwise
+	 */
+	public hasStream(streamId: string): boolean {
+		return this.settings.streams.some(stream => stream.id === streamId);
+	}
+
+	/**
+	 * Get the total number of configured streams
+	 * @returns Number of streams
+	 */
+	public getStreamCount(): number {
+		return this.settings.streams.length;
+	}
+
+	/**
+	 * Get plugin version information
+	 * @returns Plugin version details
+	 */
+	public getVersion(): PluginVersion {
+		return {
+			version: '1.1.6',
+			minAppVersion: '0.15.0',
+			name: 'Streams',
+			id: 'streams'
+		};
 	}
 }
