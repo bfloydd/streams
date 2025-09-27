@@ -1,5 +1,5 @@
 import { App, MarkdownView, WorkspaceLeaf } from 'obsidian';
-import { StreamAwareSliceService, SettingsAwareSliceService } from '../../shared/base-slice';
+import { SettingsAwareSliceService } from '../../shared/base-slice';
 import { CalendarComponent } from './CalendarComponent';
 import { CREATE_FILE_VIEW_TYPE } from '../../shared/constants';
 import { eventBus, EVENTS } from '../../shared/event-bus';

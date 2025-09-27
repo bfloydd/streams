@@ -1,4 +1,4 @@
-import { App, WorkspaceLeaf } from 'obsidian';
+import { App } from 'obsidian';
 import { PluginAwareSliceService } from '../../shared/base-slice';
 import { CommandService, ViewService } from '../../shared/interfaces';
 import { CREATE_FILE_VIEW_TYPE } from '../../shared/constants';

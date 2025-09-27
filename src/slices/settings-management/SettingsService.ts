@@ -38,14 +38,14 @@ export class SettingsService extends SettingsAwareSliceService {
      * Get current settings
      */
     getSettings(): StreamsSettings {
-        return this.getSettings();
+        return super.getSettings();
     }
 
     /**
      * Save settings
      */
     async saveSettings(): Promise<void> {
-        await this.saveSettings();
+        await super.saveSettings();
     }
 }
 

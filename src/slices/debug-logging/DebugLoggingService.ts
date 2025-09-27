@@ -1,5 +1,5 @@
 import { Plugin } from 'obsidian';
-import { BaseSliceService, PluginAwareSliceService, SettingsAwareSliceService } from '../../shared/base-slice';
+import { PluginAwareSliceService, SettingsAwareSliceService } from '../../shared/base-slice';
 import { Logger, LogLevel } from './Logger';
 import { ToggleDebugLoggingCommand } from './ToggleDebugLoggingCommand';
 import { Command } from '../../shared/interfaces';

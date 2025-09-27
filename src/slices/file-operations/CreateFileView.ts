@@ -1,4 +1,4 @@
-import { App, TFile, WorkspaceLeaf, ItemView, normalizePath, setIcon } from 'obsidian';
+import { App, TFile, WorkspaceLeaf, ItemView, setIcon } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { Logger } from '../debug-logging/Logger';
 
