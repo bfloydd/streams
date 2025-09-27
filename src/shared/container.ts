@@ -69,13 +69,6 @@ export class SliceContainer {
         }
     }
 
-    /**
-     * Get all services of a specific type
-     */
-    getServicesByType<T extends SliceService>(type: new (...args: any[]) => T): T[] {
-        return Array.from(this.services.values())
-            .filter(service => service instanceof type) as T[];
-    }
 }
 
 // Global container instance

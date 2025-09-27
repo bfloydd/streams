@@ -161,10 +161,3 @@ export function registerCleanupTask(task: () => void): () => void {
     return memoryManager.registerCleanupTask(task);
 }
 
-export function getMemoryStats(): MemoryStats | null {
-    return memoryManager.getMemoryStats();
-}
-
-export function performMemoryCleanup(): void {
-    memoryManager.performCleanup();
-}

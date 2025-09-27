@@ -190,6 +190,3 @@ export function measureAsyncPerformance<T extends (...args: any[]) => Promise<an
     return performanceMonitor.measureAsync(fn, name, metadata);
 }
 
-export function startTiming(name: string): () => void {
-    return performanceMonitor.startTiming(name);
-}

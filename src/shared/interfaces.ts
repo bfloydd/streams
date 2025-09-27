@@ -56,13 +56,6 @@ export interface ViewService {
     unregisterViews(): void;
 }
 
-/**
- * Interface for event handling
- */
-export interface EventService {
-    registerEvents(): void;
-    unregisterEvents(): void;
-}
 
 /**
  * Main plugin interface that slices can depend on
