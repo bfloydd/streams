@@ -6,7 +6,6 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
     async initialize(): Promise<void> {
         if (this.initialized) return;
 
-        // API service doesn't need special initialization
         this.initialized = true;
     }
 

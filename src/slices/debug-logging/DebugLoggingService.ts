@@ -19,7 +19,6 @@ export class DebugLoggingService extends SettingsAwareSliceService {
 
         this.logger = new Logger('Streams');
         
-        // Initialize centralized logging based on settings
         const settings = this.getSettings();
         if (settings.debugLoggingEnabled) {
             centralizedLogger.enable(LogLevel.DEBUG);
@@ -43,16 +42,10 @@ export class DebugLoggingService extends SettingsAwareSliceService {
         }
     }
 
-    /**
-     * Get the logger instance
-     */
     getLogger(): Logger {
         return this.logger;
     }
 
-    /**
-     * Create toggle command for debug logging
-     */
     createToggleCommand(): Command {
         if (!this.toggleCommand) {
             const plugin = this.getPlugin() as any;
@@ -68,9 +61,6 @@ export class DebugLoggingService extends SettingsAwareSliceService {
         return this.toggleCommand;
     }
 
-    /**
-     * Enable debug logging
-     */
     enableDebug(): void {
         centralizedLogger.enable(LogLevel.DEBUG);
         const plugin = this.getPlugin() as any;
@@ -79,9 +69,6 @@ export class DebugLoggingService extends SettingsAwareSliceService {
         }
     }
 
-    /**
-     * Disable debug logging
-     */
     disableDebug(): void {
         centralizedLogger.enable(LogLevel.INFO);
         const plugin = this.getPlugin() as any;

@@ -6,37 +6,20 @@ export enum LogLevel {
     NONE = 4
 }
 
-/**
- * Usage:
- *    app.plugins.plugins.streams.log.on();
- *    app.plugins.plugins.streams.log.on(0|1|2|3|4);
- *    app.plugins.plugins.streams.log.off();
- */
+// Usage: app.plugins.plugins.streams.log.on() or .off()
 export class Logger {
     private enabled: boolean = false;
     private level: LogLevel = LogLevel.INFO;
     private prefix: string;
 
-    /**
-     * Creates a new logger instance
-     * @param prefix Optional prefix for log messages to identify the source
-     */
     constructor(prefix?: string) {
         this.prefix = prefix ? `[${prefix}] ` : '';
     }
 
-    /**
-     * Check if logging is enabled
-     * @returns True if logging is enabled, false otherwise
-     */
     isEnabled(): boolean {
         return this.enabled;
     }
 
-    /**
-     * Enable logging with specified level
-     * @param level Log level to set
-     */
     on(level: LogLevel | keyof typeof LogLevel | number = LogLevel.INFO): void {
         this.enabled = true;
         if (typeof level === 'string') {
@@ -44,23 +27,16 @@ export class Logger {
         } else {
             this.level = level;
         }
-        // Only log if not at NONE level to avoid recursion
         if (this.level !== LogLevel.NONE) {
             this.info(`Logging enabled at level: ${LogLevel[this.level]}`);
         }
     }
 
-    /**
-     * Disable logging
-     */
     off(): void {
         this.enabled = false;
         this.level = LogLevel.NONE;
     }
 
-    /**
-     * Parse a log level from string or boolean
-     */
     static parseLogLevel(level: string | boolean): LogLevel | boolean {
         if (typeof level === 'boolean') {
             return level;
@@ -77,9 +53,6 @@ export class Logger {
         }
     }
 
-    /**
-     * Set logging level from string or boolean
-     */
     setLogging(level: string | boolean): void {
         const parsedLevel = Logger.parseLogLevel(level);
         
@@ -92,9 +65,6 @@ export class Logger {
         }
     }
 
-    /**********************************************************
-     * Primary debug levels
-     *********************************************************/
 
     debug(message?: any, ...optionalParams: any[]): void {
         if (!this.enabled || this.level > LogLevel.DEBUG) {
@@ -124,9 +94,6 @@ export class Logger {
         console.error(this.prefix + message, ...optionalParams);
     }
 
-    /**********************************************************
-     * Extras
-     *********************************************************/
 
     trace(message?: any, ...optionalParams: any[]): void {
         if (this.enabled) {

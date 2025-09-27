@@ -3,9 +3,6 @@ import { SliceService, PluginAwareService, StreamAwareService, SettingsAwareServ
 import { Stream, StreamsSettings } from './types';
 import { centralizedLogger } from './centralized-logger';
 
-/**
- * Base class for all slice services
- */
 export abstract class BaseSliceService implements SliceService {
     protected plugin: Plugin | null = null;
     protected initialized = false;
@@ -22,9 +19,6 @@ export abstract class BaseSliceService implements SliceService {
     }
 }
 
-/**
- * Base class for plugin-aware services
- */
 export abstract class PluginAwareSliceService extends BaseSliceService implements PluginAwareService {
     setPlugin(plugin: Plugin): void {
         this.plugin = plugin;
@@ -38,9 +32,6 @@ export abstract class PluginAwareSliceService extends BaseSliceService implement
     }
 }
 
-/**
- * Base class for stream-aware services
- */
 export abstract class StreamAwareSliceService extends PluginAwareSliceService implements StreamAwareService {
     abstract onStreamAdded(stream: Stream): void;
     abstract onStreamUpdated(stream: Stream): void;
@@ -60,9 +51,6 @@ export abstract class StreamAwareSliceService extends PluginAwareSliceService im
     }
 }
 
-/**
- * Base class for settings-aware services
- */
 export abstract class SettingsAwareSliceService extends PluginAwareSliceService implements SettingsAwareService {
     abstract onSettingsChanged(settings: StreamsSettings): void;
 

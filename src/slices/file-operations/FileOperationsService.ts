@@ -28,7 +28,6 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
     registerViews(): void {
         const plugin = this.getPlugin();
         
-        // Register CreateFileView
         plugin.registerView(
             CREATE_FILE_VIEW_TYPE,
             (leaf) => new CreateFileView(leaf, plugin.app, "", { 
@@ -43,13 +42,11 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
     }
 
     unregisterViews(): void {
-        // Views are automatically unregistered when the plugin unloads
     }
 
     registerCommands(): void {
         const plugin = this.getPlugin();
         
-        // Register file operation commands
         plugin.addCommand({
             id: 'streams-open-today-current-stream',
             name: 'Open today for current stream',
@@ -68,13 +65,9 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
     }
 
     unregisterCommands(): void {
-        // Commands are automatically unregistered when the plugin unloads
         this.registeredCommands = [];
     }
 
-    /**
-     * Open a stream for a specific date
-     */
     async openStreamDate(stream: any, date: Date, reuseCurrentTab: boolean = false): Promise<void> {
         const command = new OpenStreamDateCommand(
             this.getPlugin().app,
@@ -85,9 +78,6 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
         await command.execute();
     }
 
-    /**
-     * Open today's note for a stream
-     */
     async openTodayStream(stream: any, reuseCurrentTab: boolean = false): Promise<void> {
         const command = new OpenTodayStreamCommand(
             this.getPlugin().app,

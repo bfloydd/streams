@@ -11,7 +11,6 @@ export class SettingsService extends SettingsAwareSliceService {
     async initialize(): Promise<void> {
         if (this.initialized) return;
 
-        // Create and register the settings tab
         this.settingsTab = new StreamsSettingTab(this.getPlugin().app, this.getPlugin() as any);
         this.getPlugin().addSettingTab(this.settingsTab);
 
@@ -19,32 +18,22 @@ export class SettingsService extends SettingsAwareSliceService {
     }
 
     cleanup(): void {
-        // Settings tab cleanup is handled by Obsidian
         this.settingsTab = null;
         this.initialized = false;
     }
 
     onSettingsChanged(settings: StreamsSettings): void {
-        // Notify other services about settings changes
         this.notifySettingsChanged(settings);
     }
 
     private notifySettingsChanged(settings: StreamsSettings): void {
-        // This will be used to notify other services when settings change
-        // For now, we'll implement this when we add event broadcasting
         centralizedLogger.info('Settings changed');
     }
 
-    /**
-     * Get current settings
-     */
     getSettings(): StreamsSettings {
         return super.getSettings();
     }
 
-    /**
-     * Save settings
-     */
     async saveSettings(): Promise<void> {
         await super.saveSettings();
     }
@@ -71,7 +60,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                     this.plugin.settings.showCalendarComponent = value;
                     await this.plugin.saveSettings();
                     
-                    // Emit event to update all components
                     eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
                     
                     new Notice(`Calendar component ${value ? 'shown' : 'hidden'}`);
@@ -97,7 +85,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.debugLoggingEnabled = value;
                     
-                    // Apply the setting immediately
                     if (value) {
                         this.plugin.log.on();
                     } else {

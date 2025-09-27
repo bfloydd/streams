@@ -9,26 +9,20 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 	public log: any; // Will be set by DebugLoggingService
 
 	async onload() {
-		// Set up the container with this plugin instance
 		sliceContainer.setPlugin(this);
 		
-		// Load settings
 		await this.loadSettings();
 		
-		// Register and initialize all services
 		ServiceLoader.registerAllServices();
 		
-		// Get debug logger
 		this.log = serviceRegistry.debugLogging?.getLogger();
 		
-		// Initialize all services
 		await ServiceLoader.initializeAllServices();
 		
 		this.log?.info('Streams plugin loaded with vertical slice architecture');
 	}
 
 	async onunload() {
-		// Cleanup all services
 		ServiceLoader.cleanupAllServices();
 		this.log?.info('Streams plugin unloaded');
 	}
@@ -41,7 +35,6 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		await this.saveData(this.settings);
 	}
 
-	// Public API methods for external access
 	setActiveStream(streamId: string, force?: boolean): void {
 		serviceRegistry.streamManagement?.setActiveStream(streamId, force);
 	}
@@ -50,7 +43,6 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		return serviceRegistry.streamManagement?.getActiveStream() || null;
 	}
 
-	// API Methods - Delegate to API service
 	getStreams(): Stream[] {
 		return serviceRegistry.api?.getStreams() || [...this.settings.streams];
 	}
