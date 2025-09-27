@@ -2,6 +2,7 @@ import { App, PluginSettingTab, Setting, Notice } from 'obsidian';
 import { SettingsAwareSliceService } from '../../shared/base-slice';
 import { Stream, StreamsSettings, LucideIcon } from '../../shared/types';
 import { StreamsPluginInterface } from '../../shared/interfaces';
+import { eventBus, EVENTS } from '../../shared/event-bus';
 
 export class SettingsService extends SettingsAwareSliceService {
     private settingsTab: StreamsSettingTab | null = null;
@@ -69,8 +70,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                     this.plugin.settings.showCalendarComponent = value;
                     await this.plugin.saveSettings();
                     
-                    // Use the refresh method to immediately update all components
-                    this.plugin.refreshAllCalendarComponents();
+                    // Emit event to update all components
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
                     
                     new Notice(`Calendar component ${value ? 'shown' : 'hidden'}`);
                 }));
@@ -126,7 +127,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                     };
                     this.plugin.settings.streams.push(newStream);
                     await this.plugin.saveSettings();
-                    this.plugin.updateAllCalendarComponents();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
                     this.display();
                 }));
 
@@ -154,7 +155,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     stream.name = value;
                     await this.plugin.saveSettings();
-                    this.plugin.updateAllCalendarComponents();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
                 }));
 
         // Stream folder
@@ -166,7 +167,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     stream.folder = value;
                     await this.plugin.saveSettings();
-                    this.plugin.updateAllCalendarComponents();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
                 }));
 
         // Show today in ribbon
@@ -178,7 +179,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     stream.showTodayInRibbon = value;
                     await this.plugin.saveSettings();
-                    this.plugin.updateAllCalendarComponents();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
                 }));
 
         // Add command
@@ -190,7 +191,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     stream.addCommand = value;
                     await this.plugin.saveSettings();
-                    this.plugin.updateAllCalendarComponents();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
                 }));
 
         // Remove stream
@@ -201,7 +202,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .onClick(async () => {
                     this.plugin.settings.streams.splice(index, 1);
                     await this.plugin.saveSettings();
-                    this.plugin.updateAllCalendarComponents();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
                     this.display();
                 }));
     }

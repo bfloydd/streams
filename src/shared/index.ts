@@ -27,3 +27,6 @@ export * from './performance-monitor';
 
 // Memory management
 export * from './memory-manager';
+
+// Service loader
+export * from './service-loader';

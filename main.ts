@@ -1,16 +1,7 @@
-import { App, Plugin } from 'obsidian';
+import { Plugin } from 'obsidian';
 import { Stream, StreamsSettings } from './src/shared/types';
-import { sliceContainer, serviceRegistry, DEFAULT_SETTINGS } from './src/shared';
+import { sliceContainer, serviceRegistry, DEFAULT_SETTINGS, ServiceLoader } from './src/shared';
 import { StreamsAPI } from './src/slices/api';
-import { DebugLoggingService } from './src/slices/debug-logging';
-import { CalendarNavigationService } from './src/slices/calendar-navigation';
-import { SettingsService } from './src/slices/settings-management';
-import { FileOperationsService } from './src/slices/file-operations';
-import { RibbonService } from './src/slices/ribbon-integration';
-import { StreamManagementService } from './src/slices/stream-management';
-import { MobileIntegrationService } from './src/slices/mobile-integration';
-import { APIService } from './src/slices/api';
-import { CommandRegistrationService } from './src/slices/command-registration';
 
 
 export default class StreamsPlugin extends Plugin implements StreamsAPI {
@@ -24,44 +15,22 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		// Load settings
 		await this.loadSettings();
 		
-		// Register debug logging service
-		const debugService = sliceContainer.register('debug-logging', new DebugLoggingService());
-		this.log = debugService.getLogger();
+		// Register and initialize all services
+		ServiceLoader.registerAllServices();
 		
-		// Register calendar navigation service
-		sliceContainer.register('calendar-navigation', new CalendarNavigationService());
-		
-		// Register settings service
-		sliceContainer.register('settings-management', new SettingsService());
-		
-		// Register file operations service
-		sliceContainer.register('file-operations', new FileOperationsService());
-		
-		// Register ribbon service
-		sliceContainer.register('ribbon-integration', new RibbonService());
-		
-		// Register stream management service
-		sliceContainer.register('stream-management', new StreamManagementService());
-		
-		// Register mobile integration service
-		sliceContainer.register('mobile-integration', new MobileIntegrationService());
-		
-		// Register API service
-		sliceContainer.register('api', new APIService());
-		
-		// Register command registration service
-		sliceContainer.register('command-registration', new CommandRegistrationService());
+		// Get debug logger
+		this.log = serviceRegistry.debugLogging?.getLogger();
 		
 		// Initialize all services
-		await sliceContainer.initializeAll();
+		await ServiceLoader.initializeAllServices();
 		
-		this.log.info('Streams plugin loaded with vertical slice architecture');
+		this.log?.info('Streams plugin loaded with vertical slice architecture');
 	}
 
 	async onunload() {
 		// Cleanup all services
-		sliceContainer.cleanupAll();
-		this.log.info('Streams plugin unloaded');
+		ServiceLoader.cleanupAllServices();
+		this.log?.info('Streams plugin unloaded');
 	}
 
 	async loadSettings() {
