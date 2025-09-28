@@ -176,6 +176,13 @@
     padding-top: 32px !important;
 }
 
+/* Ensure workspace leaf content takes full height when our view is present */
+.workspace-leaf-content:has(.streams-create-file-container) {
+    height: 100vh;
+    width: 100%;
+}
+
+
 
 
 
@@ -641,26 +648,45 @@
  * CREATE FILE VIEW STYLES
  *********************************************************/
 
+/* Center our create file container */
 .streams-create-file-container {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100%;
+    min-height: 100vh;
+    height: 100vh;
+    width: 100%;
     padding: 20px;
     background-color: var(--background-primary);
+    box-sizing: border-box;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+}
+
+/* Ensure content is visible */
+
+@keyframes streams-fade-in {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .streams-create-file-content {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     max-width: 500px;
+    width: 90%;
     background-color: var(--background-secondary);
     border-radius: 12px;
     padding: 40px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     text-align: center;
     animation: streams-fade-in 0.3s ease-in-out;
+    margin: 20px;
+    position: relative;
+    z-index: 2;
 }
 
 @keyframes streams-fade-in {

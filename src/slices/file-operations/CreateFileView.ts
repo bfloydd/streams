@@ -1,6 +1,7 @@
 import { App, TFile, WorkspaceLeaf, ItemView, setIcon } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
+import { DateStateManager } from '../../shared/date-state-manager';
 
 // Interface for the streams plugin
 interface StreamsPlugin {
@@ -20,21 +21,22 @@ export const CREATE_FILE_VIEW_TYPE = 'streams-create-file-view';
 
 export class CreateFileView extends ItemView {
     private filePath: string;
-    private date: Date;
     private stream: Stream;
+    private dateStateManager: DateStateManager;
+    private unsubscribeDateChanged: (() => void) | null = null;
     
     constructor(
         leaf: WorkspaceLeaf, 
         app: App, 
         filePath: string,
-        stream: Stream,
-        date: Date
+        stream: Stream
     ) {
         super(leaf);
         this.app = app;
         this.filePath = filePath;
         this.stream = stream;
-        this.date = date;
+        this.dateStateManager = DateStateManager.getInstance();
+        centralizedLogger.debug(`CreateFileView constructor called with filePath: ${filePath}`);
     }
 
     getViewType(): string {
@@ -43,23 +45,18 @@ export class CreateFileView extends ItemView {
 
     getDisplayText(): string {
         try {
-            const fileName = this.filePath.split('/').pop() || '';
-            const extractedDate = this.extractDateFromFilenameString(fileName);
-            
-            if (extractedDate) {
-                const dateString = this.formatTitleDate(extractedDate);
-                return dateString;
-            }
-            
-            return fileName.replace('.md', '');
+            const state = this.dateStateManager.getState();
+            const dateString = this.formatTitleDate(state.currentDate);
+            return dateString;
         } catch (error) {
             centralizedLogger.error('Error formatting display text:', error);
-            return this.filePath.split('/').pop()?.replace('.md', '') || '';
+            return 'Create File';
         }
     }
 
     getState(): { stream: Stream; date: string; filePath: string } {
-        const dateISOString = this.date instanceof Date ? this.date.toISOString() : new Date().toISOString();
+        const state = this.dateStateManager.getState();
+        const dateISOString = state.currentDate.toISOString();
         
         return {
             filePath: this.filePath,
@@ -69,135 +66,155 @@ export class CreateFileView extends ItemView {
     }
 
     async setState(state: { stream?: Stream; date?: string | Date; filePath?: string }, result?: unknown): Promise<void> {
+        centralizedLogger.debug(`CreateFileView setState called with state:`, state);
+        
         if (state) {
-            // Setting state
-            
-            const oldFilePath = this.filePath;
-            const oldDate = this.date ? new Date(this.date.getTime()) : null;
-            
             this.filePath = state.filePath || this.filePath;
             this.stream = state.stream || this.stream;
             
-            let dateChanged = false;
-            
-            if (state.date) {
-                try {
-                    if (typeof state.date === 'string') {
-                        // Handle YYYY-MM-DD format
-                        if (state.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                            const [year, month, day] = state.date.split('-').map(n => parseInt(n, 10));
-                            this.date = new Date(year, month - 1, day); // month is 0-indexed
-                            // Parsed YYYY-MM-DD date
-                        } else {
-                            this.date = new Date(state.date);
-                            // Parsed date from string
-                        }
-                    } else if (state.date instanceof Date) {
-                        this.date = state.date;
-                        // Used date object directly
-                    } else {
-                        const filePathMatch = this.filePath.match(/(\d{4}-\d{2}-\d{2})\.md$/);
-                        if (filePathMatch && filePathMatch[1]) {
-                            const [year, month, day] = filePathMatch[1].split('-').map(n => parseInt(n, 10));
-                            this.date = new Date(year, month - 1, day);
-                            // Extracted date from filepath
-                        } else {
-                            this.date = new Date();
-                            // Using today as final fallback
-                        }
-                    }
-                    
-                    if (oldDate) {
-                        dateChanged = oldDate.getTime() !== this.date.getTime();
-                    } else {
-                        dateChanged = true;
-                    }
-                } catch (error) {
-                    centralizedLogger.error(`Error parsing date: ${error}`);
-                    this.date = new Date();
-                }
-            }
-            
-            const filePathChanged = oldFilePath !== this.filePath;
-            const isJustTitleUpdate = result && (result as any).isTitleRefresh;
-            
-            if ((filePathChanged || dateChanged) && !isJustTitleUpdate) {
-                // State changed significantly, refreshing view
-                setTimeout(() => {
-                    this.refreshView();
-                    this.app.workspace.trigger('streams-create-file-state-changed', this);
-                }, 0);
+            // Refresh the view with new state
+            if (this.contentEl) {
+                this.contentEl.empty();
+                this.contentEl.addClass('streams-create-file-container');
+                this.createFileViewContent(this.contentEl);
             }
         }
     }
 
-    /**
-     * Extract a date from a filename string in YYYY-MM-DD.md format
-     */
-    private extractDateFromFilenameString(filename: string): Date | null {
-        const match = filename.match(/(\d{4}-\d{2}-\d{2})\.md$/);
-        if (match && match[1]) {
-            const [year, month, day] = match[1].split('-').map(n => parseInt(n, 10));
-            const date = new Date(year, month - 1, day);
-            
-            if (!isNaN(date.getTime())) {
-                return date;
-            }
+
+    private handleDateChange(state: any): void {
+        // Update the file path based on the new date
+        const fileName = `${this.formatDateToYYYYMMDD(state.currentDate)}.md`;
+        const folderPath = this.filePath.substring(0, this.filePath.lastIndexOf('/'));
+        this.filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
+        
+        // Refresh the view content
+        if (this.contentEl) {
+            this.contentEl.empty();
+            this.contentEl.addClass('streams-create-file-container');
+            this.createFileViewContent(this.contentEl);
         }
-        return null;
     }
 
-    private extractDateFromFilename(): void {
-        const extractedDate = this.extractDateFromFilenameString(this.filePath);
-        if (extractedDate) {
-            this.date = extractedDate;
-            // Extracted date from filename fallback
-        } else {
-            this.date = new Date();
-            // Using today as final fallback
-        }
+    private formatDateToYYYYMMDD(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     async onOpen(): Promise<void> {
+        centralizedLogger.debug(`CreateFileView onOpen called with filePath: ${this.filePath}, stream: ${this.stream.name}`);
+        
         // Set this as the active stream in the main plugin
         this.setActiveStream();
         
+        // Set up date change listener
+        this.unsubscribeDateChanged = this.dateStateManager.onDateChanged((state) => {
+            this.handleDateChange(state);
+        });
+        
+        // Trigger calendar component to be added to this view
+        this.triggerCalendarComponent();
+        
+        // Prepare our content element
         this.contentEl.empty();
+        this.contentEl.innerHTML = '';
         this.contentEl.addClass('streams-create-file-container');
         
-        const extractedDate = this.extractDateFromFilenameString(this.filePath);
-        if (extractedDate) {
-            if (!this.date || this.date.toDateString() !== extractedDate.toDateString()) {
-                // Updating date from file path
-                this.date = extractedDate;
-            }
+        // Find and replace the view-content area
+        const viewContent = this.leaf.view.containerEl.querySelector('.view-content');
+        if (viewContent) {
+            // Clear the view-content and add our container
+            viewContent.innerHTML = '';
+            viewContent.appendChild(this.contentEl);
+            
+            // Ensure view-content takes full space
+            const viewContentEl = viewContent as HTMLElement;
+            viewContentEl.style.height = '100%';
+            viewContentEl.style.width = '100%';
+            viewContentEl.style.display = 'flex';
+            viewContentEl.style.alignItems = 'center';
+            viewContentEl.style.justifyContent = 'center';
         }
         
-        const container = this.contentEl.createDiv('streams-create-file-content');
+        // Hide any empty-state elements that might still be present
+        const hideEmptyStates = () => {
+            const emptyStates = this.leaf.view.containerEl.querySelectorAll('.empty-state, .empty-state-container');
+            emptyStates.forEach(el => {
+                const htmlEl = el as HTMLElement;
+                htmlEl.style.display = 'none';
+                htmlEl.style.visibility = 'hidden';
+                htmlEl.style.opacity = '0';
+                htmlEl.style.height = '0';
+                htmlEl.style.overflow = 'hidden';
+            });
+        };
         
-        const iconContainer = container.createDiv('streams-create-file-icon');
+        // Hide them immediately
+        hideEmptyStates();
+        
+        // Set up a MutationObserver to hide them if they get recreated
+        const observer = new MutationObserver(() => {
+            hideEmptyStates();
+        });
+        
+        observer.observe(this.leaf.view.containerEl, {
+            childList: true,
+            subtree: true,
+            attributes: false
+        });
+        
+        // Store observer for cleanup
+        (this as any).emptyStateObserver = observer;
+        
+        // Create our create file view content
+        this.createFileViewContent(this.contentEl);
+        
+        centralizedLogger.debug('CreateFileView content rendered and made visible');
+    }
+
+    async onClose(): Promise<void> {
+        // Clean up the MutationObserver
+        if ((this as any).emptyStateObserver) {
+            (this as any).emptyStateObserver.disconnect();
+            (this as any).emptyStateObserver = null;
+        }
+        
+        // Clean up date change listener
+        if (this.unsubscribeDateChanged) {
+            this.unsubscribeDateChanged();
+            this.unsubscribeDateChanged = null;
+        }
+        
+        this.contentEl.empty();
+    }
+    
+    private createFileViewContent(container: HTMLElement): void {
+        // Create the content box
+        const contentBox = container.createDiv('streams-create-file-content');
+        
+        // Add icon
+        const iconContainer = contentBox.createDiv('streams-create-file-icon');
         setIcon(iconContainer, 'file-plus');
         
         // Stream info display
-        const streamContainer = container.createDiv('streams-create-file-stream-container');
+        const streamContainer = contentBox.createDiv('streams-create-file-stream-container');
         const streamIcon = streamContainer.createSpan('streams-create-file-stream-icon');
         setIcon(streamIcon, this.stream.icon || 'book');
         
         const streamName = streamContainer.createSpan('streams-create-file-stream');
         streamName.setText(this.stream.name);
         
-        const dateEl = container.createDiv('streams-create-file-date');
+        // Date display
+        const dateEl = contentBox.createDiv('streams-create-file-date');
         
-        if (!(this.date instanceof Date) || isNaN(this.date.getTime())) {
-            centralizedLogger.error("Invalid date object, creating a new one");
-            this.extractDateFromFilename();
-        }
-        
-        const formattedDate = this.formatDate(this.date);
+        const state = this.dateStateManager.getState();
+        const formattedDate = this.formatDate(state.currentDate);
         dateEl.setText(formattedDate);
         
         // Create button
-        const buttonContainer = container.createDiv('streams-create-file-button-container');
+        const buttonContainer = contentBox.createDiv('streams-create-file-button-container');
         const createButton = buttonContainer.createEl('button', {
             cls: 'mod-cta streams-create-file-button',
             text: 'Create file'
@@ -208,9 +225,18 @@ export class CreateFileView extends ItemView {
         });
     }
     
-    /**
-     * Format a date for display in a title
-     */
+    private triggerCalendarComponent(): void {
+        // Trigger the calendar component to be added to this view
+        try {
+            const eventBus = (window as any).streamsEventBus;
+            if (eventBus) {
+                eventBus.emit('create-file-view-opened', this.leaf);
+            }
+        } catch (error) {
+            centralizedLogger.debug('Could not trigger calendar component:', error);
+        }
+    }
+    
     private formatTitleDate(date: Date): string {
         return date.toLocaleDateString('en-US', {
             month: 'short',
@@ -257,37 +283,6 @@ export class CreateFileView extends ItemView {
             }
         } catch (error) {
             centralizedLogger.error('Error creating file:', error);
-        }
-    }
-
-    async onClose(): Promise<void> {
-        this.contentEl.empty();
-    }
-
-    private async refreshView(): Promise<void> {
-        this.contentEl.empty();
-        await this.onOpen();
-        
-        this.updateTabTitle();
-        
-        this.app.workspace.trigger('layout-change');
-    }
-
-    /**
-     * Updates the tab title to match the current date
-     */
-    private updateTabTitle(): void {
-        try {
-            // Updating tab title
-            
-            this.leaf.setViewState({
-                type: this.getViewType(),
-                state: this.getState(),
-            }, { history: false, isTitleRefresh: true });
-            
-            // Updated tab title
-        } catch (error) {
-            centralizedLogger.error('Error updating tab title:', error);
         }
     }
     

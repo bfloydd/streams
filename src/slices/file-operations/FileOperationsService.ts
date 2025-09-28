@@ -1,11 +1,10 @@
 import { App } from 'obsidian';
 import { PluginAwareSliceService } from '../../shared/base-slice';
 import { CommandService, ViewService } from '../../shared/interfaces';
-import { CREATE_FILE_VIEW_TYPE } from '../../shared/constants';
 import { OpenStreamDateCommand } from './OpenStreamDateCommand';
 import { OpenTodayStreamCommand } from './OpenTodayStreamCommand';
 import { OpenTodayCurrentStreamCommand } from './OpenTodayCurrentStreamCommand';
-import { CreateFileView } from './CreateFileView';
+import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './CreateFileView';
 
 export class FileOperationsService extends PluginAwareSliceService implements CommandService, ViewService {
     private registeredCommands: string[] = [];
@@ -26,19 +25,7 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
     }
 
     registerViews(): void {
-        const plugin = this.getPlugin();
-        
-        plugin.registerView(
-            CREATE_FILE_VIEW_TYPE,
-            (leaf) => new CreateFileView(leaf, plugin.app, "", { 
-                id: "", 
-                name: "", 
-                folder: "", 
-                icon: "calendar", 
-                showTodayInRibbon: false, 
-                addCommand: false, 
-            }, new Date())
-        );
+        // No views to register - CreateFileView is created directly
     }
 
     unregisterViews(): void {
