@@ -2,6 +2,7 @@ import { App, TFolder, TFile, MarkdownView, WorkspaceLeaf, normalizePath } from 
 import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './CreateFileView';
+import { DateStateManager } from '../../shared/date-state-manager';
 
 /**
  * Interface for Obsidian's internal ViewRegistry, which manages all view registrations
@@ -148,6 +149,10 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
         }
         
         try {
+            // Update the date state manager to reflect the current date
+            const dateStateManager = DateStateManager.getInstance();
+            dateStateManager.setCurrentDate(date);
+            
             // Get the leaf's container and find the view-content area
             const leafContainer = leaf.view.containerEl;
             const viewContent = leafContainer.querySelector('.view-content');
