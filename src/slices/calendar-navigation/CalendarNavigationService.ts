@@ -119,16 +119,13 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
             })
         );
 
-        // Update calendar when create file state changes
-        plugin.registerEvent(
-            // @ts-ignore - Custom event not in Obsidian type definitions
-            plugin.app.workspace.on('streams-create-file-state-changed', (view: { leaf?: WorkspaceLeaf }) => {
-                this.log('Create file state changed, updating calendar component');
-                if (view && view.leaf) {
-                    this.updateCalendarComponentForCreateView(view.leaf);
-                }
-            })
-        );
+        // Update calendar when create file view is opened
+        eventBus.subscribe('create-file-view-opened', (event) => {
+            this.log('Create file view opened, updating calendar component');
+            if (event.data) {
+                this.updateCalendarComponentForCreateView(event.data);
+            }
+        });
     }
 
     private registerPluginViews(): void {

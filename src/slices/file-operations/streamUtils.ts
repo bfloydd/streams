@@ -224,12 +224,10 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                 
                 // Trigger calendar component to be added to this view AFTER our content is created
                 try {
-                    const eventBus = (window as any).streamsEventBus;
-                    if (eventBus) {
-                        eventBus.emit('create-file-view-opened', leaf);
-                    }
+                    const { eventBus } = await import('../../shared/event-bus');
+                    eventBus.emit('create-file-view-opened', leaf);
                 } catch (error) {
-                    // Calendar component trigger failed, but continue
+                    centralizedLogger.error('Calendar component trigger failed:', error);
                 }
             } else {
                 centralizedLogger.error('Could not find view-content in leaf container');

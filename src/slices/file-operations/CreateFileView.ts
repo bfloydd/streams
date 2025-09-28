@@ -228,10 +228,9 @@ export class CreateFileView extends ItemView {
     private triggerCalendarComponent(): void {
         // Trigger the calendar component to be added to this view
         try {
-            const eventBus = (window as any).streamsEventBus;
-            if (eventBus) {
+            import('../../shared/event-bus').then(({ eventBus }) => {
                 eventBus.emit('create-file-view-opened', this.leaf);
-            }
+            });
         } catch (error) {
             centralizedLogger.debug('Could not trigger calendar component:', error);
         }

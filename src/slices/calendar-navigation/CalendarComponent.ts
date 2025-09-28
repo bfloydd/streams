@@ -57,11 +57,6 @@ export class CalendarComponent extends Component {
     constructor(leaf: WorkspaceLeaf, stream: Stream, app: App, reuseCurrentTab: boolean = false, streams: Stream[] = [], plugin: PluginInterface | null = null) {
         super();
         
-        const existingComponents = document.querySelectorAll('.streams-calendar-component');
-        existingComponents.forEach(component => {
-            component.remove();
-        });
-        
         this.selectedStream = stream;
         this.app = app;
         this.reuseCurrentTab = reuseCurrentTab;
@@ -108,6 +103,12 @@ export class CalendarComponent extends Component {
             centralizedLogger.error('Could not find content container');
             return;
         }
+
+        // Remove existing calendar components from the same leaf to avoid duplicates
+        const existingComponents = contentContainer.querySelectorAll('.streams-calendar-component');
+        existingComponents.forEach(component => {
+            component.remove();
+        });
 
         contentContainer.addClass('streams-markdown-view-content');
         
