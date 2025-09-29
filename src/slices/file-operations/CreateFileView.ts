@@ -66,18 +66,43 @@ export class CreateFileView extends ItemView {
     }
 
     async setState(state: { stream?: Stream; date?: string | Date; filePath?: string }, result?: unknown): Promise<void> {
-        centralizedLogger.debug(`CreateFileView setState called with state:`, state);
-        
-        if (state) {
-            this.filePath = state.filePath || this.filePath;
-            this.stream = state.stream || this.stream;
+        try {
+            centralizedLogger.debug(`CreateFileView setState called with state:`, state);
             
-            // Refresh the view with new state
-            if (this.contentEl) {
-                this.contentEl.empty();
-                this.contentEl.addClass('streams-create-file-container');
-                this.createFileViewContent(this.contentEl);
+            // Check if the view is still valid - more comprehensive checks
+            if (!this || !this.contentEl || !this.leaf || this.contentEl === null || this.leaf === null) {
+                centralizedLogger.debug(`CreateFileView setState called but view is no longer valid, skipping`);
+                return;
             }
+            
+            // Additional safety check - ensure the view is still attached to the DOM
+            if (!document.contains(this.contentEl)) {
+                centralizedLogger.debug(`CreateFileView setState called but view is no longer in DOM, skipping`);
+                return;
+            }
+            
+            if (state) {
+                this.filePath = state.filePath || this.filePath;
+                this.stream = state.stream || this.stream;
+                
+                // Handle date parameter
+                if (state.date) {
+                    const date = typeof state.date === 'string' ? new Date(state.date) : state.date;
+                    if (!isNaN(date.getTime())) {
+                        this.dateStateManager.setCurrentDate(date);
+                    }
+                }
+                
+                // Refresh the view with new state
+                if (this.contentEl) {
+                    this.contentEl.empty();
+                    this.contentEl.addClass('streams-create-file-container');
+                    this.createFileViewContent(this.contentEl);
+                }
+            }
+        } catch (error) {
+            centralizedLogger.error(`Error in CreateFileView setState:`, error);
+            // Don't rethrow - just log and continue
         }
     }
 
@@ -119,24 +144,14 @@ export class CreateFileView extends ItemView {
         
         // Prepare our content element
         this.contentEl.empty();
-        this.contentEl.innerHTML = '';
         this.contentEl.addClass('streams-create-file-container');
         
-        // Find and replace the view-content area
-        const viewContent = this.leaf.view.containerEl.querySelector('.view-content');
-        if (viewContent) {
-            // Clear the view-content and add our container
-            viewContent.innerHTML = '';
-            viewContent.appendChild(this.contentEl);
-            
-            // Ensure view-content takes full space
-            const viewContentEl = viewContent as HTMLElement;
-            viewContentEl.style.height = '100%';
-            viewContentEl.style.width = '100%';
-            viewContentEl.style.display = 'flex';
-            viewContentEl.style.alignItems = 'center';
-            viewContentEl.style.justifyContent = 'center';
-        }
+        // Set up the content element styling
+        this.contentEl.style.height = '100%';
+        this.contentEl.style.width = '100%';
+        this.contentEl.style.display = 'flex';
+        this.contentEl.style.alignItems = 'center';
+        this.contentEl.style.justifyContent = 'center';
         
         // Hide any empty-state elements that might still be present
         const hideEmptyStates = () => {
@@ -175,6 +190,8 @@ export class CreateFileView extends ItemView {
     }
 
     async onClose(): Promise<void> {
+        centralizedLogger.debug(`CreateFileView onClose called for filePath: ${this.filePath}`);
+        
         // Clean up the MutationObserver
         if ((this as any).emptyStateObserver) {
             (this as any).emptyStateObserver.disconnect();
@@ -187,7 +204,14 @@ export class CreateFileView extends ItemView {
             this.unsubscribeDateChanged = null;
         }
         
-        this.contentEl.empty();
+        // Clear content and mark as invalid
+        if (this.contentEl) {
+            this.contentEl.empty();
+        }
+        
+        // Mark the view as invalid to prevent setState calls
+        this.contentEl = null as any;
+        this.leaf = null as any;
     }
     
     private createFileViewContent(container: HTMLElement): void {

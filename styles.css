@@ -178,7 +178,6 @@
 
 /* Ensure workspace leaf content takes full height when our view is present */
 .workspace-leaf-content:has(.streams-create-file-container) {
-    height: 100vh;
     width: 100%;
 }
 
@@ -653,8 +652,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    height: 100vh;
+    height: 100%;
     width: 100%;
     padding: 20px;
     background-color: var(--background-primary);

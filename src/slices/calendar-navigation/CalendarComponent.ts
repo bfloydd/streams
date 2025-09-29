@@ -28,6 +28,7 @@ interface PluginInterface {
 export class CalendarComponent extends Component {
     private component: HTMLElement;
     private expanded: boolean = false;
+    public leaf: WorkspaceLeaf;
     private selectedStream: Stream;
     private app: App;
     private grid: HTMLElement | null = null;
@@ -57,6 +58,8 @@ export class CalendarComponent extends Component {
     constructor(leaf: WorkspaceLeaf, stream: Stream, app: App, reuseCurrentTab: boolean = false, streams: Stream[] = [], plugin: PluginInterface | null = null) {
         super();
         
+        this.leaf = leaf;
+
         this.selectedStream = stream;
         this.app = app;
         this.reuseCurrentTab = reuseCurrentTab;
@@ -90,6 +93,23 @@ export class CalendarComponent extends Component {
             }
             contentContainer = view.contentEl;
             
+        } else if (viewType === 'empty') {
+            // For empty views, try to find the view-content element
+            const viewContent = leaf.view.containerEl.querySelector('.view-content');
+            if (viewContent) {
+                contentContainer = viewContent as HTMLElement;
+
+            } else {
+                centralizedLogger.error('Could not find view-content for empty view');
+                return;
+            }
+        } else if (viewType === 'file-explorer') {
+            // For file explorer, add to the main content area
+            const mainContent = leaf.view.containerEl.querySelector('.nav-files-container') || 
+                               leaf.view.containerEl.querySelector('.nav-files') ||
+                               leaf.view.containerEl;
+            contentContainer = mainContent as HTMLElement;
+
         } else {
             const view = leaf.view as unknown as ViewWithContentEl;
             if (!view) {
@@ -109,10 +129,52 @@ export class CalendarComponent extends Component {
         existingComponents.forEach(component => {
             component.remove();
         });
+        
+        // Also remove from document body to prevent duplicates
+        const workspaceComponents = document.querySelectorAll('.streams-calendar-component');
+        workspaceComponents.forEach((component: Element) => {
+            component.remove();
+        });
 
         contentContainer.addClass('streams-markdown-view-content');
         
-        contentContainer.appendChild(this.component);
+        // Find the correct view-header (there might be multiple, we want the active one)
+        const viewHeaders = document.querySelectorAll('.view-header');
+        const viewHeader = viewHeaders[viewHeaders.length - 1]; // Get the last one (most likely the active one)
+        
+        if (viewHeader) {
+            
+            this.component.style.position = 'relative';
+            this.component.style.display = 'block';
+            this.component.style.width = '100%';
+            this.component.style.margin = '0 0 10px 0';
+            this.component.style.backgroundColor = 'var(--background-primary)';
+            this.component.style.border = '1px solid var(--background-modifier-border)';
+            this.component.style.borderRadius = '6px';
+            this.component.style.padding = '8px';
+            this.component.style.fontSize = '14px';
+            this.component.style.lineHeight = '1.4';
+            
+            // Insert after the view-header instead of inside it
+            if (viewHeader.parentElement) {
+                viewHeader.parentElement.insertBefore(this.component, viewHeader.nextSibling);
+            } else {
+                viewHeader.appendChild(this.component);
+            }
+        } else {
+            
+            this.component.style.position = 'fixed';
+            this.component.style.top = '60px';
+            this.component.style.right = '20px';
+            this.component.style.zIndex = '1000';
+            this.component.style.backgroundColor = 'var(--background-primary)';
+            this.component.style.border = '1px solid var(--background-modifier-border)';
+            this.component.style.borderRadius = '6px';
+            this.component.style.padding = '8px';
+            this.component.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            
+            document.body.appendChild(this.component);
+        }
         
         this.fileModifyHandler = this.handleFileModify.bind(this);
         this.registerEvent(this.app.vault.on('modify', this.fileModifyHandler));
@@ -133,6 +195,7 @@ export class CalendarComponent extends Component {
     }
 
     private initializeComponent() {
+
         const collapsedView = this.component.createDiv('streams-calendar-collapsed');
         const expandedView = this.component.createDiv('streams-calendar-expanded');
 
@@ -181,7 +244,6 @@ export class CalendarComponent extends Component {
             setting.open();
             setting.openTabById('streams');
         });
-        
 
         const changeStreamSection = collapsedView.createDiv('streams-calendar-change-stream');
         const changeStreamText = changeStreamSection.createDiv('streams-calendar-change-stream-text');
@@ -240,7 +302,6 @@ export class CalendarComponent extends Component {
             }
         });
 
-
         todayNavButton.addEventListener('click', async (e) => {
             e.stopPropagation();
             this.dateStateManager.navigateToToday();
@@ -272,8 +333,16 @@ export class CalendarComponent extends Component {
                 this.toggleExpanded(collapsedView, expandedView);
             }
         });
-    }
 
+        // Force a re-render by triggering a layout recalculation
+        this.component.offsetHeight; // Force layout
+
+        // Also try to make sure the component is visible
+        this.component.style.display = 'block';
+        this.component.style.visibility = 'visible';
+        this.component.style.opacity = '1';
+
+    }
 
     private async getContentIndicator(date: Date): Promise<ContentIndicator> {
         const year = date.getFullYear();
@@ -487,8 +556,8 @@ export class CalendarComponent extends Component {
         }
     }
 
-
     public destroy() {
+
         // Clean up date change listener
         if (this.unsubscribeDateChanged) {
             this.unsubscribeDateChanged();
@@ -619,7 +688,6 @@ export class CalendarComponent extends Component {
     private getDaysInMonth(year: number, month: number): number {
         return new Date(year, month, 0).getDate();
     }
-
 
     private initializeDateState(leaf: WorkspaceLeaf): void {
         const viewType = leaf.view.getViewType();

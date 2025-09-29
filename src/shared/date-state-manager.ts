@@ -71,7 +71,11 @@ export class DateStateManager {
     }
 
     public onDateChanged(callback: (state: DateState) => void): () => void {
-        return this.eventBus.subscribe('date-changed', callback);
+        return this.eventBus.subscribe('date-changed', (event) => {
+            if (event.data && typeof event.data === 'object') {
+                callback(event.data as DateState);
+            }
+        });
     }
 
     private formatDateString(date: Date): string {
