@@ -101,22 +101,22 @@ export class CommandRegistrationService extends PluginAwareSliceService implemen
             }
         });
 
-        // Toggle calendar component command
+        // Toggle streams bar component command
         plugin.addCommand({
             id: 'streams-toggle-calendar',
-            name: 'Toggle calendar component',
+            name: 'Toggle streams bar component',
             callback: () => {
                 const settings = plugin.settings;
-                settings.showCalendarComponent = !settings.showCalendarComponent;
+                settings.showStreamsBarComponent = !settings.showStreamsBarComponent;
                 plugin.saveSettings();
                 
-                // Refresh calendar components
+                // Refresh streams bar components
                 const calendarService = this.getCalendarService();
                 if (calendarService) {
-                    calendarService.refreshAllCalendarComponents();
+                    calendarService.refreshAllStreamsBarComponents();
                 }
                 
-                plugin.app.notifications.show(`Calendar component ${settings.showCalendarComponent ? 'shown' : 'hidden'}`);
+                plugin.app.notifications.show(`Streams bar component ${settings.showStreamsBarComponent ? 'shown' : 'hidden'}`);
             }
         });
 

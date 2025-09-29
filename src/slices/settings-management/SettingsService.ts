@@ -52,17 +52,17 @@ export class StreamsSettingTab extends PluginSettingTab {
         containerEl.empty();
 
         new Setting(containerEl)
-            .setName('Show calendar component')
-            .setDesc('Show the calendar component on all notes')
+            .setName('Show streams bar component')
+            .setDesc('Show the streams bar component on all notes')
             .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.showCalendarComponent)
+                .setValue(this.plugin.settings.showStreamsBarComponent)
                 .onChange(async (value) => {
-                    this.plugin.settings.showCalendarComponent = value;
+                    this.plugin.settings.showStreamsBarComponent = value;
                     await this.plugin.saveSettings();
                     
                     eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
                     
-                    new Notice(`Calendar component ${value ? 'shown' : 'hidden'}`);
+                    new Notice(`Streams bar component ${value ? 'shown' : 'hidden'}`);
                 }));
                 
         new Setting(containerEl)

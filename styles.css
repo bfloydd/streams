@@ -117,8 +117,8 @@
  * CALENDAR COMPONENT STYLES
  *********************************************************/
 
-.streams-calendar-top-nav,
-.streams-calendar-header {
+.streams-bar-top-nav,
+.streams-bar-header {
     width: 100%;
     box-sizing: border-box;
     justify-content: space-between;
@@ -127,12 +127,12 @@
 }
 
 
-.streams-calendar-name {
+.streams-bar-name {
     font-weight: 600;
     color: var(--text-normal);
 }
 
-.streams-calendar-today-nav {
+.streams-bar-today-nav {
     cursor: pointer;
     padding: 4px 8px;
     color: var(--text-accent);
@@ -140,11 +140,11 @@
     font-size: 12px;
 }
 
-.streams-calendar-today-nav:hover {
+.streams-bar-today-nav:hover {
     color: var(--text-normal);
 }
 
-.streams-calendar-component {
+.streams-bar-component {
     position: absolute;
     top: 0;
     left: 0;
@@ -165,7 +165,7 @@
     position: relative;
 }
 
-.streams-markdown-view-content .streams-calendar-component {
+.streams-markdown-view-content .streams-bar-component {
     position: absolute;
     top: 10px;
 }
@@ -180,7 +180,7 @@
 
 
 
-.is-phone .streams-calendar-component {
+.is-phone .streams-bar-component {
     font-size: 11px;
 }
 
@@ -188,14 +188,14 @@
 
 
 /* Calendar label */
-.streams-calendar-label {
+.streams-bar-label {
     font-size: 0.7em;
     color: var(--text-muted);
     margin-bottom: 2px;
 }
 
 
-.streams-calendar-collapsed {
+.streams-bar-collapsed {
     position: relative;
     top: 0;
     right: 0;
@@ -221,7 +221,7 @@
 
 /* Hover effect removed */
 
-.streams-calendar-nav-controls {
+.streams-bar-nav-controls {
     display: flex;
     align-items: center;
     justify-content: flex-start;
@@ -234,7 +234,7 @@
     flex: 1;
 }
 
-.streams-calendar-day-nav {
+.streams-bar-day-nav {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -250,7 +250,7 @@
     font-weight: 500;
 }
 
-.streams-calendar-day-nav:hover {
+.streams-bar-day-nav:hover {
     background-color: var(--interactive-hover);
     color: var(--text-normal);
     border-color: var(--text-accent);
@@ -258,12 +258,12 @@
 
 /* Hover effect removed */
 
-.streams-calendar-day-nav:active {
+.streams-bar-day-nav:active {
     background-color: var(--interactive-accent-hover);
     transform: scale(0.95);
 }
 
-.streams-calendar-today-button {
+.streams-bar-today-button {
     white-space: nowrap;
     flex: 0 0 auto;
     text-align: center;
@@ -280,13 +280,13 @@
     transition: all 0.2s ease;
 }
 
-.streams-calendar-today-button:hover {
+.streams-bar-today-button:hover {
     background-color: var(--interactive-hover);
     border-color: var(--text-accent);
     color: var(--text-accent);
 }
 
-.streams-calendar-change-stream {
+.streams-bar-change-stream {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -304,13 +304,13 @@
     position: relative;
 }
 
-.streams-calendar-change-stream:hover {
+.streams-bar-change-stream:hover {
     background-color: var(--interactive-hover);
     color: var(--text-normal);
     border-color: var(--text-accent);
 }
 
-.streams-calendar-home-button {
+.streams-bar-home-button {
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -324,13 +324,13 @@
     color: var(--text-muted);
 }
 
-.streams-calendar-home-button:hover {
+.streams-bar-home-button:hover {
     background-color: var(--interactive-hover);
     color: var(--text-normal);
     border-color: var(--text-accent);
 }
 
-.streams-calendar-settings-button {
+.streams-bar-settings-button {
     cursor: pointer;
     transition: all 0.2s ease;
     display: flex;
@@ -344,7 +344,7 @@
     color: var(--text-muted);
 }
 
-.streams-calendar-settings-button:hover {
+.streams-bar-settings-button:hover {
     background-color: var(--interactive-hover);
     color: var(--text-normal);
     border-color: var(--text-accent);
@@ -352,25 +352,25 @@
 
 /* Hover effect removed */
 
-.streams-calendar-change-stream-icon {
+.streams-bar-change-stream-icon {
     display: flex;
     align-items: center;
 }
 
-.streams-calendar-change-stream-icon svg {
+.streams-bar-change-stream-icon svg {
     width: 16px;
     height: 16px;
     color: var(--text-muted);
 }
 
-.streams-calendar-change-stream-text {
+.streams-bar-change-stream-text {
     font-size: 14px;
     font-weight: 500;
     color: inherit;
 }
 
 /* Streams dropdown styles */
-.streams-calendar-streams-dropdown {
+.streams-bar-streams-dropdown {
     position: absolute;
     top: calc(100% + 8px);
     right: 0;
@@ -385,7 +385,7 @@
     display: none; /* Start hidden by default */
 }
 
-.streams-calendar-stream-item {
+.streams-bar-stream-item {
     display: flex;
     align-items: center;
     padding: 8px 12px;
@@ -395,65 +395,65 @@
     color: var(--text-normal);
 }
 
-.streams-calendar-stream-item:last-child {
+.streams-bar-stream-item:last-child {
     border-bottom: none;
     border-radius: 0 0 6px 6px;
 }
 
-.streams-calendar-stream-item:first-child {
+.streams-bar-stream-item:first-child {
     border-radius: 6px 6px 0 0;
 }
 
-.streams-calendar-stream-item:hover {
+.streams-bar-stream-item:hover {
     background-color: var(--interactive-hover);
     color: var(--text-accent);
 }
 
-.streams-calendar-stream-item-icon {
+.streams-bar-stream-item-icon {
     display: flex;
     align-items: center;
     margin-right: 8px;
 }
 
-.streams-calendar-stream-item-icon svg {
+.streams-bar-stream-item-icon svg {
     width: 16px;
     height: 16px;
     color: var(--text-muted);
 }
 
-.streams-calendar-stream-item-name {
+.streams-bar-stream-item-name {
     font-size: 0.9em;
     color: var(--text-normal);
     font-weight: 500;
 }
 
-.streams-calendar-stream-item-selected {
+.streams-bar-stream-item-selected {
     background-color: var(--interactive-accent);
     color: var(--text-on-accent);
 }
 
-.streams-calendar-stream-item-selected .streams-calendar-stream-item-name {
+.streams-bar-stream-item-selected .streams-bar-stream-item-name {
     color: var(--text-on-accent);
 }
 
-.streams-calendar-stream-item-selected .streams-calendar-stream-item-icon svg {
+.streams-bar-stream-item-selected .streams-bar-stream-item-icon svg {
     color: var(--text-on-accent);
 }
 
-.streams-calendar-stream-item-checkmark {
+.streams-bar-stream-item-checkmark {
     display: flex;
     align-items: center;
     margin-left: auto;
 }
 
-.streams-calendar-stream-item-checkmark svg {
+.streams-bar-stream-item-checkmark svg {
     width: 14px;
     height: 14px;
     color: var(--text-on-accent);
 }
 
 
-.streams-calendar-expanded {
+.streams-bar-expanded {
     position: absolute;
     top: 100%;
     left: 0;
@@ -476,12 +476,12 @@
     overflow-y: auto;
 }
 
-.streams-calendar-expanded-active {
+.streams-bar-expanded-active {
     opacity: 1;
     pointer-events: auto;
 }
 
-.streams-calendar-nav {
+.streams-bar-nav {
     cursor: pointer;
     color: var(--text-normal);
     padding: 4px;
@@ -498,19 +498,19 @@
 
 /* Hover effect removed */
 
-.streams-calendar-nav:active {
+.streams-bar-nav:active {
     transform: scale(0.95);
     background-color: var(--interactive-accent-hover);
 }
 
-.streams-calendar-date {
+.streams-bar-date {
     font-weight: 600;
     text-align: center;
     flex: 1;
     margin: 0 12px;
 }
 
-.streams-calendar-day {
+.streams-bar-day {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -529,7 +529,7 @@
     color: var(--text-normal);
 }
 
-.streams-calendar-day:hover {
+.streams-bar-day:hover {
     background-color: var(--interactive-hover);
     border-color: var(--text-accent);
     color: var(--text-accent);
@@ -537,24 +537,24 @@
 
 /* Hover effect removed */
 
-.streams-calendar-day:active {
+.streams-bar-day:active {
     background-color: var(--interactive-accent);
     color: var(--text-on-accent);
     transform: scale(0.95);
 }
 
-.streams-calendar-day.empty {
+.streams-bar-day.empty {
     cursor: default;
     min-height: 32px;
     min-width: 32px;
 }
 
-.streams-calendar-day.empty:hover,
-.streams-calendar-day.empty:active {
+.streams-bar-day.empty:hover,
+.streams-bar-day.empty:active {
     background-color: transparent;
 }
 
-.streams-calendar-day-header {
+.streams-bar-day-header {
     padding: 6px;
     color: var(--text-muted);
     font-size: 12px;
@@ -564,7 +564,7 @@
 }
 
 
-.streams-calendar-grid {
+.streams-bar-grid {
     display: grid !important;
     grid-template-columns: repeat(7, 32px);
     gap: 4px;
@@ -587,7 +587,7 @@
     height: 100%;
 }
 
-.streams-calendar-day {
+.streams-bar-day {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -597,7 +597,7 @@
     border-radius: 4px;
 }
 
-.streams-calendar-day.viewed {
+.streams-bar-day.viewed {
     border-color: var(--text-accent);
     background-color: var(--interactive-hover);
     color: var(--text-accent);
@@ -619,7 +619,7 @@
 
 /* Hover effect removed */
 
-.streams-calendar-day.today {
+.streams-bar-day.today {
     color: var(--text-on-accent);
     font-weight: 600;
     background-color: var(--interactive-accent);
@@ -627,15 +627,9 @@
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.streams-calendar-day.today .streams-content-dot {
+.streams-bar-day.today .streams-content-dot {
     background-color: var(--text-accent);
 }
-
-/* Removed old calendar label styles */
-
-
-
-
 
 
 /*********************************************************
@@ -808,19 +802,19 @@
 }
 
 /* Calendar Component Positioning Styles */
-.streams-calendar-component {
+.streams-bar-component {
     position: relative;
     /* display: block; */
     width: 100%;
     background-color: var(--background-primary);
     border: 1px solid var(--background-modifier-border);
     border-radius: 6px;
-    padding: 2px 6px 2px 6px;
+    padding: 4px;
     font-size: 14px;
     line-height: 1.4;
 }
 
-.streams-calendar-component--fallback {
+.streams-bar-component--fallback {
     position: fixed;
     top: 60px;
     right: 20px;
@@ -833,16 +827,16 @@
 }
 
 /* Calendar Component Dropdown Styles */
-.streams-calendar-component .streams-dropdown {
+.streams-bar-component .streams-dropdown {
     display: none;
 }
 
-.streams-calendar-component .streams-dropdown--visible {
+.streams-bar-component .streams-dropdown--visible {
     display: block !important;
 }
 
 /* Calendar Component Visibility States */
-.streams-calendar-component--visible {
+.streams-bar-component--visible {
     display: block !important;
     visibility: visible !important;
     opacity: 1 !important;

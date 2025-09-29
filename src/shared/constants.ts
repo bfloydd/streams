@@ -8,7 +8,7 @@ export const CREATE_FILE_VIEW_TYPE = 'streams-create-file-view';
  */
 export const DEFAULT_SETTINGS = {
     streams: [],
-    showCalendarComponent: true,
+    showStreamsBarComponent: true,
     reuseCurrentTab: false,
     activeStreamId: undefined,
     debugLoggingEnabled: false

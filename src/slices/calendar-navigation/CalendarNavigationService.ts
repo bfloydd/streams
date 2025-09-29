@@ -1,6 +1,6 @@
 import { App, MarkdownView, WorkspaceLeaf } from 'obsidian';
 import { SettingsAwareSliceService } from '../../shared/base-slice';
-import { CalendarComponent } from './CalendarComponent';
+import { StreamsBarComponent } from './StreamsBarComponent';
 import { CREATE_FILE_VIEW_TYPE } from '../../shared/constants';
 import { CreateFileView } from '../file-operations/CreateFileView';
 import { Stream } from '../../shared/types';
@@ -9,7 +9,7 @@ import { measurePerformance, registerCleanupTask } from '../../shared';
 import { centralizedLogger } from '../../shared/centralized-logger';
 
 export class CalendarNavigationService extends SettingsAwareSliceService {
-    private calendarComponents: Map<string, CalendarComponent> = new Map();
+    private calendarComponents: Map<string, StreamsBarComponent> = new Map();
     private isInitializing = true;
 
     async initialize(): Promise<void> {
@@ -22,7 +22,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         
         // Initialize calendar components for existing views
         setTimeout(() => {
-            this.refreshCalendarComponentsForNewViews();
+            this.refreshStreamsBarComponentsForNewViews();
             this.isInitializing = false;
         }, 100);
 
@@ -30,30 +30,30 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
     }
 
     cleanup(): void {
-        this.removeAllCalendarComponents();
+        this.removeAllStreamsBarComponents();
         this.calendarComponents.clear();
         this.initialized = false;
     }
 
     private registerEventBusListeners(): void {
         // Listen for stream changes
-        eventBus.subscribe(EVENTS.STREAM_ADDED, () => this.updateAllCalendarComponents());
-        eventBus.subscribe(EVENTS.STREAM_UPDATED, () => this.updateAllCalendarComponents());
-        eventBus.subscribe(EVENTS.STREAM_REMOVED, () => this.updateAllCalendarComponents());
-        eventBus.subscribe(EVENTS.ACTIVE_STREAM_CHANGED, () => this.updateAllCalendarComponents());
+        eventBus.subscribe(EVENTS.STREAM_ADDED, () => this.updateAllStreamsBarComponents());
+        eventBus.subscribe(EVENTS.STREAM_UPDATED, () => this.updateAllStreamsBarComponents());
+        eventBus.subscribe(EVENTS.STREAM_REMOVED, () => this.updateAllStreamsBarComponents());
+        eventBus.subscribe(EVENTS.ACTIVE_STREAM_CHANGED, () => this.updateAllStreamsBarComponents());
         
         // Listen for settings changes
-        eventBus.subscribe(EVENTS.SETTINGS_CHANGED, () => this.updateAllCalendarComponents());
+        eventBus.subscribe(EVENTS.SETTINGS_CHANGED, () => this.updateAllStreamsBarComponents());
     }
 
     onSettingsChanged(settings: any): void {
-        this.updateAllCalendarComponents();
+        this.updateAllStreamsBarComponents();
     }
 
     private registerCleanupTasks(): void {
         // Register cleanup task for memory management
         registerCleanupTask(() => {
-            this.removeAllCalendarComponents();
+            this.removeAllStreamsBarComponents();
             this.calendarComponents.clear();
         });
     }
@@ -78,11 +78,11 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
             plugin.app.workspace.on('active-leaf-change', (leaf) => {
                 if (leaf) {
                     if (leaf.view instanceof MarkdownView) {
-                        this.updateCalendarComponent(leaf);
+                        this.updateStreamsBarComponent(leaf);
                     } else if (leaf.view.getViewType() === CREATE_FILE_VIEW_TYPE) {
-                        this.updateCalendarComponentForCreateView(leaf);
+                        this.updateStreamsBarComponentForCreateView(leaf);
                     } else if (leaf.view.getViewType() === 'empty') {
-                        this.updateCalendarComponent(leaf);
+                        this.updateStreamsBarComponent(leaf);
                     }
                 }
             })
@@ -91,14 +91,14 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         // Handle new leaves being created (new tabs opened) and layout changes
         plugin.registerEvent(
             plugin.app.workspace.on('layout-change', () => {
-                this.refreshCalendarComponentsForNewViews();
+                this.refreshStreamsBarComponentsForNewViews();
             })
         );
         
         // Handle when leaves become visible (e.g., when switching between split views)
         plugin.registerEvent(
             plugin.app.workspace.on('resize', () => {
-                this.refreshCalendarComponentsForNewViews();
+                this.refreshStreamsBarComponentsForNewViews();
             })
         );
 
@@ -107,7 +107,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
             plugin.app.workspace.on('file-open', (file) => {
                 if (file) {
                     setTimeout(() => {
-                        this.ensureCalendarComponentForFile(file.path);
+                        this.ensureStreamsBarComponentForFile(file.path);
                     }, 100);
                 }
             })
@@ -117,7 +117,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         eventBus.subscribe('create-file-view-opened', (event) => {
 
             if (event.data) {
-                this.updateCalendarComponentForCreateView(event.data);
+                this.updateStreamsBarComponentForCreateView(event.data);
             }
         });
     }
@@ -154,7 +154,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         );
     }
 
-    public updateCalendarComponent(leaf: WorkspaceLeaf): void {
+    public updateStreamsBarComponent(leaf: WorkspaceLeaf): void {
         // Only create calendar components for leaves in the main editor area
         if (!this.isMainEditorLeaf(leaf)) {
             return;
@@ -167,7 +167,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         if (shouldCreateCalendar) {
 
             // Remove any existing components first to ensure we create a fresh one
-            const existingComponents = leaf.view.containerEl.querySelectorAll('.streams-calendar-component');
+            const existingComponents = leaf.view.containerEl.querySelectorAll('.streams-bar-component');
 
             existingComponents.forEach(component => {
 
@@ -187,7 +187,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
             
             if (streamToUse) {
 
-                this.createCalendarComponentForLeaf(leaf, streamToUse);
+                this.createStreamsBarComponentForLeaf(leaf, streamToUse);
             } else {
 
             }
@@ -195,9 +195,9 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         }
         
         const settings = this.getSettings();
-        if (!settings.showCalendarComponent) {
+        if (!settings.showStreamsBarComponent) {
 
-            this.removeAllCalendarComponents();
+            this.removeAllStreamsBarComponents();
             return;
         }
 
@@ -218,13 +218,13 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         if (!view) return;
 
         // Remove any existing components first to ensure we create a fresh one
-        const existingComponents = view.contentEl.querySelectorAll('.streams-calendar-component');
+        const existingComponents = view.contentEl.querySelectorAll('.streams-bar-component');
         existingComponents.forEach(component => {
 
             component.remove();
         });
 
-        const component = new CalendarComponent(
+        const component = new StreamsBarComponent(
             leaf, 
             activeStream, 
             this.getPlugin().app, 
@@ -238,15 +238,15 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
 
     }
 
-    public updateCalendarComponentForCreateView(leaf: WorkspaceLeaf): void {
+    public updateStreamsBarComponentForCreateView(leaf: WorkspaceLeaf): void {
         // Only create calendar components for leaves in the main editor area
         if (!this.isMainEditorLeaf(leaf)) {
             return;
         }
 
         const settings = this.getSettings();
-        if (!settings.showCalendarComponent) {
-            this.removeAllCalendarComponents();
+        if (!settings.showStreamsBarComponent) {
+            this.removeAllStreamsBarComponents();
             return;
         }
 
@@ -257,13 +257,13 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         }
 
         // Remove any existing components first to ensure we create a fresh one
-        const existingComponents = leaf.view.containerEl.querySelectorAll('.streams-calendar-component');
+        const existingComponents = leaf.view.containerEl.querySelectorAll('.streams-bar-component');
         existingComponents.forEach(component => {
 
             component.remove();
         });
 
-        const component = new CalendarComponent(
+        const component = new StreamsBarComponent(
             leaf, 
             activeStream, 
             this.getPlugin().app, 
@@ -277,17 +277,17 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
 
     }
 
-    public updateAllCalendarComponents = measurePerformance((): void => {
+    public updateAllStreamsBarComponents = measurePerformance((): void => {
         if (this.isInitializing) return;
         
-        this.refreshCalendarComponentsForNewViews();
-    }, 'calendar-navigation', 'updateAllCalendarComponents');
+        this.refreshStreamsBarComponentsForNewViews();
+    }, 'calendar-navigation', 'updateAllStreamsBarComponents');
 
-    public refreshAllCalendarComponents(): void {
-        this.refreshCalendarComponentsForNewViews();
+    public refreshAllStreamsBarComponents(): void {
+        this.refreshStreamsBarComponentsForNewViews();
     }
 
-    private removeAllCalendarComponents(): void {
+    private removeAllStreamsBarComponents(): void {
 
         for (const component of this.calendarComponents.values()) {
 
@@ -297,7 +297,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
 
     }
 
-    private refreshCalendarComponentsForNewViews(): void {
+    private refreshStreamsBarComponentsForNewViews(): void {
 
         // Get all leaves and check their types
         const allLeaves = this.getPlugin().app.workspace.getLeavesOfType('empty');
@@ -306,13 +306,13 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         const activeLeaf = this.getPlugin().app.workspace.activeLeaf;
         if (activeLeaf && this.isMainEditorLeaf(activeLeaf)) {
 
-            this.updateCalendarComponent(activeLeaf);
+            this.updateStreamsBarComponent(activeLeaf);
         }
         
         // Process all empty leaves, but only if they're in the main editor area
         allLeaves.forEach(leaf => {
             if (this.isMainEditorLeaf(leaf)) {
-                this.updateCalendarComponent(leaf);
+                this.updateStreamsBarComponent(leaf);
             }
         });
     }
@@ -327,10 +327,10 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         return mainEditorArea.contains(leaf.view.containerEl);
     }
 
-    private ensureCalendarComponentForFile(filePath: string): void {
+    private ensureStreamsBarComponentForFile(filePath: string): void {
         const activeLeaf = this.getPlugin().app.workspace.activeLeaf;
         if (activeLeaf) {
-            this.updateCalendarComponent(activeLeaf);
+            this.updateStreamsBarComponent(activeLeaf);
         }
     }
 
@@ -364,11 +364,11 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         return `${stream.folder}/${fileName}`;
     }
 
-    private createCalendarComponentForLeaf(leaf: WorkspaceLeaf, activeStream: Stream): void {
+    private createStreamsBarComponentForLeaf(leaf: WorkspaceLeaf, activeStream: Stream): void {
         const settings = this.getSettings();
 
         // Remove any existing components first to ensure we create a fresh one
-        const existingComponents = leaf.view.containerEl.querySelectorAll('.streams-calendar-component');
+        const existingComponents = leaf.view.containerEl.querySelectorAll('.streams-bar-component');
 
         existingComponents.forEach(component => {
 
@@ -376,7 +376,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         });
         
         try {
-            const component = new CalendarComponent(
+            const component = new StreamsBarComponent(
                 leaf, 
                 activeStream, 
                 this.getPlugin().app, 
@@ -390,7 +390,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
 
             // Verify the component was actually added to the DOM
             setTimeout(() => {
-                const domComponents = leaf.view.containerEl.querySelectorAll('.streams-calendar-component');
+                const domComponents = leaf.view.containerEl.querySelectorAll('.streams-bar-component');
 
                 if (domComponents.length === 0) {
                     centralizedLogger.error(`[CalendarNavigationService] ERROR: Calendar component was not added to DOM!`);

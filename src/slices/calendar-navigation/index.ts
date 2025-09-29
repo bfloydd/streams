@@ -1,2 +1,2 @@
 export * from './CalendarNavigationService';
-export * from './CalendarComponent';
+export * from './StreamsBarComponent';

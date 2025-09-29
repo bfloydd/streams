@@ -25,7 +25,7 @@ interface PluginInterface {
     setActiveStream(streamId: string, force?: boolean): void;
 }
 
-export class CalendarComponent extends Component {
+export class StreamsBarComponent extends Component {
     private component: HTMLElement;
     private expanded: boolean = false;
     public leaf: WorkspaceLeaf;
@@ -69,7 +69,7 @@ export class CalendarComponent extends Component {
         this.dateStateManager = DateStateManager.getInstance();
         
         this.component = document.createElement('div');
-        this.component.addClass('streams-calendar-component');
+        this.component.addClass('streams-bar-component');
         
         // Initialize date state based on current view
         this.initializeDateState(leaf);
@@ -126,13 +126,13 @@ export class CalendarComponent extends Component {
         }
 
         // Remove existing calendar components from the same leaf to avoid duplicates
-        const existingComponents = contentContainer.querySelectorAll('.streams-calendar-component');
+        const existingComponents = contentContainer.querySelectorAll('.streams-bar-component');
         existingComponents.forEach(component => {
             component.remove();
         });
         
         // Also remove from document body to prevent duplicates
-        const workspaceComponents = document.querySelectorAll('.streams-calendar-component');
+        const workspaceComponents = document.querySelectorAll('.streams-bar-component');
         workspaceComponents.forEach((component: Element) => {
             component.remove();
         });
@@ -161,7 +161,7 @@ export class CalendarComponent extends Component {
         
         if (viewHeader && isMainEditorLeaf) {
             // Apply standard calendar component styling
-            this.component.addClass('streams-calendar-component');
+            this.component.addClass('streams-bar-component');
             
             // Insert after the view-header instead of inside it
             if (viewHeader.parentElement) {
@@ -196,12 +196,12 @@ export class CalendarComponent extends Component {
 
     private initializeComponent() {
 
-        const collapsedView = this.component.createDiv('streams-calendar-collapsed');
-        const expandedView = this.component.createDiv('streams-calendar-expanded');
+        const collapsedView = this.component.createDiv('streams-bar-collapsed');
+        const expandedView = this.component.createDiv('streams-bar-expanded');
 
-        const navControls = collapsedView.createDiv('streams-calendar-nav-controls');
+        const navControls = collapsedView.createDiv('streams-bar-nav-controls');
         
-        const prevDayButton = navControls.createDiv('streams-calendar-day-nav prev-day');
+        const prevDayButton = navControls.createDiv('streams-bar-day-nav prev-day');
         prevDayButton.setText('←');
         prevDayButton.setAttribute('aria-label', 'Previous day');
         prevDayButton.addEventListener('click', async (e) => {
@@ -209,7 +209,7 @@ export class CalendarComponent extends Component {
             await this.navigateToAdjacentDay(-1);
         });
         
-        const todayButton = navControls.createDiv('streams-calendar-today-button');
+        const todayButton = navControls.createDiv('streams-bar-today-button');
         this.todayButton = todayButton;
         this.updateTodayButton();
         
@@ -218,7 +218,7 @@ export class CalendarComponent extends Component {
             this.toggleExpanded(collapsedView, expandedView);
         });
         
-        const nextDayButton = navControls.createDiv('streams-calendar-day-nav next-day');
+        const nextDayButton = navControls.createDiv('streams-bar-day-nav next-day');
         nextDayButton.setText('→');
         nextDayButton.setAttribute('aria-label', 'Next day');
         nextDayButton.addEventListener('click', async (e) => {
@@ -226,7 +226,7 @@ export class CalendarComponent extends Component {
             await this.navigateToAdjacentDay(1);
         });
         
-        const homeButton = navControls.createDiv('streams-calendar-home-button');
+        const homeButton = navControls.createDiv('streams-bar-home-button');
         setIcon(homeButton, 'home');
         homeButton.setAttribute('aria-label', 'Go to current stream today');
         homeButton.addEventListener('click', async (e) => {
@@ -235,7 +235,7 @@ export class CalendarComponent extends Component {
             await command.execute();
         });
         
-        const settingsButton = navControls.createDiv('streams-calendar-settings-button');
+        const settingsButton = navControls.createDiv('streams-bar-settings-button');
         setIcon(settingsButton, 'settings');
         settingsButton.setAttribute('aria-label', 'Open Streams plugin settings');
         settingsButton.addEventListener('click', async (e) => {
@@ -245,34 +245,34 @@ export class CalendarComponent extends Component {
             setting.openTabById('streams');
         });
 
-        const changeStreamSection = collapsedView.createDiv('streams-calendar-change-stream');
-        const changeStreamText = changeStreamSection.createDiv('streams-calendar-change-stream-text');
+        const changeStreamSection = collapsedView.createDiv('streams-bar-change-stream');
+        const changeStreamText = changeStreamSection.createDiv('streams-bar-change-stream-text');
         changeStreamText.setText(this.getDisplayStreamName());
         changeStreamSection.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleStreamsDropdown();
         });
 
-        this.streamsDropdown = changeStreamSection.createDiv('streams-calendar-streams-dropdown streams-dropdown');
+        this.streamsDropdown = changeStreamSection.createDiv('streams-bar-streams-dropdown streams-dropdown');
         this.streamsDropdown.style.display = 'none'; // Start hidden
         this.populateStreamsDropdown();
 
-        const topNav = expandedView.createDiv('streams-calendar-top-nav');
-        const todayNavButton = topNav.createDiv('streams-calendar-today-nav');
+        const topNav = expandedView.createDiv('streams-bar-top-nav');
+        const todayNavButton = topNav.createDiv('streams-bar-today-nav');
         todayNavButton.setText('Today');
-        const streamName = topNav.createDiv('streams-calendar-name');
+        const streamName = topNav.createDiv('streams-bar-name');
         streamName.setText(this.getDisplayStreamName());
 
-        const header = expandedView.createDiv('streams-calendar-header');
-        const prevButton = header.createDiv('streams-calendar-nav');
+        const header = expandedView.createDiv('streams-bar-header');
+        const prevButton = header.createDiv('streams-bar-nav');
         prevButton.setText('←');
-        const dateDisplay = header.createDiv('streams-calendar-date');
+        const dateDisplay = header.createDiv('streams-bar-date');
         const state = this.dateStateManager.getState();
         dateDisplay.setText(this.formatMonthYear(state.currentDate));
-        const nextButton = header.createDiv('streams-calendar-nav');
+        const nextButton = header.createDiv('streams-bar-nav');
         nextButton.setText('→');
 
-        const grid = expandedView.createDiv('streams-calendar-grid');
+        const grid = expandedView.createDiv('streams-bar-grid');
         this.grid = grid;
         this.updateCalendarGrid(grid);
 
@@ -342,7 +342,7 @@ export class CalendarComponent extends Component {
         this.component.offsetHeight; // Force layout
 
         // Also try to make sure the component is visible
-        this.component.addClass('streams-calendar-component--visible');
+        this.component.addClass('streams-bar-component--visible');
 
     }
 
@@ -392,16 +392,16 @@ export class CalendarComponent extends Component {
         const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
         
         for (let i = 0; i < 7; i++) {
-            const dayHeader = grid.createDiv('streams-calendar-day-header');
+            const dayHeader = grid.createDiv('streams-bar-day-header');
             dayHeader.textContent = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][i];
         }
         
         for (let i = 0; i < firstDayOfMonth; i++) {
-            grid.createDiv('streams-calendar-day empty');
+            grid.createDiv('streams-bar-day empty');
         }
         
         for (let day = 1; day <= daysInMonth; day++) {
-            const dayEl = grid.createDiv('streams-calendar-day');
+            const dayEl = grid.createDiv('streams-bar-day');
             
             const dateContainer = dayEl.createDiv('streams-date-container');
             dateContainer.textContent = String(day);
@@ -440,7 +440,7 @@ export class CalendarComponent extends Component {
     }
     
     private async updateGridContent(grid: HTMLElement) {
-        const dayElements = grid.querySelectorAll('.streams-calendar-day:not(.empty)');
+        const dayElements = grid.querySelectorAll('.streams-bar-day:not(.empty)');
         const state = this.dateStateManager.getState();
         const currentDate = state.currentDate;
         
@@ -518,7 +518,7 @@ export class CalendarComponent extends Component {
 
     private toggleExpanded(collapsedView: HTMLElement, expandedView: HTMLElement) {
         this.expanded = !this.expanded;
-        expandedView.toggleClass('streams-calendar-expanded-active', this.expanded);
+        expandedView.toggleClass('streams-bar-expanded-active', this.expanded);
         collapsedView.toggleClass('streams-today-button-expanded', this.expanded);
         
         if (this.expanded) {
@@ -617,20 +617,20 @@ export class CalendarComponent extends Component {
         this.streamsDropdown.empty();
         
         this.streams.forEach(stream => {
-            const streamItem = this.streamsDropdown!.createDiv('streams-calendar-stream-item');
+            const streamItem = this.streamsDropdown!.createDiv('streams-bar-stream-item');
             
             const isSelected = stream.id === this.getActiveStreamId();
             if (isSelected) {
-                streamItem.addClass('streams-calendar-stream-item-selected');
+                streamItem.addClass('streams-bar-stream-item-selected');
             }
             
-            const streamIcon = streamItem.createDiv('streams-calendar-stream-item-icon');
+            const streamIcon = streamItem.createDiv('streams-bar-stream-item-icon');
             setIcon(streamIcon, stream.icon);
-            const streamName = streamItem.createDiv('streams-calendar-stream-item-name');
+            const streamName = streamItem.createDiv('streams-bar-stream-item-name');
             streamName.setText(stream.name);
             
             if (isSelected) {
-                const checkmark = streamItem.createDiv('streams-calendar-stream-item-checkmark');
+                const checkmark = streamItem.createDiv('streams-bar-stream-item-checkmark');
                 setIcon(checkmark, 'check');
             }
             
@@ -649,12 +649,12 @@ export class CalendarComponent extends Component {
             this.plugin.setActiveStream(stream.id, true);
         }
         
-        const changeStreamText = this.component.querySelector('.streams-calendar-change-stream-text');
+        const changeStreamText = this.component.querySelector('.streams-bar-change-stream-text');
         if (changeStreamText) {
             changeStreamText.setText(stream.name);
         }
         
-        const streamNameElement = this.component.querySelector('.streams-calendar-name');
+        const streamNameElement = this.component.querySelector('.streams-bar-name');
         if (streamNameElement) {
             streamNameElement.setText(stream.name);
         }

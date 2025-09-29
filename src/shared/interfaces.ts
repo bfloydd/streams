@@ -67,8 +67,8 @@ export interface StreamsPluginInterface extends Plugin {
     
     // Core methods that slices need
     saveSettings(): Promise<void>;
-    refreshAllCalendarComponents(): void;
-    updateAllCalendarComponents(): void;
+    refreshAllStreamsBarComponents(): void;
+    updateAllStreamsBarComponents(): void;
     setActiveStream(streamId: string, force?: boolean): void;
     getActiveStream(): Stream | undefined;
 }

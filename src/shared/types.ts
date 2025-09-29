@@ -27,7 +27,7 @@ export interface Stream {
 
 export interface StreamsSettings {
     streams: Stream[];
-    showCalendarComponent: boolean;
+    showStreamsBarComponent: boolean;
     reuseCurrentTab: boolean;
     activeStreamId?: string; // ID of the currently active/selected stream
     debugLoggingEnabled: boolean; // Whether debug logging is enabled by default

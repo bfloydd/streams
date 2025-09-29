@@ -139,7 +139,7 @@ export class CreateFileView extends ItemView {
             this.handleDateChange(state);
         });
         
-        // Trigger calendar component to be added to this view
+        // Trigger streams bar component to be added to this view
         this.triggerCalendarComponent();
         
         // Prepare our content element
@@ -250,7 +250,7 @@ export class CreateFileView extends ItemView {
     }
     
     private triggerCalendarComponent(): void {
-        // Trigger the calendar component to be added to this view
+        // Trigger the streams bar component to be added to this view
         try {
             import('../../shared/event-bus').then(({ eventBus }) => {
                 eventBus.emit('create-file-view-opened', this.leaf);
