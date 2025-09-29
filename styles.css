@@ -291,7 +291,7 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 6px 12px;
+    padding: 5px 12px;
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -814,7 +814,7 @@
     background-color: var(--background-primary);
     border: 1px solid var(--background-modifier-border);
     border-radius: 6px;
-    padding: 3px 5px 3px 5px;
+    padding: 2px 6px 2px 6px;
     font-size: 14px;
     line-height: 1.4;
 }
