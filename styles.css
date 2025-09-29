@@ -1,5 +1,5 @@
 /*********************************************************
- * GLOBAL STREAM INDICATOR STYLES
+ * GLOBAL STYLES & INDICATORS
  *********************************************************/
 .streams-global-indicator {
     display: inline-flex;
@@ -52,7 +52,66 @@
 }
 
 /*********************************************************
- * CALENDAR COMPONENT STYLES
+ * STREAMS BAR - MAIN COMPONENT
+ *********************************************************/
+.streams-bar-component {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 10000;
+    font-size: 12px;
+    margin: 0;
+    pointer-events: auto;
+    border-bottom: 1px solid var(--background-modifier-border);
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    backdrop-filter: blur(8px);
+}
+
+.streams-bar-component {
+    position: relative;
+    width: 100%;
+    background-color: var(--background-primary);
+    padding: 4px 6px 4px 6px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.streams-markdown-view-content {
+    position: relative;
+}
+
+.streams-markdown-view-content .streams-bar-component {
+    position: absolute;
+    top: 10px;
+}
+
+.workspace-leaf-content:has(.streams-create-file-container) {
+    width: 100%;
+}
+
+.is-phone .streams-bar-component {
+    font-size: 11px;
+}
+
+.streams-bar-component .streams-dropdown {
+    display: none;
+}
+
+.streams-bar-component .streams-dropdown--visible {
+    display: block !important;
+}
+
+.streams-bar-component--visible {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
+
+/*********************************************************
+ * STREAMS BAR - NAVIGATION & HEADER
  *********************************************************/
 .streams-bar-top-nav,
 .streams-bar-header {
@@ -78,39 +137,6 @@
 
 .streams-bar-today-nav:hover {
     color: var(--text-normal);
-}
-
-.streams-bar-component {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 10000;
-    font-size: 12px;
-    margin: 0;
-    pointer-events: auto;
-    border-bottom: 1px solid var(--background-modifier-border);
-    display: flex;
-    align-items: center;
-    padding: 0 14px;
-    backdrop-filter: blur(8px);
-}
-
-.streams-markdown-view-content {
-    position: relative;
-}
-
-.streams-markdown-view-content .streams-bar-component {
-    position: absolute;
-    top: 10px;
-}
-
-.workspace-leaf-content:has(.streams-create-file-container) {
-    width: 100%;
-}
-
-.is-phone .streams-bar-component {
-    font-size: 11px;
 }
 
 .streams-bar-collapsed {
@@ -146,6 +172,36 @@
     flex: 1;
 }
 
+.streams-bar-nav {
+    cursor: pointer;
+    color: var(--text-normal);
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background-color: var(--background-primary);
+    border: none;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    font-size: 16px;
+}
+
+.streams-bar-nav:active {
+    transform: scale(0.95);
+    background-color: var(--interactive-accent-hover);
+}
+
+.streams-bar-date {
+    font-weight: 600;
+    text-align: center;
+    flex: 1;
+    margin: 0 12px;
+}
+
+/*********************************************************
+ * STREAMS BAR - BUTTONS & CONTROLS
+ *********************************************************/
 .streams-bar-day-nav {
     display: flex;
     align-items: center;
@@ -265,6 +321,9 @@
     border-color: var(--text-accent);
 }
 
+/*********************************************************
+ * STREAMS BAR - DROPDOWN & STREAM SELECTION
+ *********************************************************/
 .streams-bar-streams-dropdown {
     position: absolute;
     top: calc(100% + 8px);
@@ -347,6 +406,9 @@
     color: var(--text-on-accent);
 }
 
+/*********************************************************
+ * STREAMS BAR - CALENDAR GRID & DAYS
+ *********************************************************/
 .streams-bar-expanded {
     position: absolute;
     top: 100%;
@@ -375,31 +437,17 @@
     pointer-events: auto;
 }
 
-.streams-bar-nav {
-    cursor: pointer;
-    color: var(--text-normal);
-    padding: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background-color: var(--background-primary);
-    border: none;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    font-size: 16px;
-}
-
-.streams-bar-nav:active {
-    transform: scale(0.95);
-    background-color: var(--interactive-accent-hover);
-}
-
-.streams-bar-date {
-    font-weight: 600;
-    text-align: center;
-    flex: 1;
-    margin: 0 12px;
+.streams-bar-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, 32px);
+    gap: 4px;
+    width: 264px;
+    padding: 8px;
+    box-sizing: border-box;
+    background-color: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    margin: 0;
 }
 
 .streams-bar-day {
@@ -453,19 +501,6 @@
     cursor: default;
 }
 
-.streams-bar-grid {
-    display: grid !important;
-    grid-template-columns: repeat(7, 32px);
-    gap: 4px;
-    width: 264px;
-    padding: 8px;
-    box-sizing: border-box;
-    background-color: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 6px;
-    margin: 0;
-}
-
 .streams-date-container {
     display: flex;
     justify-content: center;
@@ -476,12 +511,19 @@
     height: 100%;
 }
 
-
 .streams-bar-day.viewed {
     border-color: var(--text-accent);
     background-color: var(--interactive-hover);
     color: var(--text-accent);
     font-weight: 600;
+}
+
+.streams-bar-day.today {
+    color: var(--text-on-accent);
+    font-weight: 600;
+    background-color: var(--interactive-accent);
+    border: 1px solid var(--interactive-accent);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .streams-dot-container {
@@ -497,22 +539,13 @@
     background-color: var(--text-muted);
 }
 
-.streams-bar-day.today {
-    color: var(--text-on-accent);
-    font-weight: 600;
-    background-color: var(--interactive-accent);
-    border: 1px solid var(--interactive-accent);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
 .streams-bar-day.today .streams-content-dot {
     background-color: var(--text-accent);
 }
 
 /*********************************************************
- * CREATE FILE VIEW STYLES
+ * CREATE FILE VIEW - CONTAINER & LAYOUT
  *********************************************************/
-
 .streams-create-file-container {
     display: flex;
     justify-content: center;
@@ -545,6 +578,9 @@
     z-index: 2;
 }
 
+/*********************************************************
+ * CREATE FILE VIEW - CONTENT ELEMENTS
+ *********************************************************/
 .streams-create-file-icon {
     margin-bottom: 24px;
 }
@@ -596,6 +632,9 @@
     opacity: 0.8;
 }
 
+/*********************************************************
+ * CREATE FILE VIEW - BUTTONS & ACTIONS
+ *********************************************************/
 .streams-create-file-button-container {
     margin-top: 16px;
 }
@@ -630,7 +669,6 @@
 /*********************************************************
  * RESPONSIVE STYLES
  *********************************************************/
-
 .is-mobile .streams-create-file-content {
     width: 100%;
     max-width: none;
@@ -644,31 +682,4 @@
 
 .is-phone .streams-create-file-date {
     font-size: 1.5em;
-}
-
-/*********************************************************
- * UTILITY STYLES
- *********************************************************/
-
-.streams-bar-component {
-    position: relative;
-    width: 100%;
-    background-color: var(--background-primary);
-    padding: 4px 6px 4px 6px;
-    font-size: 14px;
-    line-height: 1.4;
-}
-
-.streams-bar-component .streams-dropdown {
-    display: none;
-}
-
-.streams-bar-component .streams-dropdown--visible {
-    display: block !important;
-}
-
-.streams-bar-component--visible {
-    display: block !important;
-    visibility: visible !important;
-    opacity: 1 !important;
 }
