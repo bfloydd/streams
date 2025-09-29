@@ -807,8 +807,6 @@
     /* display: block; */
     width: 100%;
     background-color: var(--background-primary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 6px;
     padding: 4px;
     font-size: 14px;
     line-height: 1.4;
