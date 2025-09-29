@@ -56,6 +56,10 @@ export class StreamsBarComponent extends Component {
         return this.plugin?.settings?.activeStreamId || this.selectedStream.id;
     }
 
+    public updateReuseCurrentTab(reuseCurrentTab: boolean): void {
+        this.reuseCurrentTab = reuseCurrentTab;
+    }
+
     constructor(leaf: WorkspaceLeaf, stream: Stream, app: App, reuseCurrentTab: boolean = false, streams: Stream[] = [], plugin: PluginInterface | null = null) {
         super();
         
@@ -139,21 +143,18 @@ export class StreamsBarComponent extends Component {
 
         contentContainer.addClass('streams-markdown-view-content');
         
-        // Find the view-header that belongs to the main editor area only
-        // Target the main editor area (workspace-split mod-vertical mod-root) to avoid sidebars
-        const mainEditorArea = document.querySelector('.workspace-split.mod-vertical.mod-root');
-        let viewHeader: Element | null = null;
+        // Find the view-header that belongs to this specific leaf
+        // This ensures we attach to the correct leaf even when there are multiple workspace leaves
+        const leafContainer = leaf.view.containerEl;
+        let viewHeader: Element | null = leafContainer.querySelector('.view-header');
         
-        if (mainEditorArea) {
+        // Get the main editor area for validation
+        const mainEditorArea = document.querySelector('.workspace-split.mod-vertical.mod-root');
+        
+        // If we can't find it in the leaf container, try the main editor area as fallback
+        if (!viewHeader && mainEditorArea) {
             // Look for view-header within the main editor area
             viewHeader = mainEditorArea.querySelector('.view-header');
-        }
-        
-        // If we can't find it in the main editor area, try to find the view-header for this specific leaf
-        if (!viewHeader) {
-            // Find the view-header that belongs to this specific leaf
-            const leafContainer = leaf.view.containerEl;
-            viewHeader = leafContainer.querySelector('.view-header');
         }
         
         // Only add the calendar component if we're in the main editor area or if this is a main editor leaf

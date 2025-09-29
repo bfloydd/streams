@@ -74,6 +74,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                     this.plugin.settings.reuseCurrentTab = value;
                     await this.plugin.saveSettings();
                     
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
+                    
                     new Notice(`Calendar navigation will ${value ? 'reuse' : 'open new'} tabs`);
                 }));
                 

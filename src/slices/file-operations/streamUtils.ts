@@ -125,20 +125,37 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
             }
         }
         
-        // Instead of creating a new leaf, work with the current active leaf if it's empty
+        // Handle leaf selection based on reuseCurrentTab setting
         let leaf: WorkspaceLeaf | null = null;
         
-        // Check if current active leaf is empty and can be used
-        const activeLeaf = app.workspace.activeLeaf;
-        if (activeLeaf && !activeLeaf.view.getViewType().includes('markdown')) {
-            leaf = activeLeaf;
+        if (reuseCurrentTab) {
+            // Always try to reuse the current active leaf when reuseCurrentTab is enabled
+            const activeLeaf = app.workspace.activeLeaf;
+            if (activeLeaf) {
+                leaf = activeLeaf;
+                // log.debug('Reusing current active leaf for CreateFileView (reuseCurrentTab enabled)');
+            } else {
+                // Fallback: create a new leaf if no active leaf
+                try {
+                    leaf = app.workspace.getLeaf('tab');
+                } catch (error) {
+                    centralizedLogger.error('Failed to create new leaf:', error);
+                    return;
+                }
+            }
         } else {
-            // Create a new leaf if current one is not suitable
-            try {
-                leaf = app.workspace.getLeaf('tab');
-            } catch (error) {
-                centralizedLogger.error('Failed to create new leaf:', error);
-                return;
+            // Original behavior: only reuse empty/non-markdown views
+            const activeLeaf = app.workspace.activeLeaf;
+            if (activeLeaf && !activeLeaf.view.getViewType().includes('markdown')) {
+                leaf = activeLeaf;
+            } else {
+                // Create a new leaf if current one is not suitable
+                try {
+                    leaf = app.workspace.getLeaf('tab');
+                } catch (error) {
+                    centralizedLogger.error('Failed to create new leaf:', error);
+                    return;
+                }
             }
         }
         

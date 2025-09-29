@@ -43,10 +43,14 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         eventBus.subscribe(EVENTS.ACTIVE_STREAM_CHANGED, () => this.updateAllStreamsBarComponents());
         
         // Listen for settings changes
-        eventBus.subscribe(EVENTS.SETTINGS_CHANGED, () => this.updateAllStreamsBarComponents());
+        eventBus.subscribe(EVENTS.SETTINGS_CHANGED, (event) => this.onSettingsChanged(event.data));
     }
 
     onSettingsChanged(settings: any): void {
+        // Update existing components with new settings
+        this.updateExistingComponentsSettings(settings);
+        
+        // Also refresh components for new views
         this.updateAllStreamsBarComponents();
     }
 
@@ -295,6 +299,15 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         }
         this.calendarComponents.clear();
 
+    }
+
+    private updateExistingComponentsSettings(settings: any): void {
+        // Update the reuseCurrentTab setting for all existing components
+        for (const component of this.calendarComponents.values()) {
+            if (component && typeof component.updateReuseCurrentTab === 'function') {
+                component.updateReuseCurrentTab(settings.reuseCurrentTab);
+            }
+        }
     }
 
     private refreshStreamsBarComponentsForNewViews(): void {
