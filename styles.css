@@ -711,10 +711,9 @@
 /* Calendar Component Positioning Styles */
 .streams-bar-component {
     position: relative;
-    /* display: block; */
     width: 100%;
     background-color: var(--background-primary);
-    padding: 4px;
+    padding: 4px 6px 4px 6px;
     font-size: 14px;
     line-height: 1.4;
 }
