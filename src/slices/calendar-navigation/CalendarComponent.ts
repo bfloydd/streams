@@ -143,17 +143,8 @@ export class CalendarComponent extends Component {
         const viewHeader = viewHeaders[viewHeaders.length - 1]; // Get the last one (most likely the active one)
         
         if (viewHeader) {
-            
-            this.component.style.position = 'relative';
-            this.component.style.display = 'block';
-            this.component.style.width = '100%';
-            this.component.style.margin = '0 0 10px 0';
-            this.component.style.backgroundColor = 'var(--background-primary)';
-            this.component.style.border = '1px solid var(--background-modifier-border)';
-            this.component.style.borderRadius = '6px';
-            this.component.style.padding = '8px';
-            this.component.style.fontSize = '14px';
-            this.component.style.lineHeight = '1.4';
+            // Apply standard calendar component styling
+            this.component.addClass('streams-calendar-component');
             
             // Insert after the view-header instead of inside it
             if (viewHeader.parentElement) {
@@ -162,16 +153,8 @@ export class CalendarComponent extends Component {
                 viewHeader.appendChild(this.component);
             }
         } else {
-            
-            this.component.style.position = 'fixed';
-            this.component.style.top = '60px';
-            this.component.style.right = '20px';
-            this.component.style.zIndex = '1000';
-            this.component.style.backgroundColor = 'var(--background-primary)';
-            this.component.style.border = '1px solid var(--background-modifier-border)';
-            this.component.style.borderRadius = '6px';
-            this.component.style.padding = '8px';
-            this.component.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            // Apply fallback positioning styling
+            this.component.addClass('streams-calendar-component--fallback');
             
             document.body.appendChild(this.component);
         }
@@ -253,8 +236,7 @@ export class CalendarComponent extends Component {
             this.toggleStreamsDropdown();
         });
 
-        this.streamsDropdown = changeStreamSection.createDiv('streams-calendar-streams-dropdown');
-        this.streamsDropdown.style.display = 'none';
+        this.streamsDropdown = changeStreamSection.createDiv('streams-calendar-streams-dropdown streams-dropdown');
         this.populateStreamsDropdown();
 
         const topNav = expandedView.createDiv('streams-calendar-top-nav');
@@ -321,7 +303,7 @@ export class CalendarComponent extends Component {
                 this.toggleExpanded(collapsedView, expandedView);
             }
             
-            if (this.streamsDropdown && this.streamsDropdown.style.display !== 'none' && !this.component.contains(e.target as Node)) {
+            if (this.streamsDropdown && !this.streamsDropdown.hasClass('streams-dropdown--visible') && !this.component.contains(e.target as Node)) {
                 this.toggleStreamsDropdown();
             }
         });
@@ -338,9 +320,7 @@ export class CalendarComponent extends Component {
         this.component.offsetHeight; // Force layout
 
         // Also try to make sure the component is visible
-        this.component.style.display = 'block';
-        this.component.style.visibility = 'visible';
-        this.component.style.opacity = '1';
+        this.component.addClass('streams-calendar-component--visible');
 
     }
 
@@ -581,8 +561,12 @@ export class CalendarComponent extends Component {
 
     private toggleStreamsDropdown() {
         if (this.streamsDropdown) {
-            const isVisible = this.streamsDropdown.style.display !== 'none';
-            this.streamsDropdown.style.display = isVisible ? 'none' : 'block';
+            const isVisible = this.streamsDropdown.hasClass('streams-dropdown--visible');
+            if (isVisible) {
+                this.streamsDropdown.removeClass('streams-dropdown--visible');
+            } else {
+                this.streamsDropdown.addClass('streams-dropdown--visible');
+            }
         }
     }
 
@@ -639,7 +623,7 @@ export class CalendarComponent extends Component {
         }
         
         if (this.streamsDropdown) {
-            this.streamsDropdown.style.display = 'none';
+            this.streamsDropdown.removeClass('streams-dropdown--visible');
         }
         
         if (this.plugin && this.plugin.setActiveStream) {

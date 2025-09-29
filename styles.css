@@ -811,3 +811,45 @@
     overflow: hidden !important;
     clip: rect(0, 0, 0, 0) !important;
 }
+
+/* Calendar Component Positioning Styles */
+.streams-calendar-component {
+    position: relative;
+    display: block;
+    width: 100%;
+    margin: 0 0 10px 0;
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.streams-calendar-component--fallback {
+    position: fixed;
+    top: 60px;
+    right: 20px;
+    z-index: 1000;
+    background-color: var(--background-primary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 6px;
+    padding: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+/* Calendar Component Dropdown Styles */
+.streams-calendar-component .streams-dropdown {
+    display: none;
+}
+
+.streams-calendar-component .streams-dropdown--visible {
+    display: block;
+}
+
+/* Calendar Component Visibility States */
+.streams-calendar-component--visible {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+}
