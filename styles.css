@@ -102,7 +102,6 @@
     backdrop-filter: blur(8px);
 }
 
-/* Position relative to the content container that contains cm-panels */
 .streams-markdown-view-content {
     position: relative;
 }
@@ -112,25 +111,13 @@
     top: 10px;
 }
 
-/* Ensure workspace leaf content takes full height when our view is present */
 .workspace-leaf-content:has(.streams-create-file-container) {
     width: 100%;
 }
 
-
-
-
-
-
-
 .is-phone .streams-bar-component {
     font-size: 11px;
 }
-
-
-
-
-
 
 .streams-bar-collapsed {
     position: relative;
@@ -139,9 +126,6 @@
     padding: 0;
     transition: all 0.2s ease;
     background-color: var(--background-primary);
-    /* border: 1px solid var(--background-modifier-border); */
-    /* border-radius: 6px; */
-    /* box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); */
     min-width: 200px;
     width: 100%;
     text-align: left;
@@ -153,7 +137,6 @@
     align-items: center;
     justify-content: space-between;
     flex: 1;
-    /* margin-bottom: 8px; */
 }
 
 .streams-bar-nav-controls {
@@ -219,7 +202,6 @@
     color: var(--text-accent);
 }
 
-/* .streams-today-button-expanded - Additional styles for expanded state if needed */
 
 .streams-bar-change-stream {
     display: flex;
@@ -290,7 +272,6 @@
     border-color: var(--text-accent);
 }
 
-/* Streams dropdown styles */
 .streams-bar-streams-dropdown {
     position: absolute;
     top: calc(100% + 8px);
@@ -303,7 +284,7 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     z-index: 10000;
     overflow: visible;
-    display: none; /* Start hidden by default */
+    display: none;
 }
 
 .streams-bar-stream-item {
@@ -438,8 +419,8 @@
     padding: 4px;
     border-radius: 4px;
     transition: all 0.2s ease;
-    min-width: 32px; /* Fixed width for day cells */
-    min-height: 32px; /* Fixed height for day cells */
+    min-width: 32px;
+    min-height: 32px;
     width: 32px;
     height: 32px;
     justify-content: center;
@@ -476,10 +457,9 @@
     color: var(--text-muted);
     font-size: 12px;
     text-align: center;
-    width: 32px; /* Fixed width for headers */
+    width: 32px;
     cursor: default;
 }
-
 
 .streams-bar-grid {
     display: grid !important;
@@ -542,7 +522,6 @@
  * CREATE FILE VIEW STYLES
  *********************************************************/
 
-/* Center our create file container */
 .streams-create-file-container {
     display: flex;
     justify-content: center;
@@ -556,9 +535,6 @@
     position: relative;
     z-index: 1;
 }
-
-/* Ensure content is visible */
-
 
 .streams-create-file-content {
     display: flex;
@@ -686,7 +662,6 @@
  * UTILITY STYLES
  *********************************************************/
 
-/* Calendar Component Positioning Styles */
 .streams-bar-component {
     position: relative;
     width: 100%;
@@ -696,8 +671,6 @@
     line-height: 1.4;
 }
 
-
-/* Calendar Component Dropdown Styles */
 .streams-bar-component .streams-dropdown {
     display: none;
 }
@@ -706,7 +679,6 @@
     display: block !important;
 }
 
-/* Calendar Component Visibility States */
 .streams-bar-component--visible {
     display: block !important;
     visibility: visible !important;
