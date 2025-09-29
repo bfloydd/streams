@@ -6,6 +6,7 @@ import { OpenTodayStreamCommand } from '../file-operations/OpenTodayStreamComman
 import { OpenTodayCurrentStreamCommand } from '../file-operations/OpenTodayCurrentStreamCommand';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from '../file-operations/CreateFileView';
 import { DateStateManager } from '../../shared/date-state-manager';
+import { performanceMonitor } from '../../shared/performance-monitor';
 
 interface ContentIndicator {
     exists: boolean;
@@ -41,6 +42,7 @@ export class StreamsBarComponent extends Component {
     private dateStateManager: DateStateManager;
     private unsubscribeDateChanged: (() => void) | null = null;
     private documentClickHandler: ((e: Event) => void) | null = null;
+    private calendarClickHandler: ((e: Event) => void) | null = null;
     
     private getDisplayStreamName(): string {
         if (this.plugin?.settings?.activeStreamId) {
@@ -380,100 +382,103 @@ export class StreamsBarComponent extends Component {
     }
 
     private async updateCalendarGrid(grid: HTMLElement) {
-        if (grid.children.length > 0) {
-            await this.updateGridContent(grid);
-            return;
-        }
+        const endTiming = performanceMonitor.startTiming('calendar-grid-update');
         
-        grid.empty();
+        try {
+            if (grid.children.length > 0) {
+                await this.updateGridContent(grid);
+                return;
+            }
+            
+            // Use DocumentFragment for batch DOM operations
+            const fragment = document.createDocumentFragment();
         
         const state = this.dateStateManager.getState();
         const currentDate = state.currentDate;
         const daysInMonth = this.getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth());
         const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
         
+        // Create day headers
         for (let i = 0; i < 7; i++) {
-            const dayHeader = grid.createDiv('streams-bar-day-header');
+            const dayHeader = document.createElement('div');
+            dayHeader.className = 'streams-bar-day-header';
             dayHeader.textContent = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][i];
+            fragment.appendChild(dayHeader);
         }
         
+        // Create empty day placeholders
         for (let i = 0; i < firstDayOfMonth; i++) {
-            grid.createDiv('streams-bar-day empty');
+            const emptyDay = document.createElement('div');
+            emptyDay.className = 'streams-bar-day empty';
+            fragment.appendChild(emptyDay);
         }
+        
+        // Batch create all day elements and prepare content indicators
+        const dayElements: HTMLElement[] = [];
+        const contentPromises: Promise<ContentIndicator>[] = [];
         
         for (let day = 1; day <= daysInMonth; day++) {
-            const dayEl = grid.createDiv('streams-bar-day');
+            const dayEl = document.createElement('div');
+            dayEl.className = 'streams-bar-day';
+            dayEl.setAttribute('data-day', String(day));
             
-            const dateContainer = dayEl.createDiv('streams-date-container');
+            const dateContainer = document.createElement('div');
+            dateContainer.className = 'streams-date-container';
             dateContainer.textContent = String(day);
+            dayEl.appendChild(dateContainer);
             
-            const dotContainer = dayEl.createDiv('streams-dot-container');
+            const dotContainer = document.createElement('div');
+            dotContainer.className = 'streams-dot-container';
+            dayEl.appendChild(dotContainer);
             
+            dayElements.push(dayEl);
+            fragment.appendChild(dayEl);
+            
+            // Prepare content indicator promise
             const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-            const dateString = this.formatDateString(dayDate);
-            
-            if (dateString === state.currentViewedDate) {
-                dayEl.addClass('viewed');
-            }
-            
-            const content = await this.getContentIndicator(dayDate);
-            
-            if (content.exists) {
-                const dots = content.size === 'small' ? 1 : content.size === 'medium' ? 2 : 3;
-                for (let i = 0; i < dots; i++) {
-                    dotContainer.createDiv('streams-content-dot');
-                }
-            }
-            
-            if (this.isToday(currentDate)) {
-                dayEl.addClass('today');
-            }
-            
-            const handleDaySelect = (e: Event) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.selectDate(day);
-            };
-
-            dayEl.addEventListener('click', handleDaySelect);
-            dayEl.addEventListener('touchend', handleDaySelect);
+            contentPromises.push(this.getContentIndicator(dayDate));
+        }
+        
+        // Clear grid and append all elements at once
+        grid.empty();
+        grid.appendChild(fragment);
+        
+        // Process content indicators and apply styles in batch
+        const contentIndicators = await Promise.all(contentPromises);
+        
+        // Batch apply styles and content
+        this.applyDayStylesAndContent(dayElements, contentIndicators, currentDate, state);
+        
+        // Use event delegation for better performance
+        this.setupCalendarEventDelegation(grid);
+        
+        } finally {
+            endTiming();
         }
     }
     
     private async updateGridContent(grid: HTMLElement) {
-        const dayElements = grid.querySelectorAll('.streams-bar-day:not(.empty)');
-        const state = this.dateStateManager.getState();
-        const currentDate = state.currentDate;
+        const endTiming = performanceMonitor.startTiming('calendar-grid-content-update');
         
-        for (let i = 0; i < dayElements.length; i++) {
-            const dayEl = dayElements[i] as HTMLElement;
-            const day = i + 1;
+        try {
+            const dayElements = Array.from(grid.querySelectorAll('.streams-bar-day:not(.empty)')) as HTMLElement[];
+            const state = this.dateStateManager.getState();
+            const currentDate = state.currentDate;
             
-            const dotContainer = dayEl.querySelector('.streams-dot-container');
-            if (dotContainer) {
-                dotContainer.empty();
-            }
+            // Batch prepare all content indicators
+            const contentPromises = dayElements.map((dayEl, i) => {
+                const day = i + 1;
+                const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                return this.getContentIndicator(dayDate);
+            });
             
-            const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-            const dateString = this.formatDateString(dayDate);
+            // Wait for all content indicators to load
+            const contentIndicators = await Promise.all(contentPromises);
             
-            dayEl.removeClass('viewed');
-            if (dateString === state.currentViewedDate) {
-                dayEl.addClass('viewed');
-            }
-            
-            dayEl.removeClass('today');
-            if (this.isToday(dayDate)) {
-                dayEl.addClass('today');
-            }
-            
-            const content = await this.getContentIndicator(dayDate);
-            if (content.exists && dotContainer) {
-                const dots = content.size === 'small' ? 1 : content.size === 'medium' ? 2 : 3;
-                for (let j = 0; j < dots; j++) {
-                    dotContainer.createDiv('streams-content-dot');
-                }
-            }
+            // Batch apply all updates
+            this.applyDayStylesAndContent(dayElements, contentIndicators, currentDate, state);
+        } finally {
+            endTiming();
         }
     }
 
@@ -570,6 +575,13 @@ export class StreamsBarComponent extends Component {
         if (this.documentClickHandler) {
             document.removeEventListener('click', this.documentClickHandler);
             this.documentClickHandler = null;
+        }
+        
+        // Clean up calendar click handler
+        if (this.calendarClickHandler && this.grid) {
+            this.grid.removeEventListener('click', this.calendarClickHandler);
+            this.grid.removeEventListener('touchend', this.calendarClickHandler, { passive: true } as AddEventListenerOptions);
+            this.calendarClickHandler = null;
         }
         
         if (this.component && this.component.parentElement) {
@@ -711,6 +723,87 @@ export class StreamsBarComponent extends Component {
 
     private getDaysInMonth(year: number, month: number): number {
         return new Date(year, month, 0).getDate();
+    }
+
+    /**
+     * Batch apply styles and content to day elements for optimal performance
+     */
+    private applyDayStylesAndContent(
+        dayElements: HTMLElement[], 
+        contentIndicators: ContentIndicator[], 
+        currentDate: Date, 
+        state: any
+    ): void {
+        // Use requestAnimationFrame to batch DOM updates
+        requestAnimationFrame(() => {
+            dayElements.forEach((dayEl, i) => {
+                const day = i + 1;
+                const content = contentIndicators[i];
+                const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+                const dateString = this.formatDateString(dayDate);
+                
+                // Get dot container once
+                const dotContainer = dayEl.querySelector('.streams-dot-container') as HTMLElement;
+                
+                // Clear existing dots
+                if (dotContainer) {
+                    dotContainer.innerHTML = '';
+                }
+                
+                // Apply classes efficiently
+                const classList = dayEl.classList;
+                classList.remove('viewed', 'today');
+                
+                if (dateString === state.currentViewedDate) {
+                    classList.add('viewed');
+                }
+                
+                if (this.isToday(dayDate)) {
+                    classList.add('today');
+                }
+                
+                // Add content dots if needed
+                if (content.exists && dotContainer) {
+                    const dots = content.size === 'small' ? 1 : content.size === 'medium' ? 2 : 3;
+                    for (let j = 0; j < dots; j++) {
+                        const dot = document.createElement('div');
+                        dot.className = 'streams-content-dot';
+                        dotContainer.appendChild(dot);
+                    }
+                }
+            });
+        });
+    }
+
+    /**
+     * Setup event delegation for calendar day clicks for better performance
+     */
+    private setupCalendarEventDelegation(grid: HTMLElement): void {
+        // Remove existing event listeners to prevent duplicates
+        if (this.calendarClickHandler) {
+            grid.removeEventListener('click', this.calendarClickHandler);
+            grid.removeEventListener('touchend', this.calendarClickHandler, { passive: true } as AddEventListenerOptions);
+        }
+        
+        // Create single event handler for all day clicks
+        this.calendarClickHandler = (e: Event) => {
+            const target = e.target as HTMLElement;
+            const dayEl = target.closest('.streams-bar-day:not(.empty)') as HTMLElement;
+            
+            if (dayEl) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const day = parseInt(dayEl.getAttribute('data-day') || '0', 10);
+                if (day > 0) {
+                    this.selectDate(day);
+                }
+            }
+        };
+        
+        // Add event listeners to grid container
+        grid.addEventListener('click', this.calendarClickHandler);
+        grid.addEventListener('touchend', this.calendarClickHandler, { passive: true } as AddEventListenerOptions);
     }
 
     private initializeDateState(leaf: WorkspaceLeaf): void {
