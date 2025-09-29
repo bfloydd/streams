@@ -154,7 +154,6 @@
     margin: 0;
     pointer-events: auto;
     border-bottom: 1px solid var(--background-modifier-border);
-    height: 32px;
     display: flex;
     align-items: center;
     padding: 0 14px;
@@ -169,11 +168,6 @@
 .streams-markdown-view-content .streams-calendar-component {
     position: absolute;
     top: 10px;
-}
-
-/* Ensure content starts below the streams bar */
-.view-content {
-    padding-top: 32px !important;
 }
 
 /* Ensure workspace leaf content takes full height when our view is present */
@@ -222,7 +216,7 @@
     align-items: center;
     justify-content: space-between;
     flex: 1;
-    margin-bottom: 8px;
+    /* margin-bottom: 8px; */
 }
 
 /* Hover effect removed */
@@ -815,13 +809,12 @@
 /* Calendar Component Positioning Styles */
 .streams-calendar-component {
     position: relative;
-    display: block;
+    /* display: block; */
     width: 100%;
-    margin: 0 0 10px 0;
     background-color: var(--background-primary);
     border: 1px solid var(--background-modifier-border);
     border-radius: 6px;
-    padding: 8px;
+    padding: 3px 5px 3px 5px;
     font-size: 14px;
     line-height: 1.4;
 }
