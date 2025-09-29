@@ -40,6 +40,7 @@ export class CalendarComponent extends Component {
     private plugin: PluginInterface | null;
     private dateStateManager: DateStateManager;
     private unsubscribeDateChanged: (() => void) | null = null;
+    private documentClickHandler: ((e: Event) => void) | null = null;
     
     private getDisplayStreamName(): string {
         if (this.plugin?.settings?.activeStreamId) {
@@ -253,6 +254,7 @@ export class CalendarComponent extends Component {
         });
 
         this.streamsDropdown = changeStreamSection.createDiv('streams-calendar-streams-dropdown streams-dropdown');
+        this.streamsDropdown.style.display = 'none'; // Start hidden
         this.populateStreamsDropdown();
 
         const topNav = expandedView.createDiv('streams-calendar-top-nav');
@@ -314,15 +316,19 @@ export class CalendarComponent extends Component {
             }
         });
 
-        document.addEventListener('click', (e) => {
+        // Store the click handler reference for cleanup
+        this.documentClickHandler = (e: Event) => {
             if (this.expanded && !this.component.contains(e.target as Node)) {
                 this.toggleExpanded(collapsedView, expandedView);
             }
             
-            if (this.streamsDropdown && !this.streamsDropdown.hasClass('streams-dropdown--visible') && !this.component.contains(e.target as Node)) {
-                this.toggleStreamsDropdown();
+            // Only close dropdown if it's visible and click is outside the component
+            if (this.streamsDropdown && this.streamsDropdown.style.display !== 'none' && !this.component.contains(e.target as Node)) {
+                this.hideStreamsDropdown();
             }
-        });
+        };
+        
+        document.addEventListener('click', this.documentClickHandler);
 
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.expanded) {
@@ -553,11 +559,16 @@ export class CalendarComponent extends Component {
     }
 
     public destroy() {
-
         // Clean up date change listener
         if (this.unsubscribeDateChanged) {
             this.unsubscribeDateChanged();
             this.unsubscribeDateChanged = null;
+        }
+        
+        // Clean up document click handler
+        if (this.documentClickHandler) {
+            document.removeEventListener('click', this.documentClickHandler);
+            this.documentClickHandler = null;
         }
         
         if (this.component && this.component.parentElement) {
@@ -577,12 +588,26 @@ export class CalendarComponent extends Component {
 
     private toggleStreamsDropdown() {
         if (this.streamsDropdown) {
-            const isVisible = this.streamsDropdown.hasClass('streams-dropdown--visible');
+            const isVisible = this.streamsDropdown.style.display !== 'none';
             if (isVisible) {
-                this.streamsDropdown.removeClass('streams-dropdown--visible');
+                this.hideStreamsDropdown();
             } else {
-                this.streamsDropdown.addClass('streams-dropdown--visible');
+                this.showStreamsDropdown();
             }
+        }
+    }
+
+    private showStreamsDropdown() {
+        if (this.streamsDropdown) {
+            this.streamsDropdown.style.display = 'block';
+            this.streamsDropdown.addClass('streams-dropdown--visible');
+        }
+    }
+
+    private hideStreamsDropdown() {
+        if (this.streamsDropdown) {
+            this.streamsDropdown.style.display = 'none';
+            this.streamsDropdown.removeClass('streams-dropdown--visible');
         }
     }
 
@@ -638,9 +663,7 @@ export class CalendarComponent extends Component {
             this.updateGridContent(this.grid);
         }
         
-        if (this.streamsDropdown) {
-            this.streamsDropdown.removeClass('streams-dropdown--visible');
-        }
+        this.hideStreamsDropdown();
         
         if (this.plugin && this.plugin.setActiveStream) {
             this.plugin.setActiveStream(stream.id, true);

@@ -382,6 +382,7 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     z-index: 10000;
     overflow: visible;
+    display: none; /* Start hidden by default */
 }
 
 .streams-calendar-stream-item {
@@ -837,7 +838,7 @@
 }
 
 .streams-calendar-component .streams-dropdown--visible {
-    display: block;
+    display: block !important;
 }
 
 /* Calendar Component Visibility States */
