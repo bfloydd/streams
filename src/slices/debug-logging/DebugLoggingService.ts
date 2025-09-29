@@ -23,7 +23,7 @@ export class DebugLoggingService extends SettingsAwareSliceService {
         if (settings.debugLoggingEnabled) {
             centralizedLogger.enable(LogLevel.DEBUG);
         } else {
-            centralizedLogger.enable(LogLevel.INFO);
+            centralizedLogger.disable();
         }
 
         this.initialized = true;
@@ -38,7 +38,7 @@ export class DebugLoggingService extends SettingsAwareSliceService {
         if (settings.debugLoggingEnabled) {
             centralizedLogger.enable(LogLevel.DEBUG);
         } else {
-            centralizedLogger.enable(LogLevel.INFO);
+            centralizedLogger.disable();
         }
     }
 
