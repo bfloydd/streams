@@ -155,6 +155,10 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
     }
 
     public updateCalendarComponent(leaf: WorkspaceLeaf): void {
+        // Only create calendar components for leaves in the main editor area
+        if (!this.isMainEditorLeaf(leaf)) {
+            return;
+        }
 
         // Handle empty views and other view types that should have calendar components
         const viewType = leaf.view.getViewType();
@@ -235,6 +239,11 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
     }
 
     public updateCalendarComponentForCreateView(leaf: WorkspaceLeaf): void {
+        // Only create calendar components for leaves in the main editor area
+        if (!this.isMainEditorLeaf(leaf)) {
+            return;
+        }
+
         const settings = this.getSettings();
         if (!settings.showCalendarComponent) {
             this.removeAllCalendarComponents();
@@ -295,16 +304,27 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
 
         // Also check the active leaf specifically
         const activeLeaf = this.getPlugin().app.workspace.activeLeaf;
-        if (activeLeaf) {
+        if (activeLeaf && this.isMainEditorLeaf(activeLeaf)) {
 
             this.updateCalendarComponent(activeLeaf);
         }
         
-        // Process all empty leaves
+        // Process all empty leaves, but only if they're in the main editor area
         allLeaves.forEach(leaf => {
-
-            this.updateCalendarComponent(leaf);
+            if (this.isMainEditorLeaf(leaf)) {
+                this.updateCalendarComponent(leaf);
+            }
         });
+    }
+
+    private isMainEditorLeaf(leaf: WorkspaceLeaf): boolean {
+        // Check if the leaf belongs to the main editor area (not sidebars)
+        const mainEditorArea = document.querySelector('.workspace-split.mod-vertical.mod-root');
+        if (!mainEditorArea) {
+            return false;
+        }
+        
+        return mainEditorArea.contains(leaf.view.containerEl);
     }
 
     private ensureCalendarComponentForFile(filePath: string): void {

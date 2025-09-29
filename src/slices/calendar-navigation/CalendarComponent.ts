@@ -138,11 +138,27 @@ export class CalendarComponent extends Component {
 
         contentContainer.addClass('streams-markdown-view-content');
         
-        // Find the correct view-header (there might be multiple, we want the active one)
-        const viewHeaders = document.querySelectorAll('.view-header');
-        const viewHeader = viewHeaders[viewHeaders.length - 1]; // Get the last one (most likely the active one)
+        // Find the view-header that belongs to the main editor area only
+        // Target the main editor area (workspace-split mod-vertical mod-root) to avoid sidebars
+        const mainEditorArea = document.querySelector('.workspace-split.mod-vertical.mod-root');
+        let viewHeader: Element | null = null;
         
-        if (viewHeader) {
+        if (mainEditorArea) {
+            // Look for view-header within the main editor area
+            viewHeader = mainEditorArea.querySelector('.view-header');
+        }
+        
+        // If we can't find it in the main editor area, try to find the view-header for this specific leaf
+        if (!viewHeader) {
+            // Find the view-header that belongs to this specific leaf
+            const leafContainer = leaf.view.containerEl;
+            viewHeader = leafContainer.querySelector('.view-header');
+        }
+        
+        // Only add the calendar component if we're in the main editor area or if this is a main editor leaf
+        const isMainEditorLeaf = mainEditorArea && mainEditorArea.contains(leaf.view.containerEl);
+        
+        if (viewHeader && isMainEditorLeaf) {
             // Apply standard calendar component styling
             this.component.addClass('streams-calendar-component');
             
@@ -153,10 +169,10 @@ export class CalendarComponent extends Component {
                 viewHeader.appendChild(this.component);
             }
         } else {
-            // Apply fallback positioning styling
-            this.component.addClass('streams-calendar-component--fallback');
-            
-            document.body.appendChild(this.component);
+            // Don't add calendar component to sidebars or other panes
+            centralizedLogger.debug('Calendar component not added - not in main editor area');
+            this.component.remove();
+            return;
         }
         
         this.fileModifyHandler = this.handleFileModify.bind(this);
