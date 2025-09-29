@@ -1,7 +1,6 @@
 /*********************************************************
  * GLOBAL STREAM INDICATOR STYLES
  *********************************************************/
-
 .streams-global-indicator {
     display: inline-flex;
     align-items: center;
@@ -28,11 +27,9 @@
     transform: scale(0.95);
 }
 
-
 /*********************************************************
  * LAYOUT & CONTAINER STYLES
  *********************************************************/
-
 .streams-plugin-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -54,11 +51,9 @@
     padding-bottom: 10px;
 }
 
-
 /*********************************************************
  * CALENDAR COMPONENT STYLES
  *********************************************************/
-
 .streams-bar-top-nav,
 .streams-bar-header {
     width: 100%;
@@ -67,7 +62,6 @@
     display: flex;
     align-items: center;
 }
-
 
 .streams-bar-name {
     font-weight: 600;
@@ -201,7 +195,6 @@
     border-color: var(--text-accent);
     color: var(--text-accent);
 }
-
 
 .streams-bar-change-stream {
     display: flex;
@@ -353,7 +346,6 @@
     height: 14px;
     color: var(--text-on-accent);
 }
-
 
 .streams-bar-expanded {
     position: absolute;
@@ -517,7 +509,6 @@
     background-color: var(--text-accent);
 }
 
-
 /*********************************************************
  * CREATE FILE VIEW STYLES
  *********************************************************/
@@ -553,7 +544,6 @@
     position: relative;
     z-index: 2;
 }
-
 
 .streams-create-file-icon {
     margin-bottom: 24px;
@@ -637,7 +627,6 @@
     height: 18px;
 }
 
-
 /*********************************************************
  * RESPONSIVE STYLES
  *********************************************************/
@@ -656,7 +645,6 @@
 .is-phone .streams-create-file-date {
     font-size: 1.5em;
 }
-
 
 /*********************************************************
  * UTILITY STYLES
