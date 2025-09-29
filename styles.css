@@ -54,64 +54,6 @@
     padding-bottom: 10px;
 }
 
-.streams-ribbon-icon {
-    opacity: 0.8;
-    transition: opacity 0.2s ease-in-out;
-}
-
-.streams-ribbon-icon:hover {
-    opacity: 1;
-}
-
-/* Icon display states */
-.streams-icon-visible {
-    display: flex;
-}
-
-.streams-icon-hidden {
-    display: none;
-}
-
-/*********************************************************
- * SETTINGS UI STYLES
- *********************************************************/
-
-.streams-setting-header {
-    margin: 20px 0 10px;
-    padding-bottom: 5px;
-    border-bottom: none;
-    font-size: 1em;
-    color: var(--text-normal);
-}
-
-.streams-setting-indent {
-    margin-left: 20px;
-    border-left: 2px solid var(--background-modifier-border);
-    padding-left: 10px;
-}
-
-.streams-setting-double-indent {
-    margin-left: 40px;
-    border-left: 2px solid var(--background-modifier-border);
-    padding-left: 10px;
-}
-
-.streams-setting-item.no-border-top {
-    border-top: none !important;
-    margin-top: -10px;
-}
-
-.streams-folder-valid {
-    border-color: var(--text-success) !important;
-    background-color: rgba(0, 200, 0, 0.05) !important;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
-
-.streams-folder-invalid {
-    border-color: var(--text-error) !important;
-    background-color: rgba(200, 0, 0, 0.05) !important;
-    transition: background-color 0.3s ease, border-color 0.3s ease;
-}
 
 /*********************************************************
  * CALENDAR COMPONENT STYLES
@@ -187,12 +129,6 @@
 
 
 
-/* Calendar label */
-.streams-bar-label {
-    font-size: 0.7em;
-    color: var(--text-muted);
-    margin-bottom: 2px;
-}
 
 
 .streams-bar-collapsed {
@@ -286,6 +222,8 @@
     color: var(--text-accent);
 }
 
+/* .streams-today-button-expanded - Additional styles for expanded state if needed */
+
 .streams-bar-change-stream {
     display: flex;
     align-items: center;
@@ -308,6 +246,12 @@
     background-color: var(--interactive-hover);
     color: var(--text-normal);
     border-color: var(--text-accent);
+}
+
+.streams-bar-change-stream-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: inherit;
 }
 
 .streams-bar-home-button {
@@ -352,22 +296,6 @@
 
 /* Hover effect removed */
 
-.streams-bar-change-stream-icon {
-    display: flex;
-    align-items: center;
-}
-
-.streams-bar-change-stream-icon svg {
-    width: 16px;
-    height: 16px;
-    color: var(--text-muted);
-}
-
-.streams-bar-change-stream-text {
-    font-size: 14px;
-    font-weight: 500;
-    color: inherit;
-}
 
 /* Streams dropdown styles */
 .streams-bar-streams-dropdown {
@@ -653,10 +581,6 @@
 
 /* Ensure content is visible */
 
-@keyframes streams-fade-in {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
 
 .streams-create-file-content {
     display: flex;
@@ -676,10 +600,6 @@
     z-index: 2;
 }
 
-@keyframes streams-fade-in {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
 
 .streams-create-file-icon {
     margin-bottom: 24px;
@@ -788,19 +708,6 @@
  * UTILITY STYLES
  *********************************************************/
 
-.streams-plugin-hidden.side-dock-ribbon-action {
-    display: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    height: 0 !important;
-    width: 0 !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-    position: absolute !important;
-    overflow: hidden !important;
-    clip: rect(0, 0, 0, 0) !important;
-}
-
 /* Calendar Component Positioning Styles */
 .streams-bar-component {
     position: relative;
@@ -812,17 +719,6 @@
     line-height: 1.4;
 }
 
-.streams-bar-component--fallback {
-    position: fixed;
-    top: 60px;
-    right: 20px;
-    z-index: 1000;
-    background-color: var(--background-primary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 6px;
-    padding: 8px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
 
 /* Calendar Component Dropdown Styles */
 .streams-bar-component .streams-dropdown {
