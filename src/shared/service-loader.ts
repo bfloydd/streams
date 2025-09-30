@@ -12,6 +12,7 @@ import { StreamManagementService } from '../slices/stream-management';
 import { MobileIntegrationService } from '../slices/mobile-integration';
 import { APIService } from '../slices/api';
 import { CommandRegistrationService } from '../slices/command-registration';
+import { ContextMenuService } from '../slices/context-menu';
 
 export class ServiceLoader {
     /**
@@ -28,6 +29,7 @@ export class ServiceLoader {
         sliceContainer.register('ribbon-integration', new RibbonService());
         sliceContainer.register('mobile-integration', new MobileIntegrationService());
         sliceContainer.register('command-registration', new CommandRegistrationService());
+        sliceContainer.register('context-menu', new ContextMenuService());
     }
 
     /**
