@@ -82,8 +82,14 @@ export class CreateFileView extends ItemView {
             }
             
             if (state) {
+                const previousStream = this.stream;
                 this.filePath = state.filePath || this.filePath;
                 this.stream = state.stream || this.stream;
+                
+                // If the stream changed, update the active stream
+                if (state.stream && state.stream.id !== previousStream.id) {
+                    this.setActiveStream();
+                }
                 
                 // Handle date parameter
                 if (state.date) {

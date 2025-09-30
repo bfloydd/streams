@@ -7,6 +7,7 @@ import { OpenTodayCurrentStreamCommand } from '../file-operations/OpenTodayCurre
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from '../file-operations/CreateFileView';
 import { DateStateManager } from '../../shared/date-state-manager';
 import { performanceMonitor } from '../../shared/performance-monitor';
+import { eventBus, EVENTS } from '../../shared/event-bus';
 
 interface ContentIndicator {
     exists: boolean;
@@ -41,6 +42,7 @@ export class StreamsBarComponent extends Component {
     private plugin: PluginInterface | null;
     private dateStateManager: DateStateManager;
     private unsubscribeDateChanged: (() => void) | null = null;
+    private unsubscribeActiveStreamChanged: (() => void) | null = null;
     private documentClickHandler: ((e: Event) => void) | null = null;
     private calendarClickHandler: ((e: Event) => void) | null = null;
     
@@ -83,6 +85,11 @@ export class StreamsBarComponent extends Component {
         // Set up date change listener
         this.unsubscribeDateChanged = this.dateStateManager.onDateChanged((state) => {
             this.handleDateStateChange(state);
+        });
+        
+        // Set up active stream change listener
+        this.unsubscribeActiveStreamChanged = eventBus.subscribe(EVENTS.ACTIVE_STREAM_CHANGED, (event) => {
+            this.handleActiveStreamChange(event.data);
         });
         
         let contentContainer: HTMLElement | null = null;
@@ -571,6 +578,12 @@ export class StreamsBarComponent extends Component {
             this.unsubscribeDateChanged = null;
         }
         
+        // Clean up active stream change listener
+        if (this.unsubscribeActiveStreamChanged) {
+            this.unsubscribeActiveStreamChanged();
+            this.unsubscribeActiveStreamChanged = null;
+        }
+        
         // Clean up document click handler
         if (this.documentClickHandler) {
             document.removeEventListener('click', this.documentClickHandler);
@@ -655,35 +668,14 @@ export class StreamsBarComponent extends Component {
     }
 
     private selectStream(stream: Stream) {
-        this.selectedStream = stream;
-        
+        // Update the plugin's active stream - this will trigger the event listener
         if (this.plugin) {
             this.plugin.setActiveStream(stream.id, true);
         }
         
-        const changeStreamText = this.component.querySelector('.streams-bar-change-stream-text');
-        if (changeStreamText) {
-            changeStreamText.setText(stream.name);
-        }
-        
-        const streamNameElement = this.component.querySelector('.streams-bar-name');
-        if (streamNameElement) {
-            streamNameElement.setText(stream.name);
-        }
-        
-        if (this.grid) {
-            this.updateGridContent(this.grid);
-        }
-        
         this.hideStreamsDropdown();
         
-        if (this.plugin && this.plugin.setActiveStream) {
-            this.plugin.setActiveStream(stream.id, true);
-        }
-        
         this.navigateToStreamDailyNote(stream);
-        
-        this.refreshStreamsDropdown();
     }
 
     private async navigateToStreamDailyNote(stream: Stream) {
@@ -839,6 +831,45 @@ export class StreamsBarComponent extends Component {
                 this.updateCalendarGrid(this.grid);
             }
         }
+    }
+
+    private handleActiveStreamChange(eventData: any): void {
+        const { streamId } = eventData;
+        
+        if (!streamId) {
+            return;
+        }
+        
+        // Find the new active stream
+        const newActiveStream = this.streams.find(s => s.id === streamId);
+        if (!newActiveStream) {
+            centralizedLogger.warn(`Active stream changed to unknown stream ID: ${streamId}`);
+            return;
+        }
+        
+        // Update the selected stream
+        this.selectedStream = newActiveStream;
+        
+        // Update the display stream name
+        const changeStreamText = this.component.querySelector('.streams-bar-change-stream-text');
+        if (changeStreamText) {
+            changeStreamText.setText(newActiveStream.name);
+        }
+        
+        const streamNameElement = this.component.querySelector('.streams-bar-name');
+        if (streamNameElement) {
+            streamNameElement.setText(newActiveStream.name);
+        }
+        
+        // Update the calendar grid to reflect the new stream's content
+        if (this.grid) {
+            this.updateGridContent(this.grid);
+        }
+        
+        // Refresh the streams dropdown to show the correct selection
+        this.refreshStreamsDropdown();
+        
+        centralizedLogger.debug(`StreamsBarComponent updated to active stream: ${newActiveStream.name}`);
     }
 
 } 
