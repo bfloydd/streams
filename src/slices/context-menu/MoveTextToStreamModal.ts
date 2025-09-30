@@ -11,13 +11,15 @@ export interface MoveTextOptions {
 export class MoveTextToStreamModal extends Modal {
     private streams: Stream[];
     private selectedStream: Stream | null = null;
-    private useToday: boolean = true;
+    private useSourceDate: boolean = true; // true = source date, false = today
     private selectedDate: string = new Date().toISOString().split('T')[0];
+    private sourceDate: string = new Date().toISOString().split('T')[0];
     private prependMode: boolean = false; // true = prepend, false = append
     private addDivider: boolean = true; // true = add --- divider, false = no divider
     private selectedText: string;
     private sourceEditor: any;
     private sourceView: any;
+    private toggleTextInput: HTMLInputElement | null = null;
     private onMove: (options: {
         stream: Stream;
         date: string;
@@ -49,6 +51,26 @@ export class MoveTextToStreamModal extends Modal {
         this.selectedText = moveOptions.selectedText;
         this.sourceEditor = moveOptions.sourceEditor;
         this.sourceView = moveOptions.sourceView;
+        
+        // Extract date from source document
+        this.sourceDate = this.extractDateFromSourceDocument();
+        this.selectedDate = this.sourceDate; // Default to source date
+    }
+
+    private extractDateFromSourceDocument(): string {
+        if (!this.sourceView || !this.sourceView.file) {
+            return new Date().toISOString().split('T')[0];
+        }
+        
+        const fileName = this.sourceView.file.basename;
+        const match = fileName.match(/^\d{4}-\d{2}-\d{2}/);
+        
+        if (match) {
+            return match[0];
+        }
+        
+        // If no date found in filename, return today's date
+        return new Date().toISOString().split('T')[0];
     }
 
     onOpen() {
@@ -82,15 +104,16 @@ export class MoveTextToStreamModal extends Modal {
             .setDesc('Choose when to add the text')
             .addToggle(toggle => {
                 toggle
-                    .setValue(this.useToday)
+                    .setValue(!this.useSourceDate)
                     .onChange(value => {
-                        this.useToday = value;
+                        this.useSourceDate = !value;
                         this.updateDateSetting();
                     });
             })
             .addText(text => {
+                this.toggleTextInput = text.inputEl;
                 text
-                    .setValue('Today')
+                    .setValue(this.useSourceDate ? `Source Date (${this.sourceDate})` : 'Calendar Select')
                     .setDisabled(true);
             });
 
@@ -162,8 +185,8 @@ export class MoveTextToStreamModal extends Modal {
 
     private createDateSetting(container: HTMLElement): void {
         this.dateSetting = new Setting(container)
-            .setName('Custom Date')
-            .setDesc('Select a specific date (future: calendar picker)')
+            .setName('Calendar Select')
+            .setDesc('Select a specific date')
             .addText(text => {
                 text
                     .setValue(this.selectedDate)
@@ -182,12 +205,17 @@ export class MoveTextToStreamModal extends Modal {
                     });
             });
 
-        this.dateSetting.settingEl.style.display = this.useToday ? 'none' : 'block';
+        this.dateSetting.settingEl.style.display = this.useSourceDate ? 'none' : 'block';
     }
 
     private updateDateSetting(): void {
         if (this.dateSetting) {
-            this.dateSetting.settingEl.style.display = this.useToday ? 'none' : 'block';
+            this.dateSetting.settingEl.style.display = this.useSourceDate ? 'none' : 'block';
+        }
+        
+        // Update the toggle text label
+        if (this.toggleTextInput) {
+            this.toggleTextInput.value = this.useSourceDate ? `Source Date (${this.sourceDate})` : 'Calendar Select';
         }
     }
 
@@ -207,14 +235,14 @@ export class MoveTextToStreamModal extends Modal {
             return;
         }
 
-        if (!this.useToday && !this.selectedDate) {
+        if (!this.useSourceDate && !this.selectedDate) {
             new Notice('Please select a date');
             return;
         }
 
         try {
-            const targetDate = this.useToday ? 
-                new Date().toISOString().split('T')[0] : 
+            const targetDate = this.useSourceDate ? 
+                this.sourceDate : 
                 this.selectedDate;
 
             await this.onMove({

@@ -103,7 +103,7 @@ export class ContextMenuService extends PluginAwareSliceService {
             if (targetFile) {
                 targetContent = await this.getPlugin().app.vault.read(targetFile as TFile);
             } else {
-                targetContent = `# ${date}\n\n`;
+                targetContent = '';
                 targetFile = await this.getPlugin().app.vault.create(filePath, targetContent);
             }
             
