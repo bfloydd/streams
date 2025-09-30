@@ -650,7 +650,6 @@ export class StreamsBarComponent extends Component {
             streamItem.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.selectStream(stream);
-                this.toggleStreamsDropdown();
             });
         });
     }
