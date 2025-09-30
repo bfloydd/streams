@@ -1,12 +1,17 @@
 {
   "id": "streams",
   "name": "Streams",
-  "version": "1.1.6",
+  "version": "1.2.0",
   "minAppVersion": "0.15.0",
   "description": "Create and manage multiple Daily Note streams",
   "author": "Floyd",
   "authorUrl": "http://floyd.pro",
-  "fundingUrl": "http://ty.floyd.pro",
+  "fundingUrl": {
+    "GitHub Sponsor": "https://github.com/sponsors/bfloydd",
+    "Buy Me a Coffee": "https://buymeacoffee.com/floydpro",
+    "Venmo": "https://venmo.com/floydpro?txn=pay",
+    "PayPal": "https://paypal.me/bfloydd"
+  },
   "isDesktopOnly": false,
   "providesApi": true
 }
