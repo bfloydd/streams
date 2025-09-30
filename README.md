@@ -5,7 +5,24 @@
 - > Replaces the Daily Note core plugin.
 - > Inspired by the Periodic Notes and Calendar plugins.
 
-![assets/logo-transparent](assets/logo-transparent.png)
+![assets/logo-transparent](assets/logo-transparent-500.png)
+
+## Support
+
+If you find this plugin helpful, please consider supporting its development:
+
+[![GitHub Sponsors](https://img.shields.io/badge/GitHub%20Sponsors-❤️-red?style=for-the-badge&logo=github)](https://github.com/sponsors/bfloydd)
+[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-☕-yellow?style=for-the-badge&logo=buymeacoffee&logoColor=black)](https://buymeacoffee.com/floydpro)
+[![Venmo](https://img.shields.io/badge/Donate%20via%20Venmo-3D95CE?style=for-the-badge&logo=venmo&logoColor=white)](https://venmo.com/floydpro?txn=pay)
+[![PayPal](https://img.shields.io/badge/Donate%20via%20PayPal-00457C?style=for-the-badge&logo=paypal&logoColor=white)](https://paypal.me/bfloydd)
+
+**Donation Options:**
+- [GitHub Sponsors](https://github.com/sponsors/bfloydd) - Monthly sponsorship ❤️
+- [Buy Me a Coffee](https://buymeacoffee.com/floydpro) - Support with a coffee ☕
+- [Venmo](https://venmo.com/floydpro?txn=pay) - Quick mobile payment
+- [PayPal](https://paypal.me/bfloydd) - Direct PayPal donation
+
+Your support helps maintain and improve this plugin! 🙏
 
 ## Features
 - Multiple daily note streams.
@@ -13,37 +30,25 @@
 - New view for missing notes.
 - **Public API** for other plugins to access stream data.
 
+## Benefits
+- Divide up messy Daily Notes.
+- Create a private stream for work.
+- Encrypt a single stream for added data security.
+- Quickly find and add notes.
+
 ## Getting started
-- Add new stream in settings, "Daily Notes", pointing to where you store your daily notes. There will be a ribbon button and a command to get to Today's Daily Note. Disable core Daily Note plugin.
-- Then create another stream for work?
-- Then create another stream for school?
-- Then create another stream for... whatever.
+- Add new stream in settings, "Daily Notes", pointing to where you store your daily notes.
+- Then create another stream for Work of School.
+- Use the navigation bar to select any stream.
+
+## Streams Widget
+![Streams Widget](assets/new-streams-with-calendar.png)
 
 ## Configure Streams
-![Configure Streams](assets/demo-configure-streams.jpg)
+![Configure Streams](assets/new-streams-options.png)
 
-## Each Stream's Daily Note
-![Each Stream's Daily Note](assets/demo-today.gif)
-
-
-## Quick Actions
-The plugin provides several ribbon buttons for quick access:
-- **📅 Calendar Icon**: Automatically opens today's note for the current stream context
-
-## Commands
-The plugin provides several commands accessible via the Command Palette and ribbon buttons:
-
-- **Open Current Stream Today**: Automatically detects which stream the current view belongs to and opens that stream's today note. This works whether you're in a file that belongs to a stream, a stream view, or a create file view. This is useful when you want to quickly jump to today's note for the current stream context.
-  - **Command Palette**: "Open Current Stream Today"
-  - **Ribbon Button**: 📅 Calendar icon in the left sidebar
-- **Toggle calendar component**: Shows/hides the calendar component.
-
-Individual stream commands are also available if enabled in stream settings:
-- **Stream Name, today**: Opens today's note for a specific stream.
-
-### Keyboard Shortcuts
-You can assign custom keyboard shortcuts to any of these commands through Obsidian's Settings → Hotkeys. Some recommended shortcuts:
-- **Open Current Stream Today**: `Ctrl+Shift+T` (or `Cmd+Shift+T` on Mac)
+## Move content between streams
+![Move Content](assets/new-streams-move.png)
 
 ## Public API for Other Plugins
 
