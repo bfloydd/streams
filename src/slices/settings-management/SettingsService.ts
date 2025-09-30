@@ -98,6 +98,22 @@ export class StreamsSettingTab extends PluginSettingTab {
                     new Notice(`Debug logging ${value ? 'enabled' : 'disabled'}`);
                 }));
                 
+        new Setting(containerEl)
+            .setName('Bar style')
+            .setDesc('Choose the visual style for the streams bar component')
+            .addDropdown(dropdown => dropdown
+                .addOption('default', 'Default')
+                .addOption('modern', 'Modern')
+                .setValue(this.plugin.settings.barStyle)
+                .onChange(async (value: 'default' | 'modern') => {
+                    this.plugin.settings.barStyle = value;
+                    await this.plugin.saveSettings();
+                    
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
+                    
+                    new Notice(`Bar style changed to ${value === 'default' ? 'Default' : 'Modern'}`);
+                }));
+                
         new Setting(containerEl).setName('Streams').setHeading();
 
         new Setting(containerEl)

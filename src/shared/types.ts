@@ -31,4 +31,5 @@ export interface StreamsSettings {
     reuseCurrentTab: boolean;
     activeStreamId?: string; // ID of the currently active/selected stream
     debugLoggingEnabled: boolean; // Whether debug logging is enabled by default
+    barStyle: 'default' | 'modern'; // Style variant for the streams bar
 }

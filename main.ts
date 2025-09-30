@@ -28,7 +28,14 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 	}
 
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		const loadedData = await this.loadData();
+		this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
+		
+		// Migration: ensure barStyle exists
+		if (!this.settings.barStyle) {
+			this.settings.barStyle = 'default';
+			await this.saveSettings();
+		}
 	}
 
 	async saveSettings() {

@@ -228,6 +228,11 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
             if (component && typeof component.updateReuseCurrentTab === 'function') {
                 component.updateReuseCurrentTab(settings.reuseCurrentTab);
             }
+            
+            // Refresh bar style for all existing components
+            if (component && typeof component.refreshBarStyle === 'function') {
+                component.refreshBarStyle();
+            }
         }
     }
 

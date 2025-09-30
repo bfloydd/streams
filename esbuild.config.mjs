@@ -44,7 +44,7 @@ if (prod) {
 	
 	// Minify CSS in production mode
 	if (fs.existsSync("styles.css")) {
-		console.log("Minifying CSS...");
+		console.log("Minifying styles.css...");
 		const css = fs.readFileSync("styles.css", "utf8");
 		
 		// Use esbuild's CSS minification
@@ -55,7 +55,7 @@ if (prod) {
 		
 		// Write to dist directory
 		fs.writeFileSync(path.join(distDir, "styles.css"), result.code);
-		console.log("CSS minification complete");
+		console.log("styles.css minification complete");
 	}
 	
 	// Copy manifest.json to dist directory
@@ -67,5 +67,11 @@ if (prod) {
 	
 	process.exit(0);
 } else {
+	// Copy CSS in development mode
+	if (fs.existsSync("styles.css")) {
+		console.log("Copying styles.css...");
+		fs.copyFileSync("styles.css", path.join(distDir, "styles.css"));
+	}
+	
 	await context.watch();
 }

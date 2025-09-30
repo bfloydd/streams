@@ -726,3 +726,586 @@
     background: var(--interactive-hover);
     border-color: var(--text-accent);
 }
+
+/*********************************************************
+ * MODERN STREAMS BAR STYLES - MODERN MINIMALIST
+ *********************************************************/
+
+/*********************************************************
+ * STREAMS BAR - MAIN COMPONENT (MODERN STYLE)
+ *********************************************************/
+/* Override the first streams-bar-component rule */
+.streams-bar-component.modern-style {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    z-index: 10000 !important;
+    font-size: 12px !important;
+    margin: 0 !important;
+    pointer-events: auto !important;
+    border-bottom: 3px solid var(--text-accent) !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 0 16px !important;
+    backdrop-filter: blur(12px) !important;
+    background: linear-gradient(135deg, var(--background-primary) 0%, var(--background-secondary) 100%) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 0 0 12px 12px !important;
+    margin: 0 8px !important;
+    width: calc(100% - 16px) !important;
+}
+
+/* Override the second streams-bar-component rule with higher specificity */
+.streams-bar-component.modern-style {
+    position: relative !important;
+    width: 100% !important;
+    background: linear-gradient(135deg, var(--background-primary) 0%, var(--background-secondary) 100%) !important;
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+    border-radius: 0 0 12px 12px !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+.streams-markdown-view-content .streams-bar-component.modern-style {
+    position: absolute;
+    top: 10px;
+}
+
+.is-phone .streams-bar-component.modern-style {
+    font-size: 11px;
+    padding: 6px 10px;
+}
+
+/*********************************************************
+ * STREAMS BAR - NAVIGATION & HEADER (MODERN STYLE)
+ *********************************************************/
+.streams-bar-component.modern-style .streams-bar-top-nav,
+.streams-bar-component.modern-style .streams-bar-header {
+    width: 100%;
+    box-sizing: border-box;
+    justify-content: space-between;
+    display: flex;
+    align-items: center;
+}
+
+.streams-bar-component.modern-style .streams-bar-name {
+    font-weight: 700;
+    color: var(--text-normal);
+    font-size: 16px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.streams-bar-component.modern-style .streams-bar-today-nav {
+    cursor: pointer;
+    padding: 6px 12px;
+    color: var(--text-accent);
+    font-weight: 600;
+    font-size: 13px;
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.streams-bar-component.modern-style .streams-bar-today-nav:hover {
+    background: var(--interactive-accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.streams-bar-component.modern-style .streams-bar-collapsed {
+    position: relative;
+    top: 0;
+    right: 0;
+    padding: 0;
+    transition: all 0.3s ease;
+    background: transparent;
+    min-width: 200px;
+    width: 100%;
+    text-align: left;
+    white-space: nowrap;
+    user-select: none;
+    z-index: 1000;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex: 1;
+}
+
+.streams-bar-component.modern-style .streams-bar-nav-controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin: 0;
+    background-color: transparent;
+    border-radius: 0;
+    padding: 0;
+    border: none;
+    gap: 12px;
+    flex: 1;
+}
+
+.streams-bar-component.modern-style .streams-bar-nav {
+    cursor: pointer;
+    color: var(--text-normal);
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--interactive-normal);
+    border: 2px solid transparent;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    font-size: 16px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.streams-bar-component.modern-style .streams-bar-nav:hover {
+    background: var(--interactive-hover);
+    border-color: var(--text-accent);
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.streams-bar-component.modern-style .streams-bar-nav:active {
+    transform: scale(0.95);
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.streams-bar-component.modern-style .streams-bar-date {
+    font-weight: 700;
+    text-align: center;
+    flex: 1;
+    margin: 0 16px;
+    font-size: 15px;
+    color: var(--text-accent);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/*********************************************************
+ * STREAMS BAR - BUTTONS & CONTROLS (MODERN STYLE)
+ *********************************************************/
+.streams-bar-component.modern-style .streams-bar-day-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+    background: var(--interactive-normal);
+    border: 2px solid transparent;
+    font-size: 14px;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.streams-bar-component.modern-style .streams-bar-day-nav:hover {
+    background: var(--interactive-hover);
+    color: var(--text-normal);
+    border-color: var(--text-accent);
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.streams-bar-component.modern-style .streams-bar-day-nav:active {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    transform: scale(0.95);
+}
+
+.streams-bar-component.modern-style .streams-bar-today-button {
+    white-space: nowrap;
+    flex: 0 0 auto;
+    text-align: center;
+    font-weight: 700;
+    color: var(--text-on-accent);
+    margin: 0 12px;
+    font-size: 14px;
+    min-width: 80px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #ff6b6b 0%, #ff8e8e 100%) !important;
+    border: 2px solid #ff4757 !important;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.streams-bar-component.modern-style .streams-bar-today-button:hover {
+    background: linear-gradient(135deg, var(--interactive-accent-hover) 0%, var(--interactive-accent) 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.streams-bar-component.modern-style .streams-bar-change-stream {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: var(--text-muted);
+    margin: 0;
+    background: var(--interactive-normal);
+    border: 2px solid transparent;
+    font-weight: 600;
+    position: relative;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.streams-bar-component.modern-style .streams-bar-change-stream:hover {
+    background: var(--interactive-hover);
+    color: var(--text-normal);
+    border-color: var(--text-accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.streams-bar-component.modern-style .streams-bar-change-stream-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: inherit;
+}
+
+.streams-bar-component.modern-style .streams-bar-home-button {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--interactive-normal);
+    border: 2px solid transparent;
+    color: var(--text-muted);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.streams-bar-component.modern-style .streams-bar-home-button:hover {
+    background: var(--interactive-hover);
+    color: var(--text-normal);
+    border-color: var(--text-accent);
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.streams-bar-component.modern-style .streams-bar-settings-button {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--interactive-normal);
+    border: 2px solid transparent;
+    color: var(--text-muted);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.streams-bar-component.modern-style .streams-bar-settings-button:hover {
+    background: var(--interactive-hover);
+    color: var(--text-normal);
+    border-color: var(--text-accent);
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/*********************************************************
+ * STREAMS BAR - DROPDOWN & STREAM SELECTION (MODERN STYLE)
+ *********************************************************/
+.streams-bar-component.modern-style .streams-bar-streams-dropdown {
+    position: absolute;
+    top: calc(100% + 12px);
+    right: 0;
+    width: auto;
+    min-width: 220px;
+    background: var(--background-primary);
+    border: 2px solid var(--background-modifier-border);
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+    z-index: 10000;
+    overflow: visible;
+    display: none;
+    backdrop-filter: blur(8px);
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid var(--background-modifier-border);
+    color: var(--text-normal);
+    font-weight: 500;
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item:last-child {
+    border-bottom: none;
+    border-radius: 0 0 10px 10px;
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item:first-child {
+    border-radius: 10px 10px 0 0;
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item:hover {
+    background: linear-gradient(135deg, var(--interactive-hover) 0%, var(--interactive-accent) 100%);
+    color: var(--text-on-accent);
+    transform: translateX(4px);
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item-icon {
+    display: flex;
+    align-items: center;
+    margin-right: 12px;
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item-icon svg {
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item-name {
+    font-size: 14px;
+    color: inherit;
+    font-weight: 600;
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item-selected {
+    background: linear-gradient(135deg, var(--interactive-accent) 0%, var(--interactive-accent-hover) 100%);
+    color: var(--text-on-accent);
+    font-weight: 700;
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item-selected .streams-bar-stream-item-name {
+    color: var(--text-on-accent);
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item-selected .streams-bar-stream-item-icon svg {
+    color: var(--text-on-accent);
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item-checkmark {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item-checkmark svg {
+    width: 16px;
+    height: 16px;
+    color: var(--text-on-accent);
+}
+
+/*********************************************************
+ * STREAMS BAR - CALENDAR GRID & DAYS (MODERN STYLE)
+ *********************************************************/
+.streams-bar-component.modern-style .streams-bar-expanded {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    padding: 20px;
+    width: auto;
+    min-width: 300px;
+    background: var(--background-primary);
+    border: 2px solid var(--background-modifier-border);
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    transition: all 0.4s ease;
+    z-index: 1005;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform-origin: top left;
+    max-height: 450px;
+    overflow-y: auto;
+    backdrop-filter: blur(8px);
+}
+
+.streams-bar-component.modern-style .streams-bar-expanded-active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.streams-bar-component.modern-style .streams-bar-grid {
+    display: grid !important;
+    grid-template-columns: repeat(7, 36px);
+    gap: 6px;
+    width: 300px;
+    padding: 12px;
+    box-sizing: border-box;
+    background: var(--background-secondary);
+    border: 2px solid var(--background-modifier-border);
+    border-radius: 12px;
+    margin: 0;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.streams-bar-component.modern-style .streams-bar-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    border: 2px solid transparent;
+    padding: 6px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+    min-width: 36px;
+    min-height: 36px;
+    width: 36px;
+    height: 36px;
+    justify-content: center;
+    cursor: pointer;
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.streams-bar-component.modern-style .streams-bar-day:hover {
+    background: var(--interactive-hover);
+    border-color: var(--text-accent);
+    color: var(--text-accent);
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.streams-bar-component.modern-style .streams-bar-day:active {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    transform: scale(0.95);
+}
+
+.streams-bar-component.modern-style .streams-bar-day.empty {
+    cursor: default;
+    min-height: 36px;
+    min-width: 36px;
+    background: transparent;
+    box-shadow: none;
+}
+
+.streams-bar-component.modern-style .streams-bar-day.empty:hover,
+.streams-bar-component.modern-style .streams-bar-day.empty:active {
+    background: transparent;
+    transform: none;
+}
+
+.streams-bar-component.modern-style .streams-bar-day-header {
+    padding: 8px;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-align: center;
+    width: 36px;
+    cursor: default;
+    font-weight: 600;
+}
+
+.streams-bar-component.modern-style .streams-date-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 13px;
+    line-height: 1;
+    width: 100%;
+    height: 100%;
+    font-weight: 600;
+}
+
+.streams-bar-component.modern-style .streams-bar-day.viewed {
+    border-color: var(--text-accent);
+    background: linear-gradient(135deg, var(--interactive-hover) 0%, var(--interactive-accent) 100%);
+    color: var(--text-accent);
+    font-weight: 700;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+}
+
+.streams-bar-component.modern-style .streams-bar-day.today {
+    color: var(--text-on-accent);
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--interactive-accent) 0%, var(--interactive-accent-hover) 100%);
+    border: 2px solid var(--interactive-accent);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1);
+}
+
+.streams-bar-component.modern-style .streams-dot-container {
+    display: flex;
+    gap: 3px;
+    height: 5px;
+}
+
+.streams-bar-component.modern-style .streams-content-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: var(--text-muted);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.streams-bar-component.modern-style .streams-bar-day.today .streams-content-dot {
+    background-color: var(--text-accent);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/*********************************************************
+ * RESPONSIVE STYLES (MODERN STYLE)
+ *********************************************************/
+.is-mobile .streams-bar-component.modern-style {
+    margin: 0 4px;
+    width: calc(100% - 8px);
+    padding: 6px 8px;
+}
+
+.is-phone .streams-bar-component.modern-style {
+    font-size: 11px;
+    padding: 4px 6px;
+    margin: 0 2px;
+    width: calc(100% - 4px);
+}
+
+.is-phone .streams-bar-component.modern-style .streams-bar-nav {
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+}
+
+.is-phone .streams-bar-component.modern-style .streams-bar-day-nav {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+}
+
+.is-phone .streams-bar-component.modern-style .streams-bar-grid {
+    grid-template-columns: repeat(7, 28px);
+    gap: 4px;
+    width: 240px;
+    padding: 8px;
+}
+
+.is-phone .streams-bar-component.modern-style .streams-bar-day {
+    min-width: 28px;
+    min-height: 28px;
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+}

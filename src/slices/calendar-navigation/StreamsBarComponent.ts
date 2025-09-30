@@ -22,6 +22,7 @@ interface ViewWithContentEl extends View {
 interface PluginInterface {
     settings: {
         activeStreamId?: string;
+        barStyle?: 'default' | 'modern';
     };
     saveSettings(): void;
     setActiveStream(streamId: string, force?: boolean): void;
@@ -43,6 +44,7 @@ export class StreamsBarComponent extends Component {
     private dateStateManager: DateStateManager;
     private unsubscribeDateChanged: (() => void) | null = null;
     private unsubscribeActiveStreamChanged: (() => void) | null = null;
+    private unsubscribeSettingsChanged: (() => void) | null = null;
     private documentClickHandler: ((e: Event) => void) | null = null;
     private calendarClickHandler: ((e: Event) => void) | null = null;
     
@@ -58,6 +60,22 @@ export class StreamsBarComponent extends Component {
     
     private getActiveStreamId(): string {
         return this.plugin?.settings?.activeStreamId || this.selectedStream.id;
+    }
+    
+    private applyBarStyle(): void {
+        if (!this.plugin?.settings) {
+            return;
+        }
+        
+        const barStyle = this.plugin.settings.barStyle;
+        
+        // Remove existing style classes
+        this.component.removeClass('modern-style');
+        
+        // Apply the appropriate style class
+        if (barStyle === 'modern') {
+            this.component.addClass('modern-style');
+        }
     }
 
     public updateReuseCurrentTab(reuseCurrentTab: boolean): void {
@@ -79,6 +97,9 @@ export class StreamsBarComponent extends Component {
         this.component = document.createElement('div');
         this.component.addClass('streams-bar-component');
         
+        // Apply the bar style based on settings
+        this.applyBarStyle();
+        
         // Initialize date state based on current view
         this.initializeDateState(leaf);
         
@@ -90,6 +111,11 @@ export class StreamsBarComponent extends Component {
         // Set up active stream change listener
         this.unsubscribeActiveStreamChanged = eventBus.subscribe(EVENTS.ACTIVE_STREAM_CHANGED, (event) => {
             this.handleActiveStreamChange(event.data);
+        });
+        
+        // Set up settings change listener
+        this.unsubscribeSettingsChanged = eventBus.subscribe(EVENTS.SETTINGS_CHANGED, (event) => {
+            this.handleSettingsChange(event.data);
         });
         
         let contentContainer: HTMLElement | null = null;
@@ -584,6 +610,12 @@ export class StreamsBarComponent extends Component {
             this.unsubscribeActiveStreamChanged = null;
         }
         
+        // Clean up settings change listener
+        if (this.unsubscribeSettingsChanged) {
+            this.unsubscribeSettingsChanged();
+            this.unsubscribeSettingsChanged = null;
+        }
+        
         // Clean up document click handler
         if (this.documentClickHandler) {
             document.removeEventListener('click', this.documentClickHandler);
@@ -870,6 +902,15 @@ export class StreamsBarComponent extends Component {
         this.refreshStreamsDropdown();
         
         centralizedLogger.debug(`StreamsBarComponent updated to active stream: ${newActiveStream.name}`);
+    }
+    
+    private handleSettingsChange(settings: any): void {
+        // Apply the new bar style if it changed
+        this.applyBarStyle();
+    }
+    
+    public refreshBarStyle(): void {
+        this.applyBarStyle();
     }
 
 } 
