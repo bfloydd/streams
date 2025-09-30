@@ -110,23 +110,7 @@ export class StreamManagementService extends SettingsAwareSliceService {
     private registerCommands(): void {
         const plugin = this.getPlugin();
         
-        // Add command to select stream
-        plugin.addCommand({
-            id: 'streams-select-stream',
-            name: 'Select active stream',
-            callback: () => {
-                this.showStreamSelection();
-            }
-        });
-
-        // Add command to refresh global indicator
-        plugin.addCommand({
-            id: 'streams-refresh-global-indicator',
-            name: 'Refresh global stream indicator',
-            callback: () => {
-                this.updateGlobalStreamIndicator();
-            }
-        });
+        // No commands currently registered
     }
 
     private createGlobalStreamIndicator(): void {
