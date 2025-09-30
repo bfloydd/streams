@@ -70,7 +70,7 @@ export class RibbonService extends SettingsAwareSliceService {
     }
 
     private createAllStreamsIcon(): void {
-        // Open Current Stream Today button
+        // Open today for current stream button
         this.getPlugin().addRibbonIcon(
             'calendar',
             'Streams: Open today for current stream',
