@@ -511,6 +511,15 @@ export class StreamsBarComponent extends Component {
         // Navigate to the selected date
         const command = new OpenStreamDateCommand(this.app, this.selectedStream, selectedDate, this.reuseCurrentTab);
         await command.execute();
+        
+        // Close the expanded calendar after selecting a date
+        if (this.expanded) {
+            const collapsedView = this.component.querySelector('.streams-bar-collapsed') as HTMLElement;
+            const expandedView = this.component.querySelector('.streams-bar-expanded') as HTMLElement;
+            if (collapsedView && expandedView) {
+                this.toggleExpanded(collapsedView, expandedView);
+            }
+        }
     }
 
     private toggleExpanded(collapsedView: HTMLElement, expandedView: HTMLElement) {
