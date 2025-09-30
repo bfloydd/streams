@@ -80,9 +80,13 @@ if (streamsPlugin) {
 - `getActiveStream()` - Get the currently active stream
 - `getStreamsByFolder(folderPath)` - Get streams matching a folder path
 - `getStreamForFile(filePath)` - Get the stream containing a file
-- `getStreamInfo()` - Get basic stream information
+- `getStreamInfo(streamId)` - Get basic stream information for a specific stream
 - `hasStream(streamId)` - Check if a stream exists
 - `getStreamCount()` - Get total number of streams
 - `getVersion()` - Get plugin version info
+- `getStreamsByIcon(icon)` - Get streams with a specific icon
+- `getRibbonStreams()` - Get streams enabled for ribbon display
+- `getCommandStreams()` - Get streams with commands enabled
+- `hasStreams()` - Check if any streams are configured
 
 For detailed API documentation, see [src/api/README.md](src/api/README.md).
