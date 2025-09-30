@@ -132,45 +132,36 @@ export class StreamsBarComponent extends Component {
         }
 
         // Remove existing calendar components from the same leaf to avoid duplicates
-        const existingComponents = contentContainer.querySelectorAll('.streams-bar-component');
+        const leafContainer = leaf.view.containerEl;
+        const existingComponents = leafContainer.querySelectorAll('.streams-bar-component');
         existingComponents.forEach(component => {
-            component.remove();
-        });
-        
-        // Also remove from document body to prevent duplicates
-        const workspaceComponents = document.querySelectorAll('.streams-bar-component');
-        workspaceComponents.forEach((component: Element) => {
             component.remove();
         });
 
         contentContainer.addClass('streams-markdown-view-content');
         
-        // Find the view-header that belongs to this specific leaf
-        // This ensures we attach to the correct leaf even when there are multiple workspace leaves
-        const leafContainer = leaf.view.containerEl;
-        let viewHeader: Element | null = leafContainer.querySelector('.view-header');
-        
         // Get the main editor area for validation
         const mainEditorArea = document.querySelector('.workspace-split.mod-vertical.mod-root');
         
-        // If we can't find it in the leaf container, try the main editor area as fallback
-        if (!viewHeader && mainEditorArea) {
-            // Look for view-header within the main editor area
-            viewHeader = mainEditorArea.querySelector('.view-header');
-        }
-        
-        // Only add the calendar component if we're in the main editor area or if this is a main editor leaf
+        // Only add the calendar component if we're in the main editor area
         const isMainEditorLeaf = mainEditorArea && mainEditorArea.contains(leaf.view.containerEl);
         
-        if (viewHeader && isMainEditorLeaf) {
+        if (isMainEditorLeaf) {
             // Apply standard calendar component styling
             this.component.addClass('streams-bar-component');
             
-            // Insert after the view-header instead of inside it
-            if (viewHeader.parentElement) {
+            // Attach directly to the leaf's container element to ensure it stays with the specific editor window
+            const leafContainer = leaf.view.containerEl;
+            
+            // Find the view-header within this specific leaf
+            const viewHeader = leafContainer.querySelector('.view-header');
+            
+            if (viewHeader && viewHeader.parentElement) {
+                // Insert after the view-header for this specific leaf
                 viewHeader.parentElement.insertBefore(this.component, viewHeader.nextSibling);
             } else {
-                viewHeader.appendChild(this.component);
+                // Fallback: attach to the leaf container itself
+                leafContainer.insertBefore(this.component, leafContainer.firstChild);
             }
         } else {
             // Don't add calendar component to sidebars or other panes
