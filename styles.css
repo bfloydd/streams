@@ -773,6 +773,7 @@
     justify-content: space-between;
     display: flex;
     align-items: center;
+    margin-bottom: 8px;
 }
 
 
@@ -1083,9 +1084,9 @@
     position: absolute;
     top: 100%;
     left: 0;
-    padding: 20px;
+    padding: 16px 20px 20px 20px;
     width: auto;
-    min-width: 300px;
+    min-width: 320px;
     background: var(--background-primary);
     border: 2px solid var(--background-modifier-border);
     border-radius: 0 0 16px 16px;
@@ -1112,8 +1113,8 @@
     display: grid !important;
     grid-template-columns: repeat(7, 36px);
     gap: 6px;
-    width: 300px;
-    padding: 12px;
+    width: 320px;
+    padding: 12px 16px;
     box-sizing: border-box;
     background: var(--background-secondary);
     border: 2px solid var(--background-modifier-border);
@@ -1244,6 +1245,11 @@
     width: calc(100% - 4px);
 }
 
+.is-phone .streams-bar-component.modern-style .streams-bar-expanded {
+    min-width: 280px;
+    padding: 12px 16px 16px 16px;
+}
+
 .is-phone .streams-bar-component.modern-style .streams-bar-nav {
     width: 28px;
     height: 28px;
@@ -1259,8 +1265,8 @@
 .is-phone .streams-bar-component.modern-style .streams-bar-grid {
     grid-template-columns: repeat(7, 28px);
     gap: 4px;
-    width: 240px;
-    padding: 8px;
+    width: 256px;
+    padding: 8px 12px;
 }
 
 .is-phone .streams-bar-component.modern-style .streams-bar-day {
