@@ -2,7 +2,6 @@ import { App, WorkspaceLeaf, TFile, MarkdownView, View, Component, setIcon } fro
 import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { OpenStreamDateCommand } from '../file-operations/OpenStreamDateCommand';
-import { OpenTodayStreamCommand } from '../file-operations/OpenTodayStreamCommand';
 import { OpenTodayCurrentStreamCommand } from '../file-operations/OpenTodayCurrentStreamCommand';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from '../file-operations/CreateFileView';
 import { DateStateManager } from '../../shared/date-state-manager';
@@ -285,10 +284,6 @@ export class StreamsBarComponent extends Component {
         this.populateStreamsDropdown();
 
         const topNav = expandedView.createDiv('streams-bar-top-nav');
-        const todayNavButton = topNav.createDiv('streams-bar-today-nav');
-        todayNavButton.setText('Today');
-        const streamName = topNav.createDiv('streams-bar-name');
-        streamName.setText(this.getDisplayStreamName());
 
         const header = expandedView.createDiv('streams-bar-header');
         const prevButton = header.createDiv('streams-bar-nav');
@@ -329,19 +324,6 @@ export class StreamsBarComponent extends Component {
             }
         });
 
-        todayNavButton.addEventListener('click', async (e) => {
-            e.stopPropagation();
-            this.dateStateManager.navigateToToday();
-            const command = new OpenTodayStreamCommand(this.app, this.selectedStream, this.reuseCurrentTab);
-            await command.execute();
-            const state = this.dateStateManager.getState();
-            dateDisplay.setText(this.formatMonthYear(state.currentDate));
-            if (grid.children.length > 0) {
-                this.updateGridContent(grid);
-            } else {
-                this.updateCalendarGrid(grid);
-            }
-        });
 
         // Store the click handler reference for cleanup
         this.documentClickHandler = (e: Event) => {
@@ -888,10 +870,6 @@ export class StreamsBarComponent extends Component {
             changeStreamText.setText(newActiveStream.name);
         }
         
-        const streamNameElement = this.component.querySelector('.streams-bar-name');
-        if (streamNameElement) {
-            streamNameElement.setText(newActiveStream.name);
-        }
         
         // Update the calendar grid to reflect the new stream's content
         if (this.grid) {
