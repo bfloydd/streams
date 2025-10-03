@@ -378,14 +378,38 @@ export class StreamsBarComponent extends Component {
         this.prevButton.addEventListener('click', handlePrevMonth);
         this.nextButton.addEventListener('click', handleNextMonth);
 
-        // Add touch event listeners to prevent scroll interference
+        // Add touch event listeners to prevent scroll interference and handle navigation
         this.prevButtonTouchHandler = (e: TouchEvent) => {
             e.preventDefault();
+            // Trigger navigation on touchend for mobile
+            const handleTouchEnd = (e: TouchEvent) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.navigateMonth(-1, dateDisplay, grid);
+                if (this.prevButton) {
+                    this.prevButton.removeEventListener('touchend', handleTouchEnd);
+                }
+            };
+            if (this.prevButton) {
+                this.prevButton.addEventListener('touchend', handleTouchEnd, { passive: false });
+            }
         };
         this.prevButton.addEventListener('touchstart', this.prevButtonTouchHandler, { passive: false });
 
         this.nextButtonTouchHandler = (e: TouchEvent) => {
             e.preventDefault();
+            // Trigger navigation on touchend for mobile
+            const handleTouchEnd = (e: TouchEvent) => {
+                e.preventDefault();
+                e.stopPropagation();
+                this.navigateMonth(1, dateDisplay, grid);
+                if (this.nextButton) {
+                    this.nextButton.removeEventListener('touchend', handleTouchEnd);
+                }
+            };
+            if (this.nextButton) {
+                this.nextButton.addEventListener('touchend', handleTouchEnd, { passive: false });
+            }
         };
         this.nextButton.addEventListener('touchstart', this.nextButtonTouchHandler, { passive: false });
 
