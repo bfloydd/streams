@@ -738,6 +738,16 @@
     top: 10px;
 }
 
+/* Add proper spacing for content below the modern style bar */
+.streams-markdown-view-content:has(.streams-bar-component.modern-style) {
+    padding-top: 60px; /* Adjust based on bar height */
+}
+
+/* Ensure the editor content has proper spacing */
+.workspace-leaf-content:has(.streams-bar-component.modern-style) .view-content {
+    padding-top: 60px; /* Adjust based on bar height */
+}
+
 .is-phone .streams-bar-component.modern-style {
     font-size: 11px;
     padding: 6px 10px;
@@ -1217,6 +1227,23 @@
     padding: 4px 6px;
     margin: 0 2px;
     width: calc(100% - 4px);
+}
+
+/* Adjust spacing for mobile devices */
+.is-mobile .streams-markdown-view-content:has(.streams-bar-component.modern-style) {
+    padding-top: 50px; /* Slightly less padding on mobile */
+}
+
+.is-mobile .workspace-leaf-content:has(.streams-bar-component.modern-style) .view-content {
+    padding-top: 50px; /* Slightly less padding on mobile */
+}
+
+.is-phone .streams-markdown-view-content:has(.streams-bar-component.modern-style) {
+    padding-top: 45px; /* Even less padding on phones */
+}
+
+.is-phone .workspace-leaf-content:has(.streams-bar-component.modern-style) .view-content {
+    padding-top: 45px; /* Even less padding on phones */
 }
 
 .is-phone .streams-bar-component.modern-style .streams-bar-expanded {
