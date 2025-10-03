@@ -46,6 +46,20 @@ export class StreamsBarComponent extends Component {
     private unsubscribeSettingsChanged: (() => void) | null = null;
     private documentClickHandler: ((e: Event) => void) | null = null;
     private calendarClickHandler: ((e: Event) => void) | null = null;
+    private lastTouchX: number | null = null;
+    private lastTouchY: number | null = null;
+    private currentMonthView: Date; // Tracks which month is being displayed in the calendar
+    
+    // Event handler references for cleanup
+    private prevButton: HTMLElement | null = null;
+    private nextButton: HTMLElement | null = null;
+    private gridWheelHandler: ((e: WheelEvent) => void) | null = null;
+    private gridTouchMoveHandler: ((e: TouchEvent) => void) | null = null;
+    private gridTouchStartHandler: ((e: TouchEvent) => void) | null = null;
+    private prevButtonWheelHandler: ((e: WheelEvent) => void) | null = null;
+    private prevButtonTouchHandler: ((e: TouchEvent) => void) | null = null;
+    private nextButtonWheelHandler: ((e: WheelEvent) => void) | null = null;
+    private nextButtonTouchHandler: ((e: TouchEvent) => void) | null = null;
     
     private getDisplayStreamName(): string {
         if (this.plugin?.settings?.activeStreamId) {
@@ -92,6 +106,9 @@ export class StreamsBarComponent extends Component {
         this.streams = streams;
         this.plugin = plugin;
         this.dateStateManager = DateStateManager.getInstance();
+        
+        // Initialize the month view to the current date
+        this.currentMonthView = new Date();
         
         this.component = document.createElement('div');
         this.component.addClass('streams-bar-component');
@@ -224,6 +241,15 @@ export class StreamsBarComponent extends Component {
 
         const collapsedView = this.component.createDiv('streams-bar-collapsed');
         const expandedView = this.component.createDiv('streams-bar-expanded');
+        
+        // Prevent scroll events on the expanded view from interfering with navigation
+        expandedView.addEventListener('wheel', (e) => {
+            // Only prevent horizontal scroll events that might interfere with month navigation
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, { passive: false });
 
         const navControls = collapsedView.createDiv('streams-bar-nav-controls');
         
@@ -286,43 +312,95 @@ export class StreamsBarComponent extends Component {
         const topNav = expandedView.createDiv('streams-bar-top-nav');
 
         const header = expandedView.createDiv('streams-bar-header');
-        const prevButton = header.createDiv('streams-bar-nav');
-        prevButton.setText('←');
+        this.prevButton = header.createDiv('streams-bar-nav');
+        this.prevButton.setText('←');
         const dateDisplay = header.createDiv('streams-bar-date');
         const state = this.dateStateManager.getState();
-        dateDisplay.setText(this.formatMonthYear(state.currentDate));
-        const nextButton = header.createDiv('streams-bar-nav');
-        nextButton.setText('→');
+        // Initialize currentMonthView to match the selected date's month
+        this.currentMonthView = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), 1);
+        dateDisplay.setText(this.formatMonthYear(this.currentMonthView));
+        this.nextButton = header.createDiv('streams-bar-nav');
+        this.nextButton.setText('→');
 
         const grid = expandedView.createDiv('streams-bar-grid');
         this.grid = grid;
         this.updateCalendarGrid(grid);
 
-        prevButton.addEventListener('click', () => {
-            const state = this.dateStateManager.getState();
-            const newDate = new Date(state.currentDate);
-            newDate.setMonth(newDate.getMonth() - 1);
-            this.dateStateManager.setCurrentDate(newDate);
-            dateDisplay.setText(this.formatMonthYear(newDate));
-            if (grid.children.length > 0) {
-                this.updateGridContent(grid);
-            } else {
-                this.updateCalendarGrid(grid);
+        // Prevent scroll events on the calendar grid from interfering with navigation
+        this.gridWheelHandler = (e: WheelEvent) => {
+            // Only prevent horizontal scroll events that might interfere with month navigation
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+                e.preventDefault();
+                e.stopPropagation();
             }
-        });
+        };
+        grid.addEventListener('wheel', this.gridWheelHandler, { passive: false });
 
-        nextButton.addEventListener('click', () => {
-            const state = this.dateStateManager.getState();
-            const newDate = new Date(state.currentDate);
-            newDate.setMonth(newDate.getMonth() + 1);
-            this.dateStateManager.setCurrentDate(newDate);
-            dateDisplay.setText(this.formatMonthYear(newDate));
-            if (grid.children.length > 0) {
-                this.updateGridContent(grid);
-            } else {
-                this.updateCalendarGrid(grid);
+        // Prevent touch scroll events that might interfere with navigation
+        this.gridTouchMoveHandler = (e: TouchEvent) => {
+            // Allow vertical scrolling but prevent horizontal scrolling that might trigger navigation
+            const touch = e.touches[0];
+            if (touch) {
+                const deltaX = Math.abs(touch.clientX - (this.lastTouchX || touch.clientX));
+                const deltaY = Math.abs(touch.clientY - (this.lastTouchY || touch.clientY));
+                
+                if (deltaX > deltaY && deltaX > 10) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
             }
-        });
+        };
+        grid.addEventListener('touchmove', this.gridTouchMoveHandler, { passive: false });
+
+        this.gridTouchStartHandler = (e: TouchEvent) => {
+            const touch = e.touches[0];
+            if (touch) {
+                this.lastTouchX = touch.clientX;
+                this.lastTouchY = touch.clientY;
+            }
+        };
+        grid.addEventListener('touchstart', this.gridTouchStartHandler, { passive: true });
+
+        // Add event handlers to prevent scroll events from triggering navigation
+        const handlePrevMonth = (e: Event) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.navigateMonth(-1, dateDisplay, grid);
+        };
+
+        const handleNextMonth = (e: Event) => {
+            e.preventDefault();
+            e.stopPropagation();
+            this.navigateMonth(1, dateDisplay, grid);
+        };
+
+        // Add click event listeners
+        this.prevButton.addEventListener('click', handlePrevMonth);
+        this.nextButton.addEventListener('click', handleNextMonth);
+
+        // Add touch event listeners to prevent scroll interference
+        this.prevButtonTouchHandler = (e: TouchEvent) => {
+            e.preventDefault();
+        };
+        this.prevButton.addEventListener('touchstart', this.prevButtonTouchHandler, { passive: false });
+
+        this.nextButtonTouchHandler = (e: TouchEvent) => {
+            e.preventDefault();
+        };
+        this.nextButton.addEventListener('touchstart', this.nextButtonTouchHandler, { passive: false });
+
+        // Add wheel event listeners to prevent scroll from triggering navigation
+        this.prevButtonWheelHandler = (e: WheelEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+        };
+        this.prevButton.addEventListener('wheel', this.prevButtonWheelHandler, { passive: false });
+
+        this.nextButtonWheelHandler = (e: WheelEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+        };
+        this.nextButton.addEventListener('wheel', this.nextButtonWheelHandler, { passive: false });
 
 
         // Store the click handler reference for cleanup
@@ -400,7 +478,7 @@ export class StreamsBarComponent extends Component {
             const fragment = document.createDocumentFragment();
         
         const state = this.dateStateManager.getState();
-        const currentDate = state.currentDate;
+        const currentDate = this.currentMonthView; // Use the month view instead of selected date
         const daysInMonth = this.getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth());
         const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
         
@@ -469,7 +547,7 @@ export class StreamsBarComponent extends Component {
         try {
             const dayElements = Array.from(grid.querySelectorAll('.streams-bar-day:not(.empty)')) as HTMLElement[];
             const state = this.dateStateManager.getState();
-            const currentDate = state.currentDate;
+            const currentDate = this.currentMonthView; // Use the month view instead of selected date
             
             // Batch prepare all content indicators
             const contentPromises = dayElements.map((dayEl, i) => {
@@ -518,7 +596,7 @@ export class StreamsBarComponent extends Component {
 
     private async selectDate(day: number) {
         const state = this.dateStateManager.getState();
-        const selectedDate = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), day);
+        const selectedDate = new Date(this.currentMonthView.getFullYear(), this.currentMonthView.getMonth(), day);
         
         // Update the date state
         this.dateStateManager.setCurrentDate(selectedDate);
@@ -534,6 +612,24 @@ export class StreamsBarComponent extends Component {
             if (collapsedView && expandedView) {
                 this.toggleExpanded(collapsedView, expandedView);
             }
+        }
+    }
+
+    /**
+     * Navigate to a different month in the calendar view
+     * @param direction -1 for previous month, 1 for next month
+     * @param dateDisplay - The date display element to update
+     * @param grid - The calendar grid element to update
+     */
+    private navigateMonth(direction: number, dateDisplay: HTMLElement, grid: HTMLElement): void {
+        // Only change the month view, not the selected date
+        this.currentMonthView.setMonth(this.currentMonthView.getMonth() + direction);
+        dateDisplay.setText(this.formatMonthYear(this.currentMonthView));
+        
+        if (grid.children.length > 0) {
+            this.updateGridContent(grid);
+        } else {
+            this.updateCalendarGrid(grid);
         }
     }
 
@@ -610,6 +706,36 @@ export class StreamsBarComponent extends Component {
             this.grid.removeEventListener('touchend', this.calendarClickHandler, { passive: true } as AddEventListenerOptions);
             this.calendarClickHandler = null;
         }
+        
+        // Clean up scroll prevention event listeners
+        if (this.grid && this.gridWheelHandler && this.gridTouchMoveHandler && this.gridTouchStartHandler) {
+            this.grid.removeEventListener('wheel', this.gridWheelHandler);
+            this.grid.removeEventListener('touchmove', this.gridTouchMoveHandler);
+            this.grid.removeEventListener('touchstart', this.gridTouchStartHandler);
+        }
+        
+        // Clean up navigation button event listeners
+        if (this.prevButton && this.prevButtonWheelHandler && this.prevButtonTouchHandler) {
+            this.prevButton.removeEventListener('wheel', this.prevButtonWheelHandler);
+            this.prevButton.removeEventListener('touchstart', this.prevButtonTouchHandler);
+        }
+        if (this.nextButton && this.nextButtonWheelHandler && this.nextButtonTouchHandler) {
+            this.nextButton.removeEventListener('wheel', this.nextButtonWheelHandler);
+            this.nextButton.removeEventListener('touchstart', this.nextButtonTouchHandler);
+        }
+        
+        // Clean up references
+        this.prevButton = null;
+        this.nextButton = null;
+        this.gridWheelHandler = null;
+        this.gridTouchMoveHandler = null;
+        this.gridTouchStartHandler = null;
+        this.prevButtonWheelHandler = null;
+        this.prevButtonTouchHandler = null;
+        this.nextButtonWheelHandler = null;
+        this.nextButtonTouchHandler = null;
+        this.lastTouchX = null;
+        this.lastTouchY = null;
         
         if (this.component && this.component.parentElement) {
             this.component.remove();
@@ -836,6 +962,9 @@ export class StreamsBarComponent extends Component {
     private handleDateStateChange(state: any): void {
         // Update the today button display
         this.updateTodayButton();
+        
+        // Update the month view to match the selected date's month
+        this.currentMonthView = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), 1);
         
         // Update calendar grid if it exists
         if (this.grid) {
