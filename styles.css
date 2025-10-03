@@ -92,6 +92,11 @@
     width: 100%;
 }
 
+/* Prevent scrollbars on CreateFileView */
+.workspace-leaf-content:has(.streams-create-file-container) .view-content {
+    overflow: hidden;
+}
+
 .is-phone .streams-bar-component {
     font-size: 11px;
 }
