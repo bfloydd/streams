@@ -691,20 +691,8 @@
     transition: all 0.2s ease;
 }
 
-.move-text-buttons button.mod-cta {
-    background: var(--interactive-accent);
-    color: var(--text-on-accent);
-    border: none;
-}
-
 .move-text-buttons button.mod-cta:hover {
     background: var(--interactive-accent-hover);
-}
-
-.move-text-buttons button.mod-secondary {
-    background: var(--interactive-normal);
-    color: var(--text-normal);
-    border: 1px solid var(--background-modifier-border);
 }
 
 .move-text-buttons button.mod-secondary:hover {
