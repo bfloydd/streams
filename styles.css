@@ -744,7 +744,6 @@
 /* Override the second streams-bar-component rule with higher specificity */
 .streams-bar-component.modern-style {
     position: relative !important;
-    width: 100% !important;
     background: linear-gradient(135deg, var(--background-primary) 0%, var(--background-secondary) 100%) !important;
     padding: 8px 12px !important;
     font-size: 14px !important;
