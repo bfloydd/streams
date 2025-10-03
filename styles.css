@@ -601,7 +601,7 @@
 }
 
 .streams-create-file-stream {
-    font-size: 1.1em;
+    font-size: 1em;
     font-weight: 600;
     color: var(--text-muted);
 }
@@ -631,7 +631,7 @@
 
 .streams-create-file-button {
     padding: 10px 24px;
-    font-size: 1.1em;
+    font-size: 1em;
     border-radius: 6px;
     transition: all 0.2s ease;
     background-color: var(--interactive-accent);
