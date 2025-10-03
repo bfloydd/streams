@@ -33,3 +33,6 @@ export * from './service-loader';
 
 // Centralized logging
 export * from './centralized-logger';
+
+// Modal state management
+export * from './modal-state-manager';

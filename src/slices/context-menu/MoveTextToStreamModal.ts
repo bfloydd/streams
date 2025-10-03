@@ -1,6 +1,7 @@
 import { App, Modal, Setting, TFile, MarkdownView, Notice } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
+import { ModalStateManager } from '../../shared/modal-state-manager';
 
 export interface MoveTextOptions {
     selectedText: string;
@@ -20,6 +21,7 @@ export class MoveTextToStreamModal extends Modal {
     private sourceEditor: any;
     private sourceView: any;
     private toggleTextInput: HTMLInputElement | null = null;
+    private stateManager: ModalStateManager;
     private onMove: (options: {
         stream: Stream;
         date: string;
@@ -47,14 +49,16 @@ export class MoveTextToStreamModal extends Modal {
         super(app);
         this.streams = streams;
         this.onMove = onMove;
-        this.selectedStream = streams.length > 0 ? streams[0] : null;
         this.selectedText = moveOptions.selectedText;
         this.sourceEditor = moveOptions.sourceEditor;
         this.sourceView = moveOptions.sourceView;
+        this.stateManager = ModalStateManager.getInstance();
         
         // Extract date from source document
         this.sourceDate = this.extractDateFromSourceDocument();
-        this.selectedDate = this.sourceDate; // Default to source date
+        
+        // Load settings from temporary state
+        this.loadSettingsFromState();
     }
 
     private extractDateFromSourceDocument(): string {
@@ -71,6 +75,63 @@ export class MoveTextToStreamModal extends Modal {
         
         // If no date found in filename, return today's date
         return new Date().toISOString().split('T')[0];
+    }
+
+    private loadSettingsFromState(): void {
+        const state = this.stateManager.getState();
+        
+        // Load selected stream
+        if (state.selectedStreamId) {
+            this.selectedStream = this.streams.find(s => s.id === state.selectedStreamId) || null;
+        } else {
+            this.selectedStream = this.streams.length > 0 ? this.streams[0] : null;
+        }
+        
+        // Load other settings
+        this.useSourceDate = state.useSourceDate;
+        this.selectedDate = state.selectedDate;
+        this.prependMode = state.prependMode;
+        this.addDivider = state.addDivider;
+    }
+
+    private saveSettingsToState(): void {
+        this.stateManager.updateState({
+            selectedStreamId: this.selectedStream?.id || null,
+            useSourceDate: this.useSourceDate,
+            selectedDate: this.selectedDate,
+            prependMode: this.prependMode,
+            addDivider: this.addDivider
+        });
+    }
+
+    private updateTextDisplays(): void {
+        // Update date selection text
+        if (this.toggleTextInput) {
+            this.toggleTextInput.value = this.useSourceDate ? `Source Date (${this.sourceDate})` : 'Calendar Select';
+        }
+        
+        // Update text position text
+        const textPositionElements = this.contentEl.querySelectorAll('.setting-item');
+        textPositionElements.forEach(element => {
+            const nameEl = element.querySelector('.setting-item-name');
+            if (nameEl && nameEl.textContent === 'Text Position') {
+                const textInput = element.querySelector('input[type="text"]') as HTMLInputElement;
+                if (textInput) {
+                    textInput.value = this.prependMode ? 'Prepend (add to top)' : 'Append (add to bottom)';
+                }
+            }
+        });
+        
+        // Update divider text
+        textPositionElements.forEach(element => {
+            const nameEl = element.querySelector('.setting-item-name');
+            if (nameEl && nameEl.textContent === 'Add Divider') {
+                const textInput = element.querySelector('input[type="text"]') as HTMLInputElement;
+                if (textInput) {
+                    textInput.value = this.addDivider ? 'Add --- separator' : 'No separator';
+                }
+            }
+        });
     }
 
     onOpen() {
@@ -95,6 +156,7 @@ export class MoveTextToStreamModal extends Modal {
                 
                 dropdown.onChange(value => {
                     this.selectedStream = this.streams.find(s => s.id === value) || null;
+                    this.saveSettingsToState();
                 });
             });
 
@@ -108,6 +170,8 @@ export class MoveTextToStreamModal extends Modal {
                     .onChange(value => {
                         this.useSourceDate = !value;
                         this.updateDateSetting();
+                        this.saveSettingsToState();
+                        this.updateTextDisplays();
                     });
             })
             .addText(text => {
@@ -129,6 +193,8 @@ export class MoveTextToStreamModal extends Modal {
                     .setValue(this.prependMode)
                     .onChange(value => {
                         this.prependMode = value;
+                        this.saveSettingsToState();
+                        this.updateTextDisplays();
                     });
             })
             .addText(text => {
@@ -146,6 +212,8 @@ export class MoveTextToStreamModal extends Modal {
                     .setValue(this.addDivider)
                     .onChange(value => {
                         this.addDivider = value;
+                        this.saveSettingsToState();
+                        this.updateTextDisplays();
                     });
             })
             .addText(text => {
@@ -181,6 +249,9 @@ export class MoveTextToStreamModal extends Modal {
 
         // Update date setting initially
         this.updateDateSetting();
+        
+        // Update text displays to reflect current state
+        this.updateTextDisplays();
     }
 
     private createDateSetting(container: HTMLElement): void {
@@ -193,6 +264,7 @@ export class MoveTextToStreamModal extends Modal {
                     .setPlaceholder('YYYY-MM-DD')
                     .onChange(value => {
                         this.selectedDate = value;
+                        this.saveSettingsToState();
                     });
             })
             .addButton(button => {
