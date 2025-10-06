@@ -11,6 +11,8 @@ import { eventBus, EVENTS } from '../../shared/event-bus';
 interface ContentIndicator {
     exists: boolean;
     size: 'small' | 'medium' | 'large';
+    isEncrypted?: boolean;
+    isLocked?: boolean;
 }
 
 // Extended View interface for views with contentEl property
@@ -469,15 +471,22 @@ export class StreamsBarComponent extends Component {
         
         const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
         let file = this.app.vault.getAbstractFileByPath(filePath);
+        let isEncrypted = false;
 
         // If file not found, check for encrypted version (.mdenc)
         if (!file) {
             const encryptedFilePath = filePath.replace(/\.md$/, '.mdenc');
             file = this.app.vault.getAbstractFileByPath(encryptedFilePath);
+            isEncrypted = true;
         }
 
         if (!(file instanceof TFile)) {
             return { exists: false, size: 'small' };
+        }
+
+        // Check if file is encrypted by extension or content
+        if (!isEncrypted) {
+            isEncrypted = file.path.endsWith('.mdenc') || await this.isFileEncrypted(file);
         }
 
         const fileSize = file.stat.size;
@@ -491,7 +500,99 @@ export class StreamsBarComponent extends Component {
             size = 'large';
         }
 
-        return { exists: true, size };
+        // Determine if encrypted file is locked or unlocked
+        let isLocked = false;
+        if (isEncrypted) {
+            isLocked = await this.isEncryptedFileLocked(file);
+        }
+
+        return { 
+            exists: true, 
+            size, 
+            isEncrypted, 
+            isLocked 
+        };
+    }
+
+    /**
+     * Check if a file is encrypted by examining its content
+     */
+    private async isFileEncrypted(file: TFile): Promise<boolean> {
+        try {
+            const content = await this.app.vault.read(file);
+            return this.isEncryptedContent(content);
+        } catch (error) {
+            centralizedLogger.error('Error reading file content for encryption check:', error);
+            return false;
+        }
+    }
+
+    /**
+     * Check if file content appears to be encrypted
+     */
+    private isEncryptedContent(content: string): boolean {
+        // Common patterns that indicate encrypted content
+        const encryptedPatterns = [
+            /^-----BEGIN PGP MESSAGE-----/,
+            /^-----BEGIN ENCRYPTED MESSAGE-----/,
+            /^-----BEGIN MESSAGE-----/,
+            /^U2FsdGVkX1/, // Base64 encoded encrypted content (common in some encryption tools)
+            /^[A-Za-z0-9+/]{100,}={0,2}$/ // Long base64 strings (potential encrypted content)
+        ];
+
+        return encryptedPatterns.some(pattern => pattern.test(content.trim()));
+    }
+
+    /**
+     * Check if an encrypted file is currently locked (requires decryption to access)
+     */
+    private async isEncryptedFileLocked(file: TFile): Promise<boolean> {
+        try {
+            // Check if Meld plugin is available
+            if (!this.isMeldPluginAvailable()) {
+                // If Meld is not available, consider the file locked
+                return true;
+            }
+
+            // Try to read the file content to see if it's accessible
+            const content = await this.app.vault.read(file);
+            
+            // If we can read the content and it's not encrypted patterns, it's unlocked
+            if (content && !this.isEncryptedContent(content)) {
+                return false;
+            }
+
+            // If content contains encrypted patterns, it's locked
+            return this.isEncryptedContent(content);
+        } catch (error) {
+            // If we can't read the file, consider it locked
+            centralizedLogger.debug('Could not read encrypted file, considering it locked:', error);
+            return true;
+        }
+    }
+
+    /**
+     * Check if Meld plugin is available
+     */
+    private isMeldPluginAvailable(): boolean {
+        try {
+            // Check if the Meld plugin is installed and enabled
+            const plugins = (this.app as any).plugins?.plugins;
+            if (!plugins) return false;
+            
+            // Check for Meld plugin
+            const meldPlugin = plugins['meld-encrypt'];
+            if (!meldPlugin) return false;
+            
+            // Check if the specific command exists
+            const commands = (this.app as any).commands?.commands;
+            if (!commands) return false;
+            
+            return !!commands['meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note'];
+        } catch (error) {
+            centralizedLogger.error('Error checking Meld plugin availability:', error);
+            return false;
+        }
     }
 
     private async updateCalendarGrid(grid: HTMLElement) {
@@ -929,6 +1030,23 @@ export class StreamsBarComponent extends Component {
                         const dot = document.createElement('div');
                         dot.className = 'streams-content-dot';
                         dotContainer.appendChild(dot);
+                    }
+
+                    // Add encryption status icon if file is encrypted
+                    if (content.isEncrypted) {
+                        const encryptionIcon = document.createElement('div');
+                        encryptionIcon.className = 'streams-encryption-icon';
+                        
+                        // Set the appropriate icon based on lock status
+                        if (content.isLocked) {
+                            setIcon(encryptionIcon, 'lock');
+                            encryptionIcon.setAttribute('title', 'Encrypted file (locked)');
+                        } else {
+                            setIcon(encryptionIcon, 'unlock');
+                            encryptionIcon.setAttribute('title', 'Encrypted file (unlocked)');
+                        }
+                        
+                        dotContainer.appendChild(encryptionIcon);
                     }
                 }
             });

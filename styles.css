@@ -534,6 +534,54 @@
 }
 
 /*********************************************************
+ * ENCRYPTION STATUS ICONS
+ *********************************************************/
+.streams-encryption-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 12px;
+    height: 12px;
+    margin-left: 2px;
+    opacity: 0.8;
+    transition: all 0.2s ease;
+}
+
+.streams-encryption-icon svg {
+    width: 10px;
+    height: 10px;
+    color: var(--text-muted);
+}
+
+.streams-bar-day:hover .streams-encryption-icon svg {
+    color: var(--text-accent);
+    opacity: 1;
+}
+
+.streams-bar-day.today .streams-encryption-icon svg {
+    color: var(--text-accent);
+    opacity: 1;
+}
+
+/* Locked file icon styling */
+.streams-encryption-icon[title*="locked"] svg {
+    color: var(--text-error);
+}
+
+.streams-bar-day:hover .streams-encryption-icon[title*="locked"] svg {
+    color: var(--text-error);
+}
+
+/* Unlocked file icon styling */
+.streams-encryption-icon[title*="unlocked"] svg {
+    color: var(--text-success);
+}
+
+.streams-bar-day:hover .streams-encryption-icon[title*="unlocked"] svg {
+    color: var(--text-success);
+}
+
+/*********************************************************
  * CREATE FILE VIEW - CONTAINER & LAYOUT
  *********************************************************/
 .streams-create-file-container {
@@ -1211,6 +1259,59 @@
 .streams-bar-component.modern-style .streams-bar-day.today .streams-content-dot {
     background-color: var(--text-accent);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+/*********************************************************
+ * ENCRYPTION STATUS ICONS (MODERN STYLE)
+ *********************************************************/
+.streams-bar-component.modern-style .streams-encryption-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    margin-left: 3px;
+    opacity: 0.9;
+    transition: all 0.3s ease;
+}
+
+.streams-bar-component.modern-style .streams-encryption-icon svg {
+    width: 12px;
+    height: 12px;
+    color: var(--text-muted);
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+.streams-bar-component.modern-style .streams-bar-day:hover .streams-encryption-icon svg {
+    color: var(--text-accent);
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+.streams-bar-component.modern-style .streams-bar-day.today .streams-encryption-icon svg {
+    color: var(--text-accent);
+    opacity: 1;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
+}
+
+/* Locked file icon styling (modern) */
+.streams-bar-component.modern-style .streams-encryption-icon[title*="locked"] svg {
+    color: var(--text-error);
+}
+
+.streams-bar-component.modern-style .streams-bar-day:hover .streams-encryption-icon[title*="locked"] svg {
+    color: var(--text-error);
+    transform: scale(1.1);
+}
+
+/* Unlocked file icon styling (modern) */
+.streams-bar-component.modern-style .streams-encryption-icon[title*="unlocked"] svg {
+    color: var(--text-success);
+}
+
+.streams-bar-component.modern-style .streams-bar-day:hover .streams-encryption-icon[title*="unlocked"] svg {
+    color: var(--text-success);
+    transform: scale(1.1);
 }
 
 /*********************************************************
