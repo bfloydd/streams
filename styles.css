@@ -1277,3 +1277,177 @@
     height: 28px;
     font-size: 12px;
 }
+
+/*********************************************************
+ * ENCRYPTED FILE VIEW STYLES
+ *********************************************************/
+.streams-encrypted-file-container {
+    background: var(--background-primary);
+    color: var(--text-normal);
+    font-family: var(--font-text);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.streams-encrypted-file-content {
+    background: var(--background-secondary);
+    border: 1px solid var(--background-modifier-border);
+    border-radius: 12px;
+    padding: 40px;
+    max-width: 500px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.streams-encrypted-file-icon {
+    font-size: 48px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.streams-encrypted-file-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-normal);
+    margin-bottom: 16px;
+    line-height: 1.2;
+}
+
+.streams-encrypted-file-description {
+    font-size: 16px;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+    line-height: 1.5;
+}
+
+.streams-encrypted-file-stream-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: var(--background-primary);
+    border-radius: 8px;
+    border: 1px solid var(--background-modifier-border);
+}
+
+.streams-encrypted-file-stream-icon {
+    font-size: 18px;
+    color: var(--text-accent);
+}
+
+.streams-encrypted-file-stream {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-normal);
+}
+
+.streams-encrypted-file-date {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text-normal);
+    margin-bottom: 12px;
+}
+
+.streams-encrypted-file-path {
+    font-size: 14px;
+    color: var(--text-muted);
+    font-family: var(--font-monospace);
+    background: var(--background-primary);
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--background-modifier-border);
+    margin-bottom: 32px;
+    word-break: break-all;
+}
+
+.streams-encrypted-file-button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.streams-encrypted-file-button {
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.streams-encrypted-file-button.mod-cta {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    border: 1px solid var(--interactive-accent);
+}
+
+.streams-encrypted-file-button.mod-cta:hover {
+    background: var(--interactive-accent-hover);
+    border-color: var(--interactive-accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.streams-encrypted-file-button.mod-cta:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.streams-encrypted-file-button:not(.mod-cta) {
+    background: var(--background-primary);
+    color: var(--text-normal);
+    border: 1px solid var(--background-modifier-border);
+}
+
+.streams-encrypted-file-button:not(.mod-cta):hover {
+    background: var(--interactive-hover);
+    border-color: var(--text-accent);
+    color: var(--text-accent);
+}
+
+.streams-encrypted-file-button:not(.mod-cta):active {
+    background: var(--interactive-normal);
+}
+
+/* Mobile responsiveness */
+.is-phone .streams-encrypted-file-content {
+    padding: 24px;
+    margin: 10px;
+}
+
+.is-phone .streams-encrypted-file-button-container {
+    flex-direction: column;
+}
+
+.is-phone .streams-encrypted-file-button {
+    font-size: 14px;
+    padding: 10px 20px;
+    min-height: 40px;
+}
+
+.is-phone .streams-encrypted-file-title {
+    font-size: 20px;
+}
+
+.is-phone .streams-encrypted-file-description {
+    font-size: 14px;
+}

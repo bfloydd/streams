@@ -2,6 +2,7 @@ import { App, TFolder, TFile, MarkdownView, WorkspaceLeaf, normalizePath } from 
 import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './CreateFileView';
+import { EncryptedFileView, ENCRYPTED_FILE_VIEW_TYPE } from './EncryptedFileView';
 import { DateStateManager } from '../../shared/date-state-manager';
 
 /**
@@ -18,6 +19,113 @@ function isEncryptedContent(content: string): boolean {
     ];
 
     return encryptedPatterns.some(pattern => pattern.test(content.trim()));
+}
+
+/**
+ * Check if Meld plugin is available
+ */
+function isMeldPluginAvailable(app: App): boolean {
+    try {
+        // Check if the Meld plugin is installed and enabled
+        const plugins = (app as any).plugins?.plugins;
+        if (!plugins) return false;
+        
+        // Check for Meld plugin
+        const meldPlugin = plugins['meld-encrypt'];
+        if (!meldPlugin) return false;
+        
+        // Check if the specific command exists
+        const commands = (app as any).commands?.commands;
+        if (!commands) return false;
+        
+        return !!commands['meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note'];
+    } catch (error) {
+        centralizedLogger.error('Error checking Meld plugin availability:', error);
+        return false;
+    }
+}
+
+/**
+ * Show the EncryptedFileView when Meld is not available
+ */
+async function showEncryptedFileView(app: App, file: TFile, stream: Stream, date: Date, reuseCurrentTab: boolean): Promise<void> {
+    try {
+        // Handle leaf selection based on reuseCurrentTab setting
+        let leaf: WorkspaceLeaf | null = null;
+        
+        if (reuseCurrentTab) {
+            // Always try to reuse the current active leaf when reuseCurrentTab is enabled
+            const activeLeaf = app.workspace.activeLeaf;
+            if (activeLeaf) {
+                leaf = activeLeaf;
+            } else {
+                // Fallback: create a new leaf if no active leaf
+                try {
+                    leaf = app.workspace.getLeaf('tab');
+                } catch (error) {
+                    centralizedLogger.error('Failed to create new leaf:', error);
+                    return;
+                }
+            }
+        } else {
+            // Original behavior: only reuse empty/non-markdown views
+            const activeLeaf = app.workspace.activeLeaf;
+            if (activeLeaf && !activeLeaf.view.getViewType().includes('markdown')) {
+                leaf = activeLeaf;
+            } else {
+                // Create a new leaf if current one is not suitable
+                try {
+                    leaf = app.workspace.getLeaf('tab');
+                } catch (error) {
+                    centralizedLogger.error('Failed to create new leaf:', error);
+                    return;
+                }
+            }
+        }
+        
+        // Check if leaf is null before proceeding
+        if (!leaf) {
+            centralizedLogger.error('Failed to create or find a workspace leaf for EncryptedFileView');
+            return;
+        }
+        
+        try {
+            // Check if leaf is still valid
+            if (!leaf || !leaf.view) {
+                centralizedLogger.error(`Leaf is no longer valid, cannot set view state`);
+                return;
+            }
+            
+            // Update the date state manager to reflect the current date
+            const dateStateManager = DateStateManager.getInstance();
+            dateStateManager.setCurrentDate(date);
+            
+            // Use the proper Obsidian view system instead of direct DOM manipulation
+            try {
+                await leaf.setViewState({
+                    type: ENCRYPTED_FILE_VIEW_TYPE,
+                    state: {
+                        stream: stream,
+                        date: date.toISOString(),
+                        filePath: file.path
+                    }
+                });
+            } catch (error) {
+                centralizedLogger.error(`Error setting view state for EncryptedFileView:`, error);
+                // If setViewState fails, we can't proceed
+                return;
+            }
+            
+            // Set the active leaf
+            app.workspace.setActiveLeaf(leaf, { focus: true });
+            
+        } catch (error) {
+            centralizedLogger.error('Error setting up EncryptedFileView:', error);
+            return;
+        }
+    } catch (error) {
+        centralizedLogger.error('Error showing encrypted file view:', error);
+    }
 }
 
 /**
@@ -44,16 +152,6 @@ interface AppWithViewRegistry extends App {
 
 
 
-/**
- * Normalize folder path - uses Obsidian's normalizePath and filters out empty segments
- */
-export function normalizeFolderPath(folder: string): string {
-    const normalized = normalizePath(folder);
-    return normalized
-        .split('/')
-        .filter(Boolean)
-        .join('/');
-}
 
 /**
  * Formats a date as YYYY-MM-DD for filenames
@@ -92,7 +190,10 @@ export async function createDailyNote(app: App, folder: string): Promise<TFile |
     const date = new Date();
     const fileName = `${formatDateToYYYYMMDD(date)}.md`;
 
-    const folderPath = normalizeFolderPath(folder);
+    const folderPath = folder
+        .split(/[/\\]/)
+        .filter(Boolean)
+        .join('/');
     const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
 
     let file = app.vault.getAbstractFileByPath(filePath);
@@ -120,7 +221,10 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
     const fileName = `${formatDateToYYYYMMDD(date)}.md`;
     // Formatted date
 
-    const folderPath = normalizeFolderPath(stream.folder);
+    const folderPath = stream.folder
+        .split(/[/\\]/)
+        .filter(Boolean)
+        .join('/');
     const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
     // Looking for file at path
 
@@ -230,6 +334,13 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
             const isMdencFile = file.path.endsWith('.mdenc');
             
             if (isMdencFile) {
+                // For .mdenc files, check if Meld is available first
+                if (!isMeldPluginAvailable(app)) {
+                    // Show the EncryptedFileView instead of just an error
+                    await showEncryptedFileView(app, file, stream, date, reuseCurrentTab);
+                    return;
+                }
+                
                 // For .mdenc files, just open them normally and let Meld handle the encryption
                 
                 // Update the date state manager to reflect the current date

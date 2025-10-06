@@ -468,7 +468,13 @@ export class StreamsBarComponent extends Component {
             .join('/');
         
         const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
-        const file = this.app.vault.getAbstractFileByPath(filePath);
+        let file = this.app.vault.getAbstractFileByPath(filePath);
+
+        // If file not found, check for encrypted version (.mdenc)
+        if (!file) {
+            const encryptedFilePath = filePath.replace(/\.md$/, '.mdenc');
+            file = this.app.vault.getAbstractFileByPath(encryptedFilePath);
+        }
 
         if (!(file instanceof TFile)) {
             return { exists: false, size: 'small' };

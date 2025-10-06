@@ -98,6 +98,13 @@ export class ContextMenuService extends PluginAwareSliceService {
             const filePath = `${stream.folder}/${fileName}`;
             
             let targetFile = this.getPlugin().app.vault.getAbstractFileByPath(filePath);
+            
+            // If file not found, check for encrypted version (.mdenc)
+            if (!targetFile) {
+                const encryptedFilePath = filePath.replace(/\.md$/, '.mdenc');
+                targetFile = this.getPlugin().app.vault.getAbstractFileByPath(encryptedFilePath);
+            }
+            
             let targetContent = '';
             
             if (targetFile) {

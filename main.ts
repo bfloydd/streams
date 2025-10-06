@@ -2,6 +2,8 @@ import { Plugin } from 'obsidian';
 import { Stream, StreamsSettings } from './src/shared/types';
 import { sliceContainer, serviceRegistry, DEFAULT_SETTINGS, ServiceLoader } from './src/shared';
 import { StreamsAPI } from './src/slices/api';
+import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './src/slices/file-operations/CreateFileView';
+import { EncryptedFileView, ENCRYPTED_FILE_VIEW_TYPE } from './src/slices/file-operations/EncryptedFileView';
 
 
 export default class StreamsPlugin extends Plugin implements StreamsAPI {
@@ -12,6 +14,33 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		sliceContainer.setPlugin(this);
 		
 		await this.loadSettings();
+		
+		// Register views directly in the main plugin
+		this.registerView(
+			CREATE_FILE_VIEW_TYPE,
+			(leaf) => new CreateFileView(leaf, this.app, '', { 
+				id: '', 
+				name: '', 
+				folder: '', 
+				icon: 'book',
+				showTodayInRibbon: false,
+				addCommand: false,
+				encryptThisStream: false
+			})
+		);
+		
+		this.registerView(
+			ENCRYPTED_FILE_VIEW_TYPE,
+			(leaf) => new EncryptedFileView(leaf, this.app, '', { 
+				id: '', 
+				name: '', 
+				folder: '', 
+				icon: 'book',
+				showTodayInRibbon: false,
+				addCommand: false,
+				encryptThisStream: false
+			}, new Date())
+		);
 		
 		ServiceLoader.registerAllServices();
 		
