@@ -4,6 +4,7 @@ import { sliceContainer, serviceRegistry, DEFAULT_SETTINGS, ServiceLoader } from
 import { StreamsAPI } from './src/slices/api';
 import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './src/slices/file-operations/CreateFileView';
 import { EncryptedFileView, ENCRYPTED_FILE_VIEW_TYPE } from './src/slices/file-operations/EncryptedFileView';
+import { EncryptedCreateFileView, ENCRYPTED_CREATE_FILE_VIEW_TYPE } from './src/slices/file-operations/EncryptedCreateFileView';
 
 
 export default class StreamsPlugin extends Plugin implements StreamsAPI {
@@ -40,6 +41,19 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 				addCommand: false,
 				encryptThisStream: false
 			}, new Date())
+		);
+		
+		this.registerView(
+			ENCRYPTED_CREATE_FILE_VIEW_TYPE,
+			(leaf) => new EncryptedCreateFileView(leaf, this.app, '', { 
+				id: '', 
+				name: '', 
+				folder: '', 
+				icon: 'book',
+				showTodayInRibbon: false,
+				addCommand: false,
+				encryptThisStream: true
+			})
 		);
 		
 		ServiceLoader.registerAllServices();

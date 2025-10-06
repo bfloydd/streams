@@ -1552,3 +1552,163 @@
 .is-phone .streams-encrypted-file-description {
     font-size: 14px;
 }
+
+/*********************************************************
+ * ENCRYPTED CREATE FILE VIEW STYLES
+ *********************************************************/
+.workspace-leaf-content:has(.streams-encrypted-create-file-container) {
+    width: 100%;
+}
+
+/* Prevent scrollbars on EncryptedCreateFileView */
+.workspace-leaf-content:has(.streams-encrypted-create-file-container) .view-content {
+    overflow: hidden;
+}
+
+.streams-encrypted-create-file-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    padding: 20px;
+    background-color: var(--background-primary);
+    box-sizing: border-box;
+    flex-direction: column;
+    position: relative;
+    z-index: 1;
+}
+
+.streams-encrypted-create-file-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-width: 500px;
+    width: 90%;
+    background-color: var(--background-secondary);
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    animation: streams-fade-in 0.3s ease-in-out;
+    margin: 20px;
+    position: relative;
+    z-index: 2;
+}
+
+.streams-encrypted-create-file-icon {
+    margin-bottom: 24px;
+}
+
+.streams-encrypted-create-file-icon svg {
+    width: 48px;
+    height: 48px;
+    color: var(--text-error);
+    opacity: 0.9;
+}
+
+.streams-encrypted-create-file-stream-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.streams-encrypted-create-file-stream-icon {
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.streams-encrypted-create-file-stream-icon svg {
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+}
+
+.streams-encrypted-create-file-stream {
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+.streams-encrypted-create-file-encryption-indicator {
+    font-size: 0.9em;
+    font-weight: 500;
+    color: var(--text-error);
+    margin-bottom: 16px;
+    padding: 6px 12px;
+    background-color: var(--background-primary);
+    border: 1px solid var(--text-error);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.streams-encrypted-create-file-encryption-indicator::before {
+    content: "🔒";
+    font-size: 14px;
+}
+
+.streams-encrypted-create-file-date {
+    font-size: 2em;
+    font-weight: 700;
+    color: var(--text-normal);
+    margin-bottom: 30px;
+    line-height: 1.2;
+}
+
+.streams-encrypted-create-file-button-container {
+    margin-top: 16px;
+}
+
+.streams-encrypted-create-file-button {
+    padding: 10px 24px;
+    font-size: 1em;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    background-color: var(--interactive-accent);
+    text-align: center;
+    border: 1px solid var(--interactive-accent);
+    color: var(--text-on-accent);
+    font-weight: 600;
+}
+
+.streams-encrypted-create-file-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    background-color: var(--interactive-accent-hover);
+    border-color: var(--interactive-accent-hover);
+}
+
+.streams-encrypted-create-file-button:active {
+    transform: translateY(0);
+}
+
+.streams-encrypted-create-file-button svg {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+}
+
+/* Mobile responsiveness for encrypted create file view */
+.is-mobile .streams-encrypted-create-file-content {
+    width: 100%;
+    max-width: none;
+    padding: 30px 20px;
+    border-radius: 8px;
+}
+
+.is-mobile .streams-encrypted-create-file-container {
+    padding: 20px;
+}
+
+.is-phone .streams-encrypted-create-file-date {
+    font-size: 1.5em;
+}
+
+.is-phone .streams-encrypted-create-file-encryption-indicator {
+    font-size: 0.8em;
+    padding: 4px 8px;
+}
