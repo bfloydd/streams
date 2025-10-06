@@ -71,4 +71,5 @@ export interface StreamsPluginInterface extends Plugin {
     updateAllStreamsBarComponents(): void;
     setActiveStream(streamId: string, force?: boolean): void;
     getActiveStream(): Stream | undefined;
+    getFileOperationsService(): any;
 }

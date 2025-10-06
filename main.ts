@@ -36,6 +36,19 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 			this.settings.barStyle = 'default';
 			await this.saveSettings();
 		}
+		
+		// Migration: ensure encryptThisStream exists for existing streams
+		let needsSave = false;
+		for (const stream of this.settings.streams) {
+			if (stream.encryptThisStream === undefined) {
+				stream.encryptThisStream = false;
+				needsSave = true;
+			}
+		}
+		
+		if (needsSave) {
+			await this.saveSettings();
+		}
 	}
 
 	async saveSettings() {
@@ -96,5 +109,9 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 
 	hasStreams(): boolean {
 		return serviceRegistry.api?.hasStreams() || false;
+	}
+
+	getFileOperationsService(): any {
+		return serviceRegistry.fileOperations;
 	}
 }

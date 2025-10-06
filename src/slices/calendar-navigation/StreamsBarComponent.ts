@@ -214,7 +214,6 @@ export class StreamsBarComponent extends Component {
             }
         } else {
             // Don't add calendar component to sidebars or other panes
-            centralizedLogger.debug('Calendar component not added - not in main editor area');
             this.component.remove();
             return;
         }
@@ -1031,8 +1030,6 @@ export class StreamsBarComponent extends Component {
         
         // Refresh the streams dropdown to show the correct selection
         this.refreshStreamsDropdown();
-        
-        centralizedLogger.debug(`StreamsBarComponent updated to active stream: ${newActiveStream.name}`);
     }
     
     private handleSettingsChange(settings: any): void {

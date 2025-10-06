@@ -23,6 +23,7 @@ export interface Stream {
     icon: LucideIcon;
     showTodayInRibbon: boolean;
     addCommand: boolean;
+    encryptThisStream: boolean; // New field for encryption toggle
 }
 
 export interface StreamsSettings {

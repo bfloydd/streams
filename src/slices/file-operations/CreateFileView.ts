@@ -36,7 +36,6 @@ export class CreateFileView extends ItemView {
         this.filePath = filePath;
         this.stream = stream;
         this.dateStateManager = DateStateManager.getInstance();
-        centralizedLogger.debug(`CreateFileView constructor called with filePath: ${filePath}`);
     }
 
     getViewType(): string {
@@ -67,17 +66,13 @@ export class CreateFileView extends ItemView {
 
     async setState(state: { stream?: Stream; date?: string | Date; filePath?: string }, result?: unknown): Promise<void> {
         try {
-            centralizedLogger.debug(`CreateFileView setState called with state:`, state);
-            
             // Check if the view is still valid - more comprehensive checks
             if (!this || !this.contentEl || !this.leaf || this.contentEl === null || this.leaf === null) {
-                centralizedLogger.debug(`CreateFileView setState called but view is no longer valid, skipping`);
                 return;
             }
             
             // Additional safety check - ensure the view is still attached to the DOM
             if (!document.contains(this.contentEl)) {
-                centralizedLogger.debug(`CreateFileView setState called but view is no longer in DOM, skipping`);
                 return;
             }
             
@@ -135,8 +130,6 @@ export class CreateFileView extends ItemView {
     }
 
     async onOpen(): Promise<void> {
-        centralizedLogger.debug(`CreateFileView onOpen called with filePath: ${this.filePath}, stream: ${this.stream.name}`);
-        
         // Set this as the active stream in the main plugin
         this.setActiveStream();
         
@@ -191,13 +184,9 @@ export class CreateFileView extends ItemView {
         
         // Create our create file view content
         this.createFileViewContent(this.contentEl);
-        
-        centralizedLogger.debug('CreateFileView content rendered and made visible');
     }
 
     async onClose(): Promise<void> {
-        centralizedLogger.debug(`CreateFileView onClose called for filePath: ${this.filePath}`);
-        
         // Clean up the MutationObserver
         if ((this as any).emptyStateObserver) {
             (this as any).emptyStateObserver.disconnect();
@@ -262,7 +251,7 @@ export class CreateFileView extends ItemView {
                 eventBus.emit('create-file-view-opened', this.leaf);
             });
         } catch (error) {
-            centralizedLogger.debug('Could not trigger calendar component:', error);
+            // Calendar component trigger failed - not critical
         }
     }
     
@@ -292,6 +281,45 @@ export class CreateFileView extends ItemView {
     
     private async createAndOpenFile(): Promise<void> {
         try {
+            // Get the file operations service to use the strategy pattern
+            const plugin = (this.app as any).plugins?.plugins?.['streams'];
+            if (!plugin) {
+                centralizedLogger.error('Streams plugin not found');
+                return;
+            }
+            
+            // Check if encryption is enabled but Meld is not available
+            if (this.stream.encryptThisStream) {
+                const fileOpsService = plugin.getFileOperationsService?.();
+                if (fileOpsService && !fileOpsService.isMeldPluginAvailable()) {
+                    // Show error and don't create file
+                    new (this.app as any).Notice(fileOpsService.getMeldUnavailableMessage());
+                    return;
+                }
+            }
+            
+            // Create the file normally first (without encryption)
+            const file = await this.createFileNormally();
+            
+            if (file instanceof TFile) {
+                // Open the file in the current leaf (this will replace CreateFileView)
+                await this.leaf.openFile(file);
+                
+                // If encryption is enabled, trigger it after the file is opened
+                if (this.stream.encryptThisStream) {
+                    // Small delay to ensure the file is fully loaded
+                    setTimeout(async () => {
+                        await this.triggerEncryption(file);
+                    }, 200);
+                }
+            }
+        } catch (error) {
+            centralizedLogger.error('Error creating file:', error);
+        }
+    }
+    
+    private async createFileNormally(): Promise<TFile | null> {
+        try {
             const folderPath = this.filePath.substring(0, this.filePath.lastIndexOf('/'));
             
             if (folderPath) {
@@ -305,13 +333,99 @@ export class CreateFileView extends ItemView {
                 }
             }
             
+            // Create the file normally (without encryption)
             const file = await this.app.vault.create(this.filePath, '');
+            return file instanceof TFile ? file : null;
+        } catch (error) {
+            centralizedLogger.error('Error creating file normally:', error);
+            return null;
+        }
+    }
+    
+    private async triggerEncryption(file: TFile): Promise<void> {
+        try {
+            // Ensure the file is the active file
+            const activeFile = this.app.workspace.getActiveFile();
             
-            if (file instanceof TFile) {
-                await this.leaf.openFile(file);
+            if (activeFile?.path !== file.path) {
+                // Find a leaf with this file and make it active
+                const fileLeaf = this.app.workspace.getLeavesOfType('markdown')
+                    .find(leaf => {
+                        try {
+                            const view = leaf.view as any;
+                            return view?.file?.path === file.path;
+                        } catch (e) {
+                            return false;
+                        }
+                    });
+                
+                if (fileLeaf) {
+                    this.app.workspace.setActiveLeaf(fileLeaf, { focus: true });
+                } else {
+                    centralizedLogger.error(`Could not find leaf with file: ${file.path}`);
+                    return;
+                }
+            }
+            
+            // Small delay to ensure the file is properly active
+            await new Promise(resolve => setTimeout(resolve, 100));
+            
+            // Try to execute the Meld encryption command
+            const command = (this.app as any).commands?.commands?.['meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note'];
+            
+            if (command && command.callback && typeof command.callback === 'function') {
+                try {
+                    await command.callback();
+                } catch (cmdError) {
+                    centralizedLogger.error(`Meld command execution failed:`, cmdError);
+                }
+            } else {
+                // Fallback: Use command palette API
+                try {
+                    await (this.app as any).commands.executeCommandById('meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note');
+                } catch (altError) {
+                    centralizedLogger.error('Meld encryption command failed:', altError);
+                }
             }
         } catch (error) {
-            centralizedLogger.error('Error creating file:', error);
+            centralizedLogger.error(`Error triggering encryption for file ${file.path}:`, error);
+        }
+    }
+    
+    private async createFileWithStrategy(): Promise<TFile | null> {
+        try {
+            const folderPath = this.filePath.substring(0, this.filePath.lastIndexOf('/'));
+            
+            if (folderPath) {
+                try {
+                    const folderExists = this.app.vault.getAbstractFileByPath(folderPath);
+                    if (!folderExists) {
+                        await this.app.vault.createFolder(folderPath);
+                    }
+                } catch (error) {
+                    // Using existing folder
+                }
+            }
+            
+            // Get the file operations service
+            const plugin = (this.app as any).plugins?.plugins?.['streams'];
+            if (!plugin) {
+                centralizedLogger.error('Streams plugin not found');
+                return null;
+            }
+            
+            const fileOpsService = plugin.getFileOperationsService?.();
+            if (fileOpsService) {
+                // Use the strategy pattern
+                return await fileOpsService.createFile(this.filePath, '', this.stream);
+            } else {
+                // Fallback to normal file creation
+                const file = await this.app.vault.create(this.filePath, '');
+                return file instanceof TFile ? file : null;
+            }
+        } catch (error) {
+            centralizedLogger.error('Error creating file with strategy:', error);
+            return null;
         }
     }
     

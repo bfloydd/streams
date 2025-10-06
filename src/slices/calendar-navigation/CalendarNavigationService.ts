@@ -323,7 +323,8 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
             icon: 'book',
             folder: 'Streams',
             showTodayInRibbon: true,
-            addCommand: true
+            addCommand: true,
+            encryptThisStream: false
         };
     }
 

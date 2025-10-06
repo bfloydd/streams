@@ -129,7 +129,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                         folder: '',
                         icon: 'file-text' as LucideIcon,
                         showTodayInRibbon: true,
-                        addCommand: false
+                        addCommand: false,
+                        encryptThisStream: false
                     };
                     this.plugin.settings.streams.push(newStream);
                     await this.plugin.saveSettings();
@@ -200,6 +201,9 @@ export class StreamsSettingTab extends PluginSettingTab {
                     eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
                 }));
 
+        // Encrypt this stream
+        this.addEncryptionToggle(container, stream);
+
         // Remove stream
         new Setting(container)
             .addButton(button => button
@@ -211,5 +215,44 @@ export class StreamsSettingTab extends PluginSettingTab {
                     eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
                     this.display();
                 }));
+    }
+
+    private addEncryptionToggle(container: HTMLElement, stream: Stream): void {
+        // Check if Meld plugin is available
+        const fileOpsService = this.plugin.getFileOperationsService?.();
+        const isMeldAvailable = fileOpsService?.isMeldPluginAvailable() || false;
+        
+        const encryptionSetting = new Setting(container)
+            .setName('Encrypt this stream')
+            .setDesc(isMeldAvailable 
+                ? 'When enabled, files created in this stream will be encrypted using the Meld plugin'
+                : 'Meld plugin is not available. Please install and enable the Meld plugin to use encryption features.'
+            )
+            .addToggle(toggle => {
+                toggle
+                    .setValue(stream.encryptThisStream || false)
+                    .setDisabled(!isMeldAvailable)
+                    .onChange(async (value) => {
+                        if (value && !isMeldAvailable) {
+                            new Notice('Meld plugin is not available. Please install and enable the Meld plugin first.');
+                            return;
+                        }
+                        
+                        stream.encryptThisStream = value;
+                        await this.plugin.saveSettings();
+                        eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
+                        
+                        new Notice(`Encryption ${value ? 'enabled' : 'disabled'} for stream "${stream.name}"`);
+                    });
+            });
+
+        // Add warning if Meld is not available
+        if (!isMeldAvailable) {
+            const warningEl = container.createDiv('streams-encryption-warning');
+            warningEl.style.color = 'var(--text-error)';
+            warningEl.style.fontSize = '0.9em';
+            warningEl.style.marginTop = '0.5em';
+            warningEl.textContent = '⚠️ Meld plugin is required for encryption features';
+        }
     }
 }

@@ -6,6 +6,7 @@ import { sliceContainer } from './container';
 import { DebugLoggingService } from '../slices/debug-logging';
 import { StreamManagementService } from '../slices/stream-management';
 import { APIService } from '../slices/api';
+import { FileOperationsService } from '../slices/file-operations';
 
 export class ServiceRegistry {
     private static instance: ServiceRegistry;
@@ -30,6 +31,10 @@ export class ServiceRegistry {
     
     get api(): APIService | undefined {
         return sliceContainer.get('api') as APIService;
+    }
+    
+    get fileOperations(): FileOperationsService | undefined {
+        return sliceContainer.get('file-operations') as FileOperationsService;
     }
 }
 

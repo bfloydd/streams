@@ -5,6 +5,22 @@ import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './CreateFileView';
 import { DateStateManager } from '../../shared/date-state-manager';
 
 /**
+ * Check if file content appears to be encrypted
+ */
+function isEncryptedContent(content: string): boolean {
+    // Common patterns that indicate encrypted content
+    const encryptedPatterns = [
+        /^-----BEGIN PGP MESSAGE-----/,
+        /^-----BEGIN ENCRYPTED MESSAGE-----/,
+        /^-----BEGIN MESSAGE-----/,
+        /^U2FsdGVkX1/, // Base64 encoded encrypted content (common in some encryption tools)
+        /^[A-Za-z0-9+/]{100,}={0,2}$/ // Long base64 strings (potential encrypted content)
+    ];
+
+    return encryptedPatterns.some(pattern => pattern.test(content.trim()));
+}
+
+/**
  * Interface for Obsidian's internal ViewRegistry, which manages all view registrations
  */
 interface ViewRegistry {
@@ -109,7 +125,12 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
     // Looking for file at path
 
     let file = app.vault.getAbstractFileByPath(filePath);
-    // File exists check
+    
+    // If file not found, check for encrypted version (.mdenc)
+    if (!file) {
+        const encryptedFilePath = filePath.replace(/\.md$/, '.mdenc');
+        file = app.vault.getAbstractFileByPath(encryptedFilePath);
+    }
     
     if (!file) {
         // File not found, showing create file view
@@ -186,7 +207,6 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                         filePath: filePath
                     }
                 });
-                centralizedLogger.debug(`Successfully set view state for CreateFileView`);
             } catch (error) {
                 centralizedLogger.error(`Error setting view state for CreateFileView:`, error);
                 // If setViewState fails, we can't proceed
@@ -206,6 +226,39 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
 
     if (file instanceof TFile) {
         try {
+            // Check if this is a .mdenc file
+            const isMdencFile = file.path.endsWith('.mdenc');
+            
+            if (isMdencFile) {
+                // For .mdenc files, just open them normally and let Meld handle the encryption
+                
+                // Update the date state manager to reflect the current date
+                const dateStateManager = DateStateManager.getInstance();
+                dateStateManager.setCurrentDate(date);
+                
+                let leaf: WorkspaceLeaf | null = null;
+                
+                if (reuseCurrentTab) {
+                    const activeLeaf = app.workspace.activeLeaf;
+                    leaf = activeLeaf || app.workspace.getLeaf('tab');
+                } else {
+                    leaf = app.workspace.getLeaf('tab');
+                }
+
+                if (leaf) {
+                    await leaf.openFile(file);
+                    app.workspace.setActiveLeaf(leaf, { focus: true });
+                }
+                return;
+            }
+            
+            // For .md files, just open them normally
+            
+            // Update the date state manager to reflect the current date
+            const dateStateManager = DateStateManager.getInstance();
+            dateStateManager.setCurrentDate(date);
+            
+            // File is not encrypted, proceed with normal opening
             let leaf: WorkspaceLeaf | null = null;
             
             if (reuseCurrentTab) {
@@ -213,7 +266,6 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                 const activeLeaf = app.workspace.activeLeaf;
                 if (activeLeaf) {
                     leaf = activeLeaf;
-                    // log.debug('Reusing current active leaf for markdown view (reuseCurrentTab enabled)');
                 } else {
                     // Fallback: look for existing leaf with the same file
                     const existingLeaf = app.workspace.getLeavesOfType('markdown')
@@ -227,17 +279,14 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                                 const filePath = normalizePath(file.path);
                                 return viewPath === filePath;
                             } catch (e) {
-                                // log.debug('Error comparing files:', e);
                                 return false;
                             }
                         });
 
                     if (existingLeaf) {
                         leaf = existingLeaf;
-                        // log.debug('Found existing leaf with same file');
                     } else {
                         leaf = app.workspace.getLeaf('tab');
-                        // log.debug('Created a new leaf for markdown view');
                     }
                 }
             } else {
@@ -253,17 +302,14 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                             const filePath = normalizePath(file.path);
                             return viewPath === filePath;
                         } catch (e) {
-                            // log.debug('Error comparing files:', e);
                             return false;
                         }
                     });
 
                 if (existingLeaf) {
                     leaf = existingLeaf;
-                    // log.debug('Found existing leaf with same file');
                 } else {
                     leaf = app.workspace.getLeaf('tab');
-                    // log.debug('Created a new leaf for markdown view');
                 }
             }
             
