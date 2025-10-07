@@ -24,7 +24,13 @@ If you find this plugin helpful, please consider supporting its development:
 
 Your support helps maintain and improve this plugin! 🙏
 
+## Other Plugins
 
+Check out my other Obsidian plugins:
+
+- **[Coalesce](https://github.com/bfloydd/coalesce)**
+
+*Follow me on [GitHub](https://github.com/bfloydd) for updates.*
 
 ## Features
 - Multiple daily note streams.
