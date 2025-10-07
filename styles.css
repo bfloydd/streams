@@ -1383,175 +1383,185 @@
  * ENCRYPTED FILE VIEW STYLES
  *********************************************************/
 .streams-encrypted-file-container {
-    background: var(--background-primary);
-    color: var(--text-normal);
-    font-family: var(--font-text);
-    min-height: 100vh;
     display: flex;
-    align-items: center;
     justify-content: center;
-    padding: 20px;
-}
-
-.streams-encrypted-file-content {
-    background: var(--background-secondary);
-    border: 1px solid var(--background-modifier-border);
-    border-radius: 12px;
-    padding: 40px;
-    max-width: 500px;
+    align-items: center;
+    height: 100%;
     width: 100%;
-    text-align: center;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    background: linear-gradient(135deg, var(--background-primary) 0%, var(--background-secondary) 100%);
+    box-sizing: border-box;
+    flex-direction: column;
     position: relative;
 }
 
-.streams-encrypted-file-icon {
-    font-size: 48px;
-    color: var(--text-muted);
-    margin-bottom: 20px;
+.streams-encrypted-file-content {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    justify-content: center;
+    max-width: 500px;
+    width: 90%;
+    background-color: var(--background-secondary);
+    border-radius: 12px;
+    padding: 40px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    text-align: center;
+    position: relative;
 }
 
-.streams-encrypted-file-title {
-    font-size: 24px;
+.streams-encrypted-file-content::before {
+    content: '🔒 ENCRYPTED';
+    position: absolute;
+    top: -8px;
+    right: 20px;
+    background: var(--text-accent);
+    color: var(--text-on-accent);
+    padding: 6px 12px;
+    font-size: 12px;
     font-weight: 600;
-    color: var(--text-normal);
-    margin-bottom: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(var(--text-accent-rgb), 0.3);
+    z-index: 10;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.streams-encrypted-file-icon {
+    margin-bottom: 24px;
+}
+
+.streams-encrypted-file-icon svg {
+    width: 48px;
+    height: 48px;
+    color: var(--text-accent);
+    opacity: 0.9;
+    filter: drop-shadow(0 2px 4px rgba(var(--accent-rgb), 0.2));
+}
+
+
+.streams-encrypted-file-title {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 12px;
     line-height: 1.2;
 }
 
 .streams-encrypted-file-description {
-    font-size: 16px;
+    font-size: 0.9em;
     color: var(--text-muted);
-    margin-bottom: 32px;
-    line-height: 1.5;
+    margin-bottom: 20px;
+    line-height: 1.4;
+    opacity: 0.8;
 }
 
 .streams-encrypted-file-stream-container {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin-bottom: 16px;
-    padding: 12px;
-    background: var(--background-primary);
-    border-radius: 8px;
-    border: 1px solid var(--background-modifier-border);
+    margin-bottom: 12px;
 }
 
 .streams-encrypted-file-stream-icon {
-    font-size: 18px;
-    color: var(--text-accent);
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+}
+
+.streams-encrypted-file-stream-icon svg {
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
 }
 
 .streams-encrypted-file-stream {
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--text-normal);
+    font-size: 1em;
+    font-weight: 600;
+    color: var(--text-muted);
 }
 
 .streams-encrypted-file-date {
     font-size: 1.4em;
-    font-weight: 500;
+    font-weight: 700;
     color: var(--text-normal);
-    margin-bottom: 12px;
+    margin-bottom: 30px;
     line-height: 1.2;
 }
 
 .streams-encrypted-file-path {
-    font-size: 14px;
-    color: var(--text-muted);
     font-family: var(--font-monospace);
-    background: var(--background-primary);
+    font-size: 0.8em;
+    color: var(--text-muted);
+    margin-bottom: 32px;
+    opacity: 0.8;
+    background: rgba(var(--background-primary-rgb), 0.5);
     padding: 8px 12px;
     border-radius: 6px;
-    border: 1px solid var(--background-modifier-border);
-    margin-bottom: 32px;
-    word-break: break-all;
+    border: 1px solid rgba(var(--background-modifier-border-rgb), 0.3);
 }
 
 .streams-encrypted-file-button-container {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
+    margin-top: 16px;
 }
 
 .streams-encrypted-file-button {
-    padding: 12px 24px;
+    padding: 12px 28px;
+    font-size: 1em;
     border-radius: 8px;
-    font-size: 16px;
-    font-weight: 500;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-decoration: none;
-    display: inline-block;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: linear-gradient(135deg, var(--interactive-accent) 0%, var(--interactive-accent-hover) 100%);
     text-align: center;
-    min-height: 44px;
+    color: var(--text-on-accent);
+    border: 1px solid var(--interactive-accent);
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 6px;
+    position: relative;
+    font-weight: 600;
+    box-shadow: 0 4px 12px rgba(var(--interactive-accent-rgb), 0.3);
 }
 
-.streams-encrypted-file-button.mod-cta {
-    background: var(--interactive-accent);
-    color: var(--text-on-accent);
-    border: 1px solid var(--interactive-accent);
+.streams-encrypted-file-button::before {
+    content: '🔓';
+    font-size: 14px;
 }
 
-.streams-encrypted-file-button.mod-cta:hover {
-    background: var(--interactive-accent-hover);
-    border-color: var(--interactive-accent-hover);
+.streams-encrypted-file-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(var(--interactive-accent-rgb), 0.4);
+    background: linear-gradient(135deg, var(--interactive-accent-hover) 0%, var(--interactive-accent) 100%);
+}
+
+.streams-encrypted-file-button:active {
     transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 12px rgba(var(--interactive-accent-rgb), 0.3);
 }
 
-.streams-encrypted-file-button.mod-cta:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.streams-encrypted-file-button-text {
+    margin-left: 4px;
 }
 
-.streams-encrypted-file-button:not(.mod-cta) {
-    background: var(--background-primary);
-    color: var(--text-normal);
-    border: 1px solid var(--background-modifier-border);
-}
-
-.streams-encrypted-file-button:not(.mod-cta):hover {
-    background: var(--interactive-hover);
-    border-color: var(--text-accent);
-    color: var(--text-accent);
-}
-
-.streams-encrypted-file-button:not(.mod-cta):active {
-    background: var(--interactive-normal);
+.streams-encrypted-file-button svg {
+    width: 18px;
+    height: 18px;
 }
 
 /* Mobile responsiveness */
-.is-phone .streams-encrypted-file-content {
-    padding: 24px;
-    margin: 10px;
+.is-mobile .streams-encrypted-file-content {
+    width: 100%;
+    max-width: none;
+    padding: 30px 20px;
+    border-radius: 8px;
 }
 
-.is-phone .streams-encrypted-file-button-container {
-    flex-direction: column;
+.is-mobile .streams-encrypted-file-container {
+    padding: 20px;
 }
 
-.is-phone .streams-encrypted-file-button {
-    font-size: 14px;
-    padding: 10px 20px;
-    min-height: 40px;
-}
-
-.is-phone .streams-encrypted-file-title {
-    font-size: 20px;
-}
-
-.is-phone .streams-encrypted-file-description {
-    font-size: 14px;
+.is-phone .streams-encrypted-file-date {
+    font-size: 1.2em;
 }
 
 /*********************************************************

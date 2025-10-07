@@ -137,14 +137,6 @@ export class EncryptedFileView extends ItemView {
         const iconContainer = contentBox.createDiv('streams-encrypted-file-icon');
         setIcon(iconContainer, 'lock');
         
-        // Title
-        const title = contentBox.createDiv('streams-encrypted-file-title');
-        title.setText('Encrypted File');
-        
-        // Description
-        const description = contentBox.createDiv('streams-encrypted-file-description');
-        description.setText('This file is encrypted and requires the Meld Encrypt plugin to view its contents.');
-        
         // Stream info display
         const streamContainer = contentBox.createDiv('streams-encrypted-file-stream-container');
         const streamIcon = streamContainer.createSpan('streams-encrypted-file-stream-icon');
@@ -158,20 +150,15 @@ export class EncryptedFileView extends ItemView {
         const formattedDate = this.formatDate(this.date);
         dateEl.setText(formattedDate);
         
-        // File path display
-        const filePathEl = contentBox.createDiv('streams-encrypted-file-path');
-        filePathEl.setText(this.filePath);
-        
-        // Action buttons
+        // Create button
         const buttonContainer = contentBox.createDiv('streams-encrypted-file-button-container');
-        
-        // Install Meld button
-        const installButton = buttonContainer.createEl('button', {
+        const createButton = buttonContainer.createEl('button', {
             cls: 'mod-cta streams-encrypted-file-button',
             text: 'Install Meld Encrypt Plugin'
         });
         
-        installButton.addEventListener('click', () => {
+        
+        createButton.addEventListener('click', () => {
             this.openMeldPluginPage();
         });
     }

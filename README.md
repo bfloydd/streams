@@ -24,6 +24,8 @@ If you find this plugin helpful, please consider supporting its development:
 
 Your support helps maintain and improve this plugin! 🙏
 
+
+
 ## Features
 - Multiple daily note streams.
 - Full calendar for each stream.
