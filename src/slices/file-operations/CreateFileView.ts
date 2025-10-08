@@ -20,6 +20,8 @@ interface AppWithPlugins extends App {
 export const CREATE_FILE_VIEW_TYPE = 'streams-create-file-view';
 
 export class CreateFileView extends ItemView {
+    navigation = true; // Enable navigation history integration
+    
     private filePath: string;
     private stream: Stream;
     private dateStateManager: DateStateManager;

@@ -20,6 +20,8 @@ interface AppWithPlugins extends App {
 export const CREATE_FILE_VIEW_ENCRYPTED_TYPE = 'streams-create-file-view-encrypted';
 
 export class CreateFileViewEncrypted extends ItemView {
+    navigation = true; // Enable navigation history integration
+    
     private filePath: string;
     private stream: Stream;
     private dateStateManager: DateStateManager;

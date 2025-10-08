@@ -6,6 +6,8 @@ import { DateStateManager } from '../../shared/date-state-manager';
 export const INSTALL_MELD_VIEW_TYPE = 'streams-install-meld-view';
 
 export class InstallMeldView extends ItemView {
+    navigation = true; // Enable navigation history integration
+    
     private filePath: string;
     private stream: Stream;
     private date: Date;
