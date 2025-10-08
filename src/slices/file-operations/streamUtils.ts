@@ -2,8 +2,8 @@ import { App, TFolder, TFile, MarkdownView, WorkspaceLeaf, normalizePath } from 
 import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './CreateFileView';
-import { EncryptedFileView, ENCRYPTED_FILE_VIEW_TYPE } from './EncryptedFileView';
-import { EncryptedCreateFileView, ENCRYPTED_CREATE_FILE_VIEW_TYPE } from './EncryptedCreateFileView';
+import { InstallMeldView, INSTALL_MELD_VIEW_TYPE } from './InstallMeldView';
+import { CreateFileViewEncrypted, CREATE_FILE_VIEW_ENCRYPTED_TYPE } from './CreateFileViewEncrypted';
 import { DateStateManager } from '../../shared/date-state-manager';
 
 /**
@@ -47,9 +47,9 @@ function isMeldPluginAvailable(app: App): boolean {
 }
 
 /**
- * Show the EncryptedFileView when Meld is not available
+ * Show the InstallMeldView when Meld is not available
  */
-async function showEncryptedFileView(app: App, file: TFile, stream: Stream, date: Date, reuseCurrentTab: boolean): Promise<void> {
+async function showInstallMeldView(app: App, file: TFile, stream: Stream, date: Date, reuseCurrentTab: boolean): Promise<void> {
     try {
         // Handle leaf selection based on reuseCurrentTab setting
         let leaf: WorkspaceLeaf | null = null;
@@ -86,7 +86,7 @@ async function showEncryptedFileView(app: App, file: TFile, stream: Stream, date
         
         // Check if leaf is null before proceeding
         if (!leaf) {
-            centralizedLogger.error('Failed to create or find a workspace leaf for EncryptedFileView');
+            centralizedLogger.error('Failed to create or find a workspace leaf for InstallMeldView');
             return;
         }
         
@@ -104,7 +104,7 @@ async function showEncryptedFileView(app: App, file: TFile, stream: Stream, date
             // Use the proper Obsidian view system instead of direct DOM manipulation
             try {
                 await leaf.setViewState({
-                    type: ENCRYPTED_FILE_VIEW_TYPE,
+                    type: INSTALL_MELD_VIEW_TYPE,
                     state: {
                         stream: stream,
                         date: date.toISOString(),
@@ -112,7 +112,7 @@ async function showEncryptedFileView(app: App, file: TFile, stream: Stream, date
                     }
                 });
             } catch (error) {
-                centralizedLogger.error(`Error setting view state for EncryptedFileView:`, error);
+                centralizedLogger.error(`Error setting view state for InstallMeldView:`, error);
                 // If setViewState fails, we can't proceed
                 return;
             }
@@ -121,7 +121,7 @@ async function showEncryptedFileView(app: App, file: TFile, stream: Stream, date
             app.workspace.setActiveLeaf(leaf, { focus: true });
             
         } catch (error) {
-            centralizedLogger.error('Error setting up EncryptedFileView:', error);
+            centralizedLogger.error('Error setting up InstallMeldView:', error);
             return;
         }
     } catch (error) {
@@ -304,7 +304,7 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
             
             // Use the proper Obsidian view system instead of direct DOM manipulation
             // Choose the appropriate view type based on whether the stream is encrypted
-            const viewType = stream.encryptThisStream ? ENCRYPTED_CREATE_FILE_VIEW_TYPE : CREATE_FILE_VIEW_TYPE;
+            const viewType = stream.encryptThisStream ? CREATE_FILE_VIEW_ENCRYPTED_TYPE : CREATE_FILE_VIEW_TYPE;
             
             try {
                 await leaf.setViewState({
@@ -340,8 +340,8 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
             if (isMdencFile) {
                 // For .mdenc files, check if Meld is available first
                 if (!isMeldPluginAvailable(app)) {
-                    // Show the EncryptedFileView instead of just an error
-                    await showEncryptedFileView(app, file, stream, date, reuseCurrentTab);
+                    // Show the InstallMeldView instead of just an error
+                    await showInstallMeldView(app, file, stream, date, reuseCurrentTab);
                     return;
                 }
                 

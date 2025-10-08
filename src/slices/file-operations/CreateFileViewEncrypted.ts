@@ -17,9 +17,9 @@ interface AppWithPlugins extends App {
     };
 }
 
-export const ENCRYPTED_CREATE_FILE_VIEW_TYPE = 'streams-encrypted-create-file-view';
+export const CREATE_FILE_VIEW_ENCRYPTED_TYPE = 'streams-create-file-view-encrypted';
 
-export class EncryptedCreateFileView extends ItemView {
+export class CreateFileViewEncrypted extends ItemView {
     private filePath: string;
     private stream: Stream;
     private dateStateManager: DateStateManager;
@@ -39,7 +39,7 @@ export class EncryptedCreateFileView extends ItemView {
     }
 
     getViewType(): string {
-        return ENCRYPTED_CREATE_FILE_VIEW_TYPE;
+        return CREATE_FILE_VIEW_ENCRYPTED_TYPE;
     }
 
     getDisplayText(): string {
@@ -97,12 +97,12 @@ export class EncryptedCreateFileView extends ItemView {
                 // Refresh the view with new state
                 if (this.contentEl) {
                     this.contentEl.empty();
-                    this.contentEl.addClass('streams-encrypted-create-file-container');
-                    this.createEncryptedFileViewContent(this.contentEl);
+                    this.contentEl.addClass('streams-create-file-encrypted-container');
+                    this.createFileViewEncryptedContent(this.contentEl);
                 }
             }
         } catch (error) {
-            centralizedLogger.error(`Error in EncryptedCreateFileView setState:`, error);
+            centralizedLogger.error(`Error in CreateFileViewEncrypted setState:`, error);
             // Don't rethrow - just log and continue
         }
     }
@@ -116,8 +116,8 @@ export class EncryptedCreateFileView extends ItemView {
         // Refresh the view content
         if (this.contentEl) {
             this.contentEl.empty();
-            this.contentEl.addClass('streams-encrypted-create-file-container');
-            this.createEncryptedFileViewContent(this.contentEl);
+            this.contentEl.addClass('streams-create-file-encrypted-container');
+            this.createFileViewEncryptedContent(this.contentEl);
         }
     }
 
@@ -142,7 +142,7 @@ export class EncryptedCreateFileView extends ItemView {
         
         // Prepare our content element
         this.contentEl.empty();
-        this.contentEl.addClass('streams-encrypted-create-file-container');
+        this.contentEl.addClass('streams-create-file-encrypted-container');
         
         // Set up the content element styling
         this.contentEl.style.height = '100%';
@@ -181,8 +181,8 @@ export class EncryptedCreateFileView extends ItemView {
         // Store observer for cleanup
         (this as any).emptyStateObserver = observer;
         
-        // Create our encrypted create file view content
-        this.createEncryptedFileViewContent(this.contentEl);
+        // Create our create file view encrypted content
+        this.createFileViewEncryptedContent(this.contentEl);
     }
 
     async onClose(): Promise<void> {
@@ -208,37 +208,37 @@ export class EncryptedCreateFileView extends ItemView {
         this.leaf = null as any;
     }
     
-    private createEncryptedFileViewContent(container: HTMLElement): void {
+    private createFileViewEncryptedContent(container: HTMLElement): void {
         // Create the content box
-        const contentBox = container.createDiv('streams-encrypted-create-file-content');
+        const contentBox = container.createDiv('streams-create-file-encrypted-content');
         
         // Add icon
-        const iconContainer = contentBox.createDiv('streams-encrypted-create-file-icon');
+        const iconContainer = contentBox.createDiv('streams-create-file-encrypted-icon');
         setIcon(iconContainer, 'lock');
         
         // Stream info display
-        const streamContainer = contentBox.createDiv('streams-encrypted-create-file-stream-container');
-        const streamIcon = streamContainer.createSpan('streams-encrypted-create-file-stream-icon');
+        const streamContainer = contentBox.createDiv('streams-create-file-encrypted-stream-container');
+        const streamIcon = streamContainer.createSpan('streams-create-file-encrypted-stream-icon');
         setIcon(streamIcon, this.stream.icon || 'book');
         
-        const streamName = streamContainer.createSpan('streams-encrypted-create-file-stream');
+        const streamName = streamContainer.createSpan('streams-create-file-encrypted-stream');
         streamName.setText(this.stream.name);
         
         // Encryption indicator
-        const encryptionIndicator = contentBox.createDiv('streams-encrypted-create-file-encryption-indicator');
+        const encryptionIndicator = contentBox.createDiv('streams-create-file-encrypted-encryption-indicator');
         encryptionIndicator.setText('This stream is encrypted');
         
         // Date display
-        const dateEl = contentBox.createDiv('streams-encrypted-create-file-date');
+        const dateEl = contentBox.createDiv('streams-create-file-encrypted-date');
         
         const state = this.dateStateManager.getState();
         const formattedDate = this.formatDate(state.currentDate);
         dateEl.setText(formattedDate);
         
         // Create button
-        const buttonContainer = contentBox.createDiv('streams-encrypted-create-file-button-container');
+        const buttonContainer = contentBox.createDiv('streams-create-file-encrypted-button-container');
         const createButton = buttonContainer.createEl('button', {
-            cls: 'mod-cta streams-encrypted-create-file-button',
+            cls: 'mod-cta streams-create-file-encrypted-button',
             text: 'Create Encrypted File'
         });
         
@@ -251,7 +251,7 @@ export class EncryptedCreateFileView extends ItemView {
         // Trigger the streams bar component to be added to this view
         try {
             import('../../shared/event-bus').then(({ eventBus }) => {
-                eventBus.emit('encrypted-create-file-view-opened', this.leaf);
+                eventBus.emit('create-file-view-encrypted-opened', this.leaf);
             });
         } catch (error) {
             // Calendar component trigger failed - not critical
@@ -303,7 +303,7 @@ export class EncryptedCreateFileView extends ItemView {
             const file = await this.createFileNormally();
             
             if (file instanceof TFile) {
-                // Open the file in the current leaf (this will replace EncryptedCreateFileView)
+                // Open the file in the current leaf (this will replace CreateFileViewEncrypted)
                 await this.leaf.openFile(file);
                 
                 // Trigger encryption after the file is opened
@@ -405,4 +405,3 @@ export class EncryptedCreateFileView extends ItemView {
         }
     }
 }
-

@@ -3,8 +3,8 @@ import { Stream, StreamsSettings } from './src/shared/types';
 import { sliceContainer, serviceRegistry, DEFAULT_SETTINGS, ServiceLoader } from './src/shared';
 import { StreamsAPI } from './src/slices/api';
 import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './src/slices/file-operations/CreateFileView';
-import { EncryptedFileView, ENCRYPTED_FILE_VIEW_TYPE } from './src/slices/file-operations/EncryptedFileView';
-import { EncryptedCreateFileView, ENCRYPTED_CREATE_FILE_VIEW_TYPE } from './src/slices/file-operations/EncryptedCreateFileView';
+import { InstallMeldView, INSTALL_MELD_VIEW_TYPE } from './src/slices/file-operations/InstallMeldView';
+import { CreateFileViewEncrypted, CREATE_FILE_VIEW_ENCRYPTED_TYPE } from './src/slices/file-operations/CreateFileViewEncrypted';
 
 
 export default class StreamsPlugin extends Plugin implements StreamsAPI {
@@ -31,8 +31,8 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		);
 		
 		this.registerView(
-			ENCRYPTED_FILE_VIEW_TYPE,
-			(leaf) => new EncryptedFileView(leaf, this.app, '', { 
+			INSTALL_MELD_VIEW_TYPE,
+			(leaf) => new InstallMeldView(leaf, this.app, '', { 
 				id: '', 
 				name: '', 
 				folder: '', 
@@ -44,8 +44,8 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		);
 		
 		this.registerView(
-			ENCRYPTED_CREATE_FILE_VIEW_TYPE,
-			(leaf) => new EncryptedCreateFileView(leaf, this.app, '', { 
+			CREATE_FILE_VIEW_ENCRYPTED_TYPE,
+			(leaf) => new CreateFileViewEncrypted(leaf, this.app, '', { 
 				id: '', 
 				name: '', 
 				folder: '', 

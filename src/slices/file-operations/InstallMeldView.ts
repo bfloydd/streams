@@ -3,9 +3,9 @@ import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { DateStateManager } from '../../shared/date-state-manager';
 
-export const ENCRYPTED_FILE_VIEW_TYPE = 'streams-encrypted-file-view';
+export const INSTALL_MELD_VIEW_TYPE = 'streams-install-meld-view';
 
-export class EncryptedFileView extends ItemView {
+export class InstallMeldView extends ItemView {
     private filePath: string;
     private stream: Stream;
     private date: Date;
@@ -28,16 +28,16 @@ export class EncryptedFileView extends ItemView {
     }
 
     getViewType(): string {
-        return ENCRYPTED_FILE_VIEW_TYPE;
+        return INSTALL_MELD_VIEW_TYPE;
     }
 
     getDisplayText(): string {
         try {
             const dateString = this.formatTitleDate(this.date);
-            return `${dateString} (Encrypted)`;
+            return `${dateString} (Install Meld)`;
         } catch (error) {
             centralizedLogger.error('Error formatting display text:', error);
-            return 'Encrypted File';
+            return 'Install Meld Plugin';
         }
     }
 
@@ -76,12 +76,12 @@ export class EncryptedFileView extends ItemView {
                 // Refresh the view with new state
                 if (this.contentEl) {
                     this.contentEl.empty();
-                    this.contentEl.addClass('streams-encrypted-file-container');
-                    this.createEncryptedFileViewContent(this.contentEl);
+                    this.contentEl.addClass('streams-install-meld-container');
+                    this.createInstallMeldViewContent(this.contentEl);
                 }
             }
         } catch (error) {
-            centralizedLogger.error(`Error in EncryptedFileView setState:`, error);
+            centralizedLogger.error(`Error in InstallMeldView setState:`, error);
         }
     }
 
@@ -96,7 +96,7 @@ export class EncryptedFileView extends ItemView {
         
         // Prepare our content element
         this.contentEl.empty();
-        this.contentEl.addClass('streams-encrypted-file-container');
+        this.contentEl.addClass('streams-install-meld-container');
         
         // Set up the content element styling
         this.contentEl.style.height = '100%';
@@ -108,8 +108,8 @@ export class EncryptedFileView extends ItemView {
         // Hide any empty-state elements that might still be present
         this.hideEmptyStates();
         
-        // Create our encrypted file view content
-        this.createEncryptedFileViewContent(this.contentEl);
+        // Create our install meld view content
+        this.createInstallMeldViewContent(this.contentEl);
     }
 
     async onClose(): Promise<void> {
@@ -129,31 +129,31 @@ export class EncryptedFileView extends ItemView {
         this.leaf = null as any;
     }
     
-    private createEncryptedFileViewContent(container: HTMLElement): void {
+    private createInstallMeldViewContent(container: HTMLElement): void {
         // Create the content box
-        const contentBox = container.createDiv('streams-encrypted-file-content');
+        const contentBox = container.createDiv('streams-install-meld-content');
         
         // Add icon
-        const iconContainer = contentBox.createDiv('streams-encrypted-file-icon');
+        const iconContainer = contentBox.createDiv('streams-install-meld-icon');
         setIcon(iconContainer, 'lock');
         
         // Stream info display
-        const streamContainer = contentBox.createDiv('streams-encrypted-file-stream-container');
-        const streamIcon = streamContainer.createSpan('streams-encrypted-file-stream-icon');
+        const streamContainer = contentBox.createDiv('streams-install-meld-stream-container');
+        const streamIcon = streamContainer.createSpan('streams-install-meld-stream-icon');
         setIcon(streamIcon, this.stream.icon || 'book');
         
-        const streamName = streamContainer.createSpan('streams-encrypted-file-stream');
+        const streamName = streamContainer.createSpan('streams-install-meld-stream');
         streamName.setText(this.stream.name);
         
         // Date display
-        const dateEl = contentBox.createDiv('streams-encrypted-file-date');
+        const dateEl = contentBox.createDiv('streams-install-meld-date');
         const formattedDate = this.formatDate(this.date);
         dateEl.setText(formattedDate);
         
         // Create button
-        const buttonContainer = contentBox.createDiv('streams-encrypted-file-button-container');
+        const buttonContainer = contentBox.createDiv('streams-install-meld-button-container');
         const createButton = buttonContainer.createEl('button', {
-            cls: 'mod-cta streams-encrypted-file-button',
+            cls: 'mod-cta streams-install-meld-button',
             text: 'Install Meld Encrypt Plugin'
         });
         
@@ -167,7 +167,7 @@ export class EncryptedFileView extends ItemView {
         // Trigger the streams bar component to be added to this view
         try {
             import('../../shared/event-bus').then(({ eventBus }) => {
-                eventBus.emit('encrypted-file-view-opened', this.leaf);
+                eventBus.emit('install-meld-view-opened', this.leaf);
             });
         } catch (error) {
             // Calendar component trigger failed - not critical
@@ -232,8 +232,8 @@ export class EncryptedFileView extends ItemView {
         // Refresh the view content
         if (this.contentEl) {
             this.contentEl.empty();
-            this.contentEl.addClass('streams-encrypted-file-container');
-            this.createEncryptedFileViewContent(this.contentEl);
+            this.contentEl.addClass('streams-install-meld-container');
+            this.createInstallMeldViewContent(this.contentEl);
         }
     }
 

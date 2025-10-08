@@ -117,6 +117,20 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
                 this.updateStreamsBarComponent(event.data);
             }
         });
+
+        // Update calendar when install meld view is opened
+        eventBus.subscribe('install-meld-view-opened', (event) => {
+            if (event.data) {
+                this.updateStreamsBarComponent(event.data);
+            }
+        });
+
+        // Update calendar when create file view encrypted is opened
+        eventBus.subscribe('create-file-view-encrypted-opened', (event) => {
+            if (event.data) {
+                this.updateStreamsBarComponent(event.data);
+            }
+        });
     }
 
     private registerPluginViews(): void {

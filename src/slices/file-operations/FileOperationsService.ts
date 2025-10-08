@@ -5,7 +5,7 @@ import { OpenStreamDateCommand } from './OpenStreamDateCommand';
 import { OpenTodayStreamCommand } from './OpenTodayStreamCommand';
 import { OpenTodayCurrentStreamCommand } from './OpenTodayCurrentStreamCommand';
 import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './CreateFileView';
-import { EncryptedFileView, ENCRYPTED_FILE_VIEW_TYPE } from './EncryptedFileView';
+import { InstallMeldView, INSTALL_MELD_VIEW_TYPE } from './InstallMeldView';
 import { FileCreationInterface, NormalFileStrategy, MeldEncryptedFileStrategy } from './file-creation-strategies';
 import { MeldDetectionService } from '../meld-integration';
 import { centralizedLogger } from '../../shared/centralized-logger';

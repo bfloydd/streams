@@ -1457,7 +1457,7 @@
 /*********************************************************
  * ENCRYPTED FILE VIEW STYLES
  *********************************************************/
-.streams-encrypted-file-container {
+.streams-install-meld-container {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1470,7 +1470,7 @@
     position: relative;
 }
 
-.streams-encrypted-file-content {
+.streams-install-meld-content {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1485,7 +1485,7 @@
     position: relative;
 }
 
-.streams-encrypted-file-content::before {
+.streams-install-meld-content::before {
     content: '🔒 ENCRYPTED';
     position: absolute;
     top: -8px;
@@ -1502,11 +1502,11 @@
     letter-spacing: 0.5px;
 }
 
-.streams-encrypted-file-icon {
+.streams-install-meld-icon {
     margin-bottom: 24px;
 }
 
-.streams-encrypted-file-icon svg {
+.streams-install-meld-icon svg {
     width: 48px;
     height: 48px;
     color: var(--text-accent);
@@ -1515,7 +1515,7 @@
 }
 
 
-.streams-encrypted-file-title {
+.streams-install-meld-title {
     font-size: 1.2em;
     font-weight: 600;
     color: var(--text-muted);
@@ -1523,7 +1523,7 @@
     line-height: 1.2;
 }
 
-.streams-encrypted-file-description {
+.streams-install-meld-description {
     font-size: 0.9em;
     color: var(--text-muted);
     margin-bottom: 20px;
@@ -1531,31 +1531,31 @@
     opacity: 0.8;
 }
 
-.streams-encrypted-file-stream-container {
+.streams-install-meld-stream-container {
     display: flex;
     align-items: center;
     margin-bottom: 12px;
 }
 
-.streams-encrypted-file-stream-icon {
+.streams-install-meld-stream-icon {
     margin-right: 8px;
     display: flex;
     align-items: center;
 }
 
-.streams-encrypted-file-stream-icon svg {
+.streams-install-meld-stream-icon svg {
     width: 18px;
     height: 18px;
     color: var(--text-muted);
 }
 
-.streams-encrypted-file-stream {
+.streams-install-meld-stream {
     font-size: 1em;
     font-weight: 600;
     color: var(--text-muted);
 }
 
-.streams-encrypted-file-date {
+.streams-install-meld-date {
     font-size: 1.4em;
     font-weight: 700;
     color: var(--text-normal);
@@ -1563,7 +1563,7 @@
     line-height: 1.2;
 }
 
-.streams-encrypted-file-path {
+.streams-install-meld-path {
     font-family: var(--font-monospace);
     font-size: 0.8em;
     color: var(--text-muted);
@@ -1575,11 +1575,11 @@
     border: 1px solid rgba(var(--background-modifier-border-rgb), 0.3);
 }
 
-.streams-encrypted-file-button-container {
+.streams-install-meld-button-container {
     margin-top: 16px;
 }
 
-.streams-encrypted-file-button {
+.streams-install-meld-button {
     padding: 12px 28px;
     font-size: 1em;
     border-radius: 8px;
@@ -1598,60 +1598,60 @@
     box-shadow: 0 4px 12px rgba(var(--interactive-accent-rgb), 0.3);
 }
 
-.streams-encrypted-file-button::before {
+.streams-install-meld-button::before {
     content: '🔓';
     font-size: 14px;
 }
 
-.streams-encrypted-file-button:hover {
+.streams-install-meld-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(var(--interactive-accent-rgb), 0.4);
     background: linear-gradient(135deg, var(--interactive-accent-hover) 0%, var(--interactive-accent) 100%);
 }
 
-.streams-encrypted-file-button:active {
+.streams-install-meld-button:active {
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(var(--interactive-accent-rgb), 0.3);
 }
 
-.streams-encrypted-file-button-text {
+.streams-install-meld-button-text {
     margin-left: 4px;
 }
 
-.streams-encrypted-file-button svg {
+.streams-install-meld-button svg {
     width: 18px;
     height: 18px;
 }
 
 /* Mobile responsiveness */
-.is-mobile .streams-encrypted-file-content {
+.is-mobile .streams-install-meld-content {
     width: 100%;
     max-width: none;
     padding: 30px 20px;
     border-radius: 8px;
 }
 
-.is-mobile .streams-encrypted-file-container {
+.is-mobile .streams-install-meld-container {
     padding: 20px;
 }
 
-.is-phone .streams-encrypted-file-date {
+.is-phone .streams-install-meld-date {
     font-size: 1.2em;
 }
 
 /*********************************************************
  * ENCRYPTED CREATE FILE VIEW STYLES
  *********************************************************/
-.workspace-leaf-content:has(.streams-encrypted-create-file-container) {
+.workspace-leaf-content:has(.streams-create-file-encrypted-container) {
     width: 100%;
 }
 
 /* Prevent scrollbars on EncryptedCreateFileView */
-.workspace-leaf-content:has(.streams-encrypted-create-file-container) .view-content {
+.workspace-leaf-content:has(.streams-create-file-encrypted-container) .view-content {
     overflow: hidden;
 }
 
-.streams-encrypted-create-file-container {
+.streams-create-file-encrypted-container {
     display: flex;
     justify-content: center;
     align-items: center;
@@ -1665,7 +1665,7 @@
     z-index: 1;
 }
 
-.streams-encrypted-create-file-content {
+.streams-create-file-encrypted-content {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -1684,18 +1684,18 @@
     border: 1px solid var(--background-modifier-border);
 }
 
-.streams-encrypted-create-file-icon {
+.streams-create-file-encrypted-icon {
     margin-bottom: 32px;
 }
 
-.streams-encrypted-create-file-icon svg {
+.streams-create-file-encrypted-icon svg {
     width: 48px;
     height: 48px;
     color: var(--text-accent);
     opacity: 0.9;
 }
 
-.streams-encrypted-create-file-stream-container {
+.streams-create-file-encrypted-stream-container {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1706,25 +1706,25 @@
     border: 1px solid var(--background-modifier-border);
 }
 
-.streams-encrypted-create-file-stream-icon {
+.streams-create-file-encrypted-stream-icon {
     margin-right: 8px;
     display: flex;
     align-items: center;
 }
 
-.streams-encrypted-create-file-stream-icon svg {
+.streams-create-file-encrypted-stream-icon svg {
     width: 18px;
     height: 18px;
     color: var(--text-muted);
 }
 
-.streams-encrypted-create-file-stream {
+.streams-create-file-encrypted-stream {
     font-size: 1em;
     font-weight: 600;
     color: var(--text-normal);
 }
 
-.streams-encrypted-create-file-encryption-indicator {
+.streams-create-file-encrypted-encryption-indicator {
     font-size: 0.9em;
     font-weight: 500;
     color: var(--text-accent);
@@ -1740,12 +1740,12 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.streams-encrypted-create-file-encryption-indicator::before {
+.streams-create-file-encrypted-encryption-indicator::before {
     content: "🔒";
     font-size: 16px;
 }
 
-.streams-encrypted-create-file-date {
+.streams-create-file-encrypted-date {
     font-size: 1.4em;
     font-weight: 700;
     color: var(--text-normal);
@@ -1753,11 +1753,11 @@
     line-height: 1.2;
 }
 
-.streams-encrypted-create-file-button-container {
+.streams-create-file-encrypted-button-container {
     margin-top: 16px;
 }
 
-.streams-encrypted-create-file-button {
+.streams-create-file-encrypted-button {
     padding: 12px 28px;
     font-size: 1em;
     border-radius: 8px;
@@ -1770,26 +1770,26 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.streams-encrypted-create-file-button:hover {
+.streams-create-file-encrypted-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
     background-color: var(--interactive-accent-hover);
     border-color: var(--interactive-accent-hover);
 }
 
-.streams-encrypted-create-file-button:active {
+.streams-create-file-encrypted-button:active {
     transform: translateY(0);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.streams-encrypted-create-file-button svg {
+.streams-create-file-encrypted-button svg {
     width: 18px;
     height: 18px;
     margin-right: 8px;
 }
 
 /* Mobile responsiveness for encrypted create file view */
-.is-mobile .streams-encrypted-create-file-content {
+.is-mobile .streams-create-file-encrypted-content {
     width: 100%;
     max-width: none;
     padding: 36px 24px;
@@ -1797,25 +1797,25 @@
     margin: 16px;
 }
 
-.is-mobile .streams-encrypted-create-file-container {
+.is-mobile .streams-create-file-encrypted-container {
     padding: 16px;
 }
 
-.is-phone .streams-encrypted-create-file-content {
+.is-phone .streams-create-file-encrypted-content {
     padding: 32px 20px;
     margin: 12px;
 }
 
-.is-phone .streams-encrypted-create-file-date {
+.is-phone .streams-create-file-encrypted-date {
     font-size: 1.2em;
 }
 
-.is-phone .streams-encrypted-create-file-encryption-indicator {
+.is-phone .streams-create-file-encrypted-encryption-indicator {
     font-size: 0.85em;
     padding: 6px 12px;
 }
 
-.is-phone .streams-encrypted-create-file-button {
+.is-phone .streams-create-file-encrypted-button {
     padding: 10px 24px;
     font-size: 0.95em;
 }
