@@ -1598,10 +1598,6 @@
     box-shadow: 0 4px 12px rgba(var(--interactive-accent-rgb), 0.3);
 }
 
-.streams-install-meld-button::before {
-    content: '🔓';
-    font-size: 14px;
-}
 
 .streams-install-meld-button:hover {
     transform: translateY(-2px);
@@ -1684,8 +1680,23 @@
     border: 1px solid var(--background-modifier-border);
 }
 
+.streams-create-file-encrypted-content::before {
+    content: '🔒 ENCRYPTED';
+    position: absolute;
+    top: -8px;
+    right: 16px;
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75em;
+    font-weight: 600;
+    z-index: 3;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
 .streams-create-file-encrypted-icon {
-    margin-bottom: 32px;
+    margin-bottom: 20px;
 }
 
 .streams-create-file-encrypted-icon svg {
@@ -1695,55 +1706,28 @@
     opacity: 0.9;
 }
 
-.streams-create-file-encrypted-stream-container {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-bottom: 20px;
-    padding: 12px 16px;
-    background-color: var(--background-primary);
-    border-radius: 8px;
-    border: 1px solid var(--background-modifier-border);
-}
-
-.streams-create-file-encrypted-stream-icon {
-    margin-right: 8px;
-    display: flex;
-    align-items: center;
-}
-
-.streams-create-file-encrypted-stream-icon svg {
-    width: 18px;
-    height: 18px;
-    color: var(--text-muted);
-}
-
-.streams-create-file-encrypted-stream {
+.streams-create-file-encrypted-private-indicator {
     font-size: 1em;
     font-weight: 600;
-    color: var(--text-normal);
-}
-
-.streams-create-file-encrypted-encryption-indicator {
-    font-size: 0.9em;
-    font-weight: 500;
-    color: var(--text-accent);
-    margin-bottom: 20px;
-    padding: 8px 16px;
-    background-color: var(--background-primary);
-    border: 1px solid var(--text-accent);
-    border-radius: 8px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    padding: 0;
+    background: none;
+    border: none;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: none;
 }
 
-.streams-create-file-encrypted-encryption-indicator::before {
+.streams-create-file-encrypted-private-indicator::before {
     content: "🔒";
     font-size: 16px;
+    color: var(--text-muted);
 }
+
+
 
 .streams-create-file-encrypted-date {
     font-size: 1.4em;

@@ -216,17 +216,9 @@ export class CreateFileViewEncrypted extends ItemView {
         const iconContainer = contentBox.createDiv('streams-create-file-encrypted-icon');
         setIcon(iconContainer, 'lock');
         
-        // Stream info display
-        const streamContainer = contentBox.createDiv('streams-create-file-encrypted-stream-container');
-        const streamIcon = streamContainer.createSpan('streams-create-file-encrypted-stream-icon');
-        setIcon(streamIcon, this.stream.icon || 'book');
-        
-        const streamName = streamContainer.createSpan('streams-create-file-encrypted-stream');
-        streamName.setText(this.stream.name);
-        
-        // Encryption indicator
-        const encryptionIndicator = contentBox.createDiv('streams-create-file-encrypted-encryption-indicator');
-        encryptionIndicator.setText('This stream is encrypted');
+        // Private indicator
+        const privateIndicator = contentBox.createDiv('streams-create-file-encrypted-private-indicator');
+        privateIndicator.setText('Private');
         
         // Date display
         const dateEl = contentBox.createDiv('streams-create-file-encrypted-date');
