@@ -3,7 +3,6 @@ import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './CreateFileView';
 import { InstallMeldView, INSTALL_MELD_VIEW_TYPE } from './InstallMeldView';
-import { CreateFileViewEncrypted, CREATE_FILE_VIEW_ENCRYPTED_TYPE } from './CreateFileViewEncrypted';
 import { DateStateManager } from '../../shared/date-state-manager';
 
 /**
@@ -304,7 +303,7 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
             
             // Use the proper Obsidian view system instead of direct DOM manipulation
             // Choose the appropriate view type based on whether the stream is encrypted
-            const viewType = stream.encryptThisStream ? CREATE_FILE_VIEW_ENCRYPTED_TYPE : CREATE_FILE_VIEW_TYPE;
+            const viewType = stream.encryptThisStream ? INSTALL_MELD_VIEW_TYPE : CREATE_FILE_VIEW_TYPE;
             
             try {
                 await leaf.setViewState({
