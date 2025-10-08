@@ -396,6 +396,44 @@
     color: var(--text-on-accent);
 }
 
+/* Encryption icon for main stream display */
+.streams-bar-encryption-icon {
+    display: flex;
+    align-items: center;
+    margin-left: 6px;
+}
+
+.streams-bar-encryption-icon svg {
+    width: 14px;
+    height: 14px;
+    color: var(--text-muted);
+}
+
+.streams-bar-change-stream:hover .streams-bar-encryption-icon svg {
+    color: var(--text-accent);
+}
+
+/* Encryption icon for stream dropdown items */
+.streams-bar-stream-item-encryption {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+
+.streams-bar-stream-item-encryption svg {
+    width: 12px;
+    height: 12px;
+    color: var(--text-muted);
+}
+
+.streams-bar-stream-item:hover .streams-bar-stream-item-encryption svg {
+    color: var(--text-accent);
+}
+
+.streams-bar-stream-item-selected .streams-bar-stream-item-encryption svg {
+    color: var(--text-on-accent);
+}
+
 /*********************************************************
  * STREAMS BAR - CALENDAR GRID & DAYS
  *********************************************************/
@@ -1107,6 +1145,43 @@
 .streams-bar-component.modern-style .streams-bar-stream-item-checkmark svg {
     width: 16px;
     height: 16px;
+    color: var(--text-on-accent);
+}
+
+/* Modern style encryption icons */
+.streams-bar-component.modern-style .streams-bar-encryption-icon {
+    display: flex;
+    align-items: center;
+    margin-left: 8px;
+}
+
+.streams-bar-component.modern-style .streams-bar-encryption-icon svg {
+    width: 16px;
+    height: 16px;
+    color: var(--text-muted);
+}
+
+.streams-bar-component.modern-style .streams-bar-change-stream:hover .streams-bar-encryption-icon svg {
+    color: var(--text-accent);
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item-encryption {
+    display: flex;
+    align-items: center;
+    margin-left: 10px;
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item-encryption svg {
+    width: 14px;
+    height: 14px;
+    color: var(--text-muted);
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item:hover .streams-bar-stream-item-encryption svg {
+    color: var(--text-accent);
+}
+
+.streams-bar-component.modern-style .streams-bar-stream-item-selected .streams-bar-stream-item-encryption svg {
     color: var(--text-on-accent);
 }
 

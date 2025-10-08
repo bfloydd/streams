@@ -77,6 +77,31 @@ export class StreamsBarComponent extends Component {
         return this.plugin?.settings?.activeStreamId || this.selectedStream.id;
     }
     
+    private getActiveStream(): Stream {
+        if (this.plugin?.settings?.activeStreamId) {
+            return this.streams.find(s => s.id === this.plugin!.settings.activeStreamId) || this.selectedStream;
+        }
+        return this.selectedStream;
+    }
+    
+    private updateStreamEncryptionIcon(container: HTMLElement): void {
+        const activeStream = this.getActiveStream();
+        
+        // Remove existing encryption icon if it exists
+        const existingIcon = container.querySelector('.streams-bar-encryption-icon');
+        if (existingIcon) {
+            existingIcon.remove();
+        }
+        
+        // Add encryption icon if stream is encrypted
+        if (activeStream.encryptThisStream) {
+            const encryptionIcon = container.createDiv('streams-bar-encryption-icon');
+            setIcon(encryptionIcon, 'lock');
+            encryptionIcon.setAttribute('title', 'Encrypted stream');
+            encryptionIcon.setAttribute('aria-label', 'Encrypted stream');
+        }
+    }
+    
     private applyBarStyle(): void {
         if (!this.plugin?.settings) {
             return;
@@ -301,6 +326,10 @@ export class StreamsBarComponent extends Component {
         const changeStreamSection = collapsedView.createDiv('streams-bar-change-stream');
         const changeStreamText = changeStreamSection.createDiv('streams-bar-change-stream-text');
         changeStreamText.setText(this.getDisplayStreamName());
+        
+        // Add encryption icon if stream is encrypted
+        this.updateStreamEncryptionIcon(changeStreamSection);
+        
         changeStreamSection.addEventListener('click', (e) => {
             e.stopPropagation();
             this.toggleStreamsDropdown();
@@ -925,6 +954,14 @@ export class StreamsBarComponent extends Component {
             const streamName = streamItem.createDiv('streams-bar-stream-item-name');
             streamName.setText(stream.name);
             
+            // Add encryption icon if stream is encrypted
+            if (stream.encryptThisStream) {
+                const encryptionIcon = streamItem.createDiv('streams-bar-stream-item-encryption');
+                setIcon(encryptionIcon, 'lock');
+                encryptionIcon.setAttribute('title', 'Encrypted stream');
+                encryptionIcon.setAttribute('aria-label', 'Encrypted stream');
+            }
+            
             if (isSelected) {
                 const checkmark = streamItem.createDiv('streams-bar-stream-item-checkmark');
                 setIcon(checkmark, 'check');
@@ -1144,6 +1181,12 @@ export class StreamsBarComponent extends Component {
         const changeStreamText = this.component.querySelector('.streams-bar-change-stream-text');
         if (changeStreamText) {
             changeStreamText.setText(newActiveStream.name);
+        }
+        
+        // Update the encryption icon
+        const changeStreamSection = this.component.querySelector('.streams-bar-change-stream');
+        if (changeStreamSection) {
+            this.updateStreamEncryptionIcon(changeStreamSection as HTMLElement);
         }
         
         
