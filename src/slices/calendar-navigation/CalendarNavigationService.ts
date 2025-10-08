@@ -125,6 +125,12 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
             }
         });
 
+        // Update calendar when create file view encrypted is opened
+        eventBus.subscribe('create-file-view-encrypted-opened', (event) => {
+            if (event.data) {
+                this.updateStreamsBarComponent(event.data);
+            }
+        });
     }
 
     private registerPluginViews(): void {
