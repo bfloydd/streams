@@ -1707,23 +1707,27 @@
 }
 
 .streams-create-file-encrypted-private-indicator {
-    font-size: 1em;
-    font-weight: 600;
-    color: var(--text-muted);
-    margin-bottom: 12px;
-    padding: 0;
-    background: none;
-    border: none;
     display: flex;
     align-items: center;
     justify-content: center;
+    margin-bottom: 12px;
     gap: 8px;
-    box-shadow: none;
 }
 
-.streams-create-file-encrypted-private-indicator::before {
-    content: "🔒";
-    font-size: 16px;
+.streams-create-file-encrypted-private-icon {
+    display: flex;
+    align-items: center;
+}
+
+.streams-create-file-encrypted-private-icon svg {
+    width: 18px;
+    height: 18px;
+    color: var(--text-muted);
+}
+
+.streams-create-file-encrypted-private-text {
+    font-size: 1em;
+    font-weight: 600;
     color: var(--text-muted);
 }
 

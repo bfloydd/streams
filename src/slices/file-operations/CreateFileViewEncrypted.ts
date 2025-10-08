@@ -218,7 +218,10 @@ export class CreateFileViewEncrypted extends ItemView {
         
         // Private indicator
         const privateIndicator = contentBox.createDiv('streams-create-file-encrypted-private-indicator');
-        privateIndicator.setText('Private');
+        const privateIcon = privateIndicator.createSpan('streams-create-file-encrypted-private-icon');
+        setIcon(privateIcon, this.stream.icon || 'book');
+        const privateText = privateIndicator.createSpan('streams-create-file-encrypted-private-text');
+        privateText.setText('Private');
         
         // Date display
         const dateEl = contentBox.createDiv('streams-create-file-encrypted-date');
