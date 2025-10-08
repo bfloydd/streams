@@ -155,7 +155,44 @@ export class StreamsSettingTab extends PluginSettingTab {
             card.addClass('streams-plugin-card-disabled');
         }
         
-        card.createEl('h3', { text: stream.name });
+        // Create header with title and reorder controls
+        const header = card.createDiv('streams-card-header');
+        const title = header.createEl('h3', { text: stream.name });
+        
+        // Add reorder controls to the header
+        const reorderContainer = header.createDiv('streams-reorder-container');
+        reorderContainer.style.display = 'flex';
+        reorderContainer.style.gap = '0.25em';
+        reorderContainer.style.marginLeft = 'auto';
+        
+        // Move up button - create simple HTML button
+        const upButton = reorderContainer.createEl('button', {
+            text: '↑',
+            cls: 'streams-reorder-btn',
+            attr: {
+                'data-action': 'move-up',
+                'title': 'Move stream up'
+            }
+        });
+        if (index === 0) upButton.disabled = true;
+        upButton.addEventListener('click', async () => {
+            await this.moveStreamUp(index);
+        });
+
+        // Move down button - create simple HTML button
+        const downButton = reorderContainer.createEl('button', {
+            text: '↓',
+            cls: 'streams-reorder-btn',
+            attr: {
+                'data-action': 'move-down',
+                'title': 'Move stream down'
+            }
+        });
+        if (index === this.plugin.settings.streams.length - 1) downButton.disabled = true;
+        downButton.addEventListener('click', async () => {
+            await this.moveStreamDown(index);
+        });
+        
         return card;
     }
 
@@ -242,6 +279,40 @@ export class StreamsSettingTab extends PluginSettingTab {
                     eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
                     this.display();
                 }));
+    }
+
+    private async moveStreamUp(index: number): Promise<void> {
+        if (index === 0) return;
+        
+        const streams = this.plugin.settings.streams;
+        const stream = streams[index];
+        
+        // Remove stream from current position
+        streams.splice(index, 1);
+        
+        // Insert stream at new position (one position up)
+        streams.splice(index - 1, 0, stream);
+        
+        await this.plugin.saveSettings();
+        eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
+        this.display();
+    }
+
+    private async moveStreamDown(index: number): Promise<void> {
+        const streams = this.plugin.settings.streams;
+        if (index === streams.length - 1) return;
+        
+        const stream = streams[index];
+        
+        // Remove stream from current position
+        streams.splice(index, 1);
+        
+        // Insert stream at new position (one position down)
+        streams.splice(index + 1, 0, stream);
+        
+        await this.plugin.saveSettings();
+        eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
+        this.display();
     }
 
     private addEncryptionToggle(container: HTMLElement, stream: Stream): void {

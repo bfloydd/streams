@@ -30,6 +30,85 @@
 /*********************************************************
  * LAYOUT & CONTAINER STYLES
  *********************************************************/
+.streams-reorder-container {
+    display: flex;
+    gap: 0.25em;
+    align-items: center;
+    margin-left: auto;
+}
+
+.streams-reorder-container .setting-item {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+.streams-reorder-container .setting-item-name {
+    display: none;
+}
+
+.streams-reorder-container .setting-item-control {
+    display: flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+.streams-reorder-btn {
+    width: 16px;
+    height: 16px;
+    padding: 0;
+    margin: 0;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 10px;
+    font-weight: 400;
+    cursor: pointer;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.streams-reorder-btn:hover:not(:disabled) {
+    background-color: var(--interactive-hover);
+    color: var(--text-accent);
+}
+
+.streams-reorder-btn:active:not(:disabled) {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.streams-reorder-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.streams-reorder-container .mod-cta:hover:not(:disabled) {
+    background-color: var(--interactive-hover);
+    color: var(--text-accent);
+}
+
+.streams-reorder-container .mod-cta:active:not(:disabled) {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.streams-reorder-container .mod-cta:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background: transparent;
+    color: var(--text-muted);
+}
+
+.streams-reorder-container .mod-cta:disabled:hover {
+    background: transparent;
+    color: var(--text-muted);
+}
 .streams-plugin-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -44,11 +123,24 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.streams-plugin-card h3 {
-    margin-top: 0;
+.streams-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 20px;
-    border-bottom: none;
     padding-bottom: 10px;
+    border-bottom: 1px solid var(--background-modifier-border);
+    min-height: 32px;
+}
+
+.streams-card-header h3 {
+    margin: 0;
+    flex: 1;
+    border-bottom: none;
+    padding-bottom: 0;
+    line-height: 1.2;
+    display: flex;
+    align-items: center;
 }
 
 /* Disabled stream styling */
