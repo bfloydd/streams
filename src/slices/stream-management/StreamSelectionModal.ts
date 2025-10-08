@@ -17,7 +17,10 @@ export class StreamSelectionModal extends Modal {
 
         contentEl.createEl('h2', { text: 'Select stream' });
 
-        this.streams.forEach(stream => {
+        // Filter out disabled streams
+        const enabledStreams = this.streams.filter(stream => !stream.disabled);
+
+        enabledStreams.forEach(stream => {
             new Setting(contentEl)
                 .setName(stream.name)
                 .setDesc(stream.folder)

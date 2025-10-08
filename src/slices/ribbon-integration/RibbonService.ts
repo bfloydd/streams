@@ -59,7 +59,8 @@ export class RibbonService extends SettingsAwareSliceService {
 
     public initializeAllRibbonIcons(): void {
         // Create icons for all streams based on their visibility settings
-        this.getStreams().forEach(stream => {
+        // Filter out disabled streams
+        this.getStreams().filter(stream => !stream.disabled).forEach(stream => {
             this.createStreamIcons(stream);
         });
     }

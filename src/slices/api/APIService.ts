@@ -94,7 +94,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      * @returns Array of streams that show in the ribbon
      */
     public getRibbonStreams(): Stream[] {
-        return this.getStreams().filter(stream => stream.showTodayInRibbon);
+        return this.getStreams().filter(stream => stream.showTodayInRibbon && !stream.disabled);
     }
 
     /**
@@ -102,7 +102,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      * @returns Array of streams with commands enabled
      */
     public getCommandStreams(): Stream[] {
-        return this.getStreams().filter(stream => stream.addCommand);
+        return this.getStreams().filter(stream => stream.addCommand && !stream.disabled);
     }
 
     /**

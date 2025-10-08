@@ -26,7 +26,8 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 				icon: 'book',
 				showTodayInRibbon: false,
 				addCommand: false,
-				encryptThisStream: false
+				encryptThisStream: false,
+				disabled: false
 			})
 		);
 		
@@ -39,7 +40,8 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 				icon: 'book',
 				showTodayInRibbon: false,
 				addCommand: false,
-				encryptThisStream: false
+				encryptThisStream: false,
+				disabled: false
 			}, new Date())
 		);
 		
@@ -52,7 +54,8 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 				icon: 'book',
 				showTodayInRibbon: false,
 				addCommand: false,
-				encryptThisStream: true
+				encryptThisStream: true,
+				disabled: false
 			})
 		);
 		
@@ -85,6 +88,10 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		for (const stream of this.settings.streams) {
 			if (stream.encryptThisStream === undefined) {
 				stream.encryptThisStream = false;
+				needsSave = true;
+			}
+			if (stream.disabled === undefined) {
+				stream.disabled = false;
 				needsSave = true;
 			}
 		}

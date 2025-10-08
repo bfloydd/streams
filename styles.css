@@ -51,6 +51,47 @@
     padding-bottom: 10px;
 }
 
+/* Disabled stream styling */
+.streams-plugin-card-disabled {
+    opacity: 0.5;
+    background-color: var(--background-secondary-alt);
+    border: 1px solid var(--background-modifier-border-focus);
+    position: relative;
+}
+
+.streams-plugin-card-disabled::before {
+    content: "DISABLED";
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: var(--text-error);
+    color: var(--text-on-accent);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.streams-plugin-card-disabled h3 {
+    color: var(--text-muted);
+}
+
+.streams-plugin-card-disabled .setting-item {
+    opacity: 0.7;
+}
+
+.streams-plugin-card-disabled .setting-item .setting-item-control {
+    pointer-events: none;
+}
+
+/* Allow the disable toggle itself to be clickable */
+.streams-plugin-card-disabled .streams-disable-toggle .setting-item-control {
+    pointer-events: auto;
+    opacity: 1;
+}
+
 /*********************************************************
  * STREAMS BAR - MAIN COMPONENT
  *********************************************************/

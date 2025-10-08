@@ -146,16 +146,19 @@ export class MoveTextToStreamModal extends Modal {
             .setName('Target Stream')
             .setDesc('Select the stream to move the text to')
             .addDropdown(dropdown => {
-                this.streams.forEach(stream => {
+                // Filter out disabled streams
+                const enabledStreams = this.streams.filter(stream => !stream.disabled);
+                
+                enabledStreams.forEach(stream => {
                     dropdown.addOption(stream.id, stream.name);
                 });
                 
-                if (this.selectedStream) {
+                if (this.selectedStream && !this.selectedStream.disabled) {
                     dropdown.setValue(this.selectedStream.id);
                 }
                 
                 dropdown.onChange(value => {
-                    this.selectedStream = this.streams.find(s => s.id === value) || null;
+                    this.selectedStream = enabledStreams.find(s => s.id === value) || null;
                     this.saveSettingsToState();
                 });
             });

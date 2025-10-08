@@ -24,6 +24,7 @@ export interface Stream {
     showTodayInRibbon: boolean;
     addCommand: boolean;
     encryptThisStream: boolean; // New field for encryption toggle
+    disabled: boolean; // New field for disabling streams
 }
 
 export interface StreamsSettings {

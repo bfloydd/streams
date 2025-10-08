@@ -130,7 +130,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                         icon: 'file-text' as LucideIcon,
                         showTodayInRibbon: true,
                         addCommand: false,
-                        encryptThisStream: false
+                        encryptThisStream: false,
+                        disabled: false
                     };
                     this.plugin.settings.streams.push(newStream);
                     await this.plugin.saveSettings();
@@ -148,6 +149,12 @@ export class StreamsSettingTab extends PluginSettingTab {
 
     private createStreamCard(container: HTMLElement, stream: Stream, index: number): HTMLElement {
         const card = container.createDiv('streams-plugin-card');
+        
+        // Add disabled class if stream is disabled
+        if (stream.disabled) {
+            card.addClass('streams-plugin-card-disabled');
+        }
+        
         card.createEl('h3', { text: stream.name });
         return card;
     }
@@ -203,6 +210,26 @@ export class StreamsSettingTab extends PluginSettingTab {
 
         // Encrypt this stream
         this.addEncryptionToggle(container, stream);
+
+        // Disable stream
+        const disableSetting = new Setting(container)
+            .setName('Disable stream')
+            .setDesc('When disabled, this stream will be hidden from selection lists and grayed out in settings')
+            .addToggle(toggle => toggle
+                .setValue(stream.disabled || false)
+                .onChange(async (value) => {
+                    stream.disabled = value;
+                    await this.plugin.saveSettings();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
+                    
+                    // Refresh the display to update visual styling
+                    this.display();
+                }));
+        
+        // Add a class to identify the disable toggle for styling
+        if (stream.disabled) {
+            disableSetting.settingEl.addClass('streams-disable-toggle');
+        }
 
         // Remove stream
         new Setting(container)

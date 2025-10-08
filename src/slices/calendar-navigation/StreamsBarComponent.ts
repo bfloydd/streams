@@ -941,7 +941,10 @@ export class StreamsBarComponent extends Component {
         
         this.streamsDropdown.empty();
         
-        this.streams.forEach(stream => {
+        // Filter out disabled streams
+        const enabledStreams = this.streams.filter(stream => !stream.disabled);
+        
+        enabledStreams.forEach(stream => {
             const streamItem = this.streamsDropdown!.createDiv('streams-bar-stream-item');
             
             const isSelected = stream.id === this.getActiveStreamId();
@@ -1202,6 +1205,12 @@ export class StreamsBarComponent extends Component {
     private handleSettingsChange(settings: any): void {
         // Apply the new bar style if it changed
         this.applyBarStyle();
+        
+        // Update streams list if it changed
+        if (settings.streams) {
+            this.streams = settings.streams;
+            this.refreshStreamsDropdown();
+        }
     }
     
     public refreshBarStyle(): void {
