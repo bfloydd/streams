@@ -71,6 +71,27 @@
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
+    position: relative;
+}
+
+.streams-caret-up::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-left: 1px solid currentColor;
+    border-top: 1px solid currentColor;
+    transform: rotate(45deg);
+    display: block;
+}
+
+.streams-caret-down::before {
+    content: '';
+    width: 4px;
+    height: 4px;
+    border-right: 1px solid currentColor;
+    border-bottom: 1px solid currentColor;
+    transform: rotate(45deg);
+    display: block;
 }
 
 .streams-reorder-btn:hover:not(:disabled) {

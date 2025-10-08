@@ -167,8 +167,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         
         // Move up button - create simple HTML button
         const upButton = reorderContainer.createEl('button', {
-            text: '↑',
-            cls: 'streams-reorder-btn',
+            cls: 'streams-reorder-btn streams-caret-up',
             attr: {
                 'data-action': 'move-up',
                 'title': 'Move stream up'
@@ -181,8 +180,7 @@ export class StreamsSettingTab extends PluginSettingTab {
 
         // Move down button - create simple HTML button
         const downButton = reorderContainer.createEl('button', {
-            text: '↓',
-            cls: 'streams-reorder-btn',
+            cls: 'streams-reorder-btn streams-caret-down',
             attr: {
                 'data-action': 'move-down',
                 'title': 'Move stream down'
