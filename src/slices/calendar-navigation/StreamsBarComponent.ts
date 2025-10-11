@@ -975,6 +975,12 @@ export class StreamsBarComponent extends Component {
                 this.selectStream(stream);
             });
         });
+        
+        // Force a reflow on mobile devices to ensure the dropdown updates immediately
+        if (this.streamsDropdown) {
+            // Trigger a reflow to ensure the changes are visible
+            this.streamsDropdown.offsetHeight;
+        }
     }
 
     private selectStream(stream: Stream) {
@@ -1008,6 +1014,13 @@ export class StreamsBarComponent extends Component {
         this.streams = streams;
         if (this.streamsDropdown) {
             this.populateStreamsDropdown();
+            
+            // Force immediate DOM update for mobile devices
+            // Use requestAnimationFrame to ensure the DOM is updated
+            requestAnimationFrame(() => {
+                // Trigger a reflow to ensure the changes are visible
+                this.streamsDropdown?.offsetHeight;
+            });
         }
     }
 

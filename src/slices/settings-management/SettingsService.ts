@@ -259,6 +259,13 @@ export class StreamsSettingTab extends PluginSettingTab {
                     
                     // Refresh the display to update visual styling
                     this.display();
+                    
+                    // Force immediate UI refresh for mobile devices
+                    // Use requestAnimationFrame to ensure DOM updates are processed
+                    requestAnimationFrame(() => {
+                        // Emit a specific event for stream dropdown refresh
+                        eventBus.emit(EVENTS.STREAM_UPDATED, { streamId: stream.id, disabled: value }, 'settings-management');
+                    });
                 }));
         
         // Add a class to identify the disable toggle for styling

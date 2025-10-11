@@ -253,6 +253,17 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
                 component.updateStreamsList(settings.streams);
             }
         }
+        
+        // Force immediate refresh for mobile devices
+        // Use requestAnimationFrame to ensure DOM updates are processed
+        requestAnimationFrame(() => {
+            // Force a reflow to ensure all changes are visible
+            for (const component of this.calendarComponents.values()) {
+                if (component && typeof component.refreshStreamsDropdown === 'function') {
+                    component.refreshStreamsDropdown();
+                }
+            }
+        });
     }
 
     private refreshStreamsBarComponentsForNewViews(): void {
