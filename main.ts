@@ -105,6 +105,11 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		await this.saveData(this.settings);
 	}
 
+	// ============================================================================
+	// PUBLIC API METHODS - Available to other plugins
+	// ============================================================================
+
+	// Stream Management
 	setActiveStream(streamId: string, force?: boolean): void {
 		serviceRegistry.streamManagement?.setActiveStream(streamId, force);
 	}
@@ -113,6 +118,7 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		return serviceRegistry.streamManagement?.getActiveStream() || null;
 	}
 
+	// Stream Data Access
 	getStreams(): Stream[] {
 		return serviceRegistry.api?.getStreams() || [...this.settings.streams];
 	}
@@ -145,10 +151,7 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		return serviceRegistry.api?.getStreamInfo(streamId) || null;
 	}
 
-	getVersion(): any {
-		return serviceRegistry.api?.getVersion() || { version: '1.0.0', minAppVersion: '0.15.0', name: 'Streams', id: 'streams' };
-	}
-
+	// Stream Status & Information
 	hasStream(streamId: string): boolean {
 		return serviceRegistry.api?.hasStream(streamId) || false;
 	}
@@ -161,6 +164,16 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		return serviceRegistry.api?.hasStreams() || false;
 	}
 
+	getVersion(): any {
+		return serviceRegistry.api?.getVersion() || { version: '1.0.0', minAppVersion: '0.15.0', name: 'Streams', id: 'streams' };
+	}
+
+	// Stream Bar Updates
+	async updateStreamBarFromFile(filePath: string): Promise<boolean> {
+		return serviceRegistry.api?.updateStreamBarFromFile(filePath) || false;
+	}
+
+	// Internal Services (for plugin functionality)
 	getFileOperationsService(): any {
 		return serviceRegistry.fileOperations;
 	}

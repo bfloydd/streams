@@ -63,6 +63,13 @@ export interface StreamsAPI {
      * @returns Plugin version details
      */
     getVersion(): PluginVersion;
+
+    /**
+     * Update the stream bar to match an opened file
+     * @param filePath The path of the file that was opened
+     * @returns True if successful, false if stream not found or update failed
+     */
+    updateStreamBarFromFile(filePath: string): Promise<boolean>;
 }
 
 /**

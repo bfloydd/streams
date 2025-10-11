@@ -1,6 +1,7 @@
 import { PluginAwareSliceService } from '../../shared/base-slice';
 import { Stream, StreamsSettings } from '../../shared/types';
 import { StreamsAPI, StreamInfo, PluginVersion } from './StreamsAPI';
+import { eventBus, EVENTS } from '../../shared/event-bus';
 
 export class APIService extends PluginAwareSliceService implements StreamsAPI {
     async initialize(): Promise<void> {
@@ -181,6 +182,59 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      */
     public hasStreams(): boolean {
         return this.getStreamCount() > 0;
+    }
+
+    /**
+     * Update the stream bar to match an opened file
+     * @param filePath The path of the file that was opened
+     * @returns True if successful, false if stream not found or update failed
+     */
+    public async updateStreamBarFromFile(filePath: string): Promise<boolean> {
+        try {
+            const plugin = this.getPlugin() as any;
+            
+            // Detect stream from file path
+            const stream = this.getStreamForFile(filePath);
+            if (!stream) {
+                this.log(`No stream found for file: ${filePath}`);
+                return false;
+            }
+            
+            // Extract date from file path (e.g., "2025-10-08.md" -> Date)
+            const fileName = filePath.split('/').pop() || '';
+            const dateMatch = fileName.match(/(\d{4}-\d{2}-\d{2})/);
+            let targetDate = new Date(); // Default to current date
+            
+            if (dateMatch) {
+                const dateString = dateMatch[1];
+                // Parse date as local date to avoid timezone issues
+                const [year, month, day] = dateString.split('-').map(Number);
+                targetDate = new Date(year, month - 1, day); // month is 0-indexed
+                
+                if (isNaN(targetDate.getTime())) {
+                    targetDate = new Date(); // Fallback to current date
+                }
+            }
+            
+            // Set the stream context
+            plugin.settings.activeStreamId = stream.id;
+            await plugin.saveSettings();
+            
+            // Update the date state manager to reflect the file's date
+            const { DateStateManager } = await import('../../shared/date-state-manager');
+            const dateStateManager = DateStateManager.getInstance();
+            dateStateManager.setCurrentDate(targetDate);
+            
+            // Emit ACTIVE_STREAM_CHANGED event to trigger UI refresh
+            eventBus.emit(EVENTS.ACTIVE_STREAM_CHANGED, { streamId: stream.id }, 'api');
+            
+            this.log(`Updated stream bar to "${stream.name}" for file: ${filePath} with date: ${targetDate.toISOString()}`);
+            return true;
+            
+        } catch (error) {
+            this.error(`Failed to update stream bar for file ${filePath}:`, error);
+            return false;
+        }
     }
 
     /**

@@ -96,5 +96,6 @@ if (streamsPlugin) {
 - `getRibbonStreams()` - Get streams enabled for ribbon display
 - `getCommandStreams()` - Get streams with commands enabled
 - `hasStreams()` - Check if any streams are configured
+- `updateStreamBarFromFile(filePath)` - Update the stream bar to match an opened file
 
 For detailed API documentation, see [src/api/README.md](src/api/README.md).
