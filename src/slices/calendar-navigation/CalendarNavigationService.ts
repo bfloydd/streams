@@ -5,7 +5,7 @@ import { CREATE_FILE_VIEW_TYPE } from '../../shared/constants';
 import { CreateFileView } from '../file-operations/CreateFileView';
 import { Stream } from '../../shared/types';
 import { eventBus, EVENTS } from '../../shared/event-bus';
-import { measurePerformance, registerCleanupTask } from '../../shared';
+import { measurePerformance, registerCleanupTask, serviceRegistry } from '../../shared';
 import { centralizedLogger } from '../../shared/centralized-logger';
 
 export class CalendarNavigationService extends SettingsAwareSliceService {
@@ -104,8 +104,8 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         plugin.registerEvent(
             plugin.app.workspace.on('file-open', (file) => {
                 if (file) {
-                    setTimeout(() => {
-                        this.ensureStreamsBarComponentForFile(file.path);
+                    setTimeout(async () => {
+                        await this.ensureStreamsBarComponentForFile(file.path);
                     }, 100);
                 }
             })
@@ -299,10 +299,21 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         return mainEditorArea.contains(leaf.view.containerEl);
     }
 
-    private ensureStreamsBarComponentForFile(filePath: string): void {
+    private async ensureStreamsBarComponentForFile(filePath: string): Promise<void> {
         const activeLeaf = this.getPlugin().app.workspace.activeLeaf;
         if (activeLeaf) {
             this.ensureStreamsBarComponentForLeaf(activeLeaf);
+            
+            // Check if this file belongs to a stream and update the stream bar accordingly
+            const apiService = serviceRegistry.api;
+            if (apiService) {
+                const stream = apiService.getStreamForFile(filePath);
+                if (stream) {
+                    // This is a stream file, update the stream bar to reflect the file's stream and date
+                    await apiService.updateStreamBarFromFile(filePath);
+                    centralizedLogger.debug(`Updated stream bar for file: ${filePath}`);
+                }
+            }
         }
     }
 
