@@ -1,6 +1,6 @@
 module.exports = {
   preset: 'ts-jest',
-  testEnvironment: 'node',
+  testEnvironment: 'jsdom',
   roots: ['<rootDir>/src'],
   testMatch: ['**/__tests__/**/*.test.ts', '**/?(*.)+(spec|test).ts'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
@@ -10,10 +10,10 @@ module.exports = {
     '!src/**/__tests__/**',
   ],
   moduleNameMapper: {
-    '^obsidian$': '<rootDir>/node_modules/obsidian',
+    '^obsidian$': '<rootDir>/__mocks__/obsidian.ts',
   },
-  globals: {
-    'ts-jest': {
+  transform: {
+    '^.+\\.ts$': ['ts-jest', {
       tsconfig: {
         module: 'ESNext',
         target: 'ES6',
@@ -21,7 +21,8 @@ module.exports = {
         esModuleInterop: true,
         allowSyntheticDefaultImports: true,
       },
-    },
+    }],
   },
 };
+
 
