@@ -3,6 +3,8 @@ import { SettingsAwareSliceService } from '../../shared/base-slice';
 import { StreamsBarComponent } from './StreamsBarComponent';
 import { CREATE_FILE_VIEW_TYPE } from '../../shared/constants';
 import { CreateFileView } from '../file-operations/CreateFileView';
+import { INSTALL_MELD_VIEW_TYPE } from '../file-operations/InstallMeldView';
+import { CREATE_FILE_VIEW_ENCRYPTED_TYPE } from '../file-operations/CreateFileViewEncrypted';
 import { Stream } from '../../shared/types';
 import { eventBus, EVENTS } from '../../shared/event-bus';
 import { measurePerformance, registerCleanupTask, serviceRegistry } from '../../shared';
@@ -185,7 +187,9 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
                                    viewType === 'search' || 
                                    viewType === 'graph' ||
                                    viewType === 'markdown' ||
-                                   viewType === CREATE_FILE_VIEW_TYPE;
+                                   viewType === CREATE_FILE_VIEW_TYPE ||
+                                   viewType === INSTALL_MELD_VIEW_TYPE ||
+                                   viewType === CREATE_FILE_VIEW_ENCRYPTED_TYPE;
         
         if (!shouldCreateCalendar) {
             return;

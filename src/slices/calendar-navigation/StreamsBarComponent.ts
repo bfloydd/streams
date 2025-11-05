@@ -4,6 +4,8 @@ import { centralizedLogger } from '../../shared/centralized-logger';
 import { OpenStreamDateCommand } from '../file-operations/OpenStreamDateCommand';
 import { OpenTodayCurrentStreamCommand } from '../file-operations/OpenTodayCurrentStreamCommand';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from '../file-operations/CreateFileView';
+import { INSTALL_MELD_VIEW_TYPE } from '../file-operations/InstallMeldView';
+import { CREATE_FILE_VIEW_ENCRYPTED_TYPE } from '../file-operations/CreateFileViewEncrypted';
 import { DateStateManager } from '../../shared/date-state-manager';
 import { performanceMonitor } from '../../shared/performance-monitor';
 import { eventBus, EVENTS } from '../../shared/event-bus';
@@ -168,10 +170,12 @@ export class StreamsBarComponent extends Component {
             const markdownView = leaf.view as MarkdownView;
             contentContainer = markdownView.contentEl;
             
-        } else if (viewType === CREATE_FILE_VIEW_TYPE) {
+        } else if (viewType === CREATE_FILE_VIEW_TYPE || 
+                   viewType === INSTALL_MELD_VIEW_TYPE || 
+                   viewType === CREATE_FILE_VIEW_ENCRYPTED_TYPE) {
             const view = leaf.view as unknown as ViewWithContentEl;
             if (!view) {
-                centralizedLogger.error('CreateFileView is null');
+                centralizedLogger.error(`View is null for viewType: ${viewType}`);
                 return;
             }
             contentContainer = view.contentEl;
@@ -293,6 +297,10 @@ export class StreamsBarComponent extends Component {
         
         todayButton.addEventListener('click', (e) => {
             e.stopPropagation();
+            // Close dropdown if it's open when opening calendar
+            if (this.streamsDropdown && !this.streamsDropdown.classList.contains('streams-bar-dropdown-hidden')) {
+                this.hideStreamsDropdown();
+            }
             this.toggleExpanded(collapsedView, expandedView);
         });
         
@@ -332,10 +340,22 @@ export class StreamsBarComponent extends Component {
         
         changeStreamSection.addEventListener('click', (e) => {
             e.stopPropagation();
+            // Close calendar if it's open when opening dropdown
+            if (this.expanded) {
+                this.toggleExpanded(collapsedView, expandedView);
+            }
             this.toggleStreamsDropdown();
         });
 
         this.streamsDropdown = changeStreamSection.createDiv('streams-bar-streams-dropdown streams-dropdown streams-bar-dropdown-hidden');
+        
+        // Close calendar if it's open when clicking anywhere in dropdown
+        this.streamsDropdown.addEventListener('click', (e) => {
+            if (this.expanded) {
+                this.toggleExpanded(collapsedView, expandedView);
+            }
+        });
+        
         this.populateStreamsDropdown();
 
         const topNav = expandedView.createDiv('streams-bar-top-nav');
@@ -458,12 +478,64 @@ export class StreamsBarComponent extends Component {
 
         // Store the click handler reference for cleanup
         this.documentClickHandler = (e: Event) => {
-            if (this.expanded && !this.component.contains(e.target as Node)) {
+            const target = e.target as Node;
+            
+            // Check if click is on the toggle buttons - if so, let them handle the toggle
+            const isCalendarToggle = this.todayButton && (this.todayButton.contains(target) || this.todayButton === target);
+            const isDropdownToggle = changeStreamSection && (changeStreamSection.contains(target) || changeStreamSection === target);
+            
+            const dropdownOpen = this.streamsDropdown && !this.streamsDropdown.classList.contains('streams-bar-dropdown-hidden');
+            const calendarOpen = this.expanded;
+            
+            // Check if clicking inside the calendar or dropdown areas
+            // Note: expandedView is the calendar popup, component is the entire bar
+            const expandedCalendarView = this.component.querySelector('.streams-bar-expanded') as HTMLElement;
+            const isInsideCalendar = expandedCalendarView && expandedCalendarView.contains(target);
+            const isInsideDropdown = this.streamsDropdown && this.streamsDropdown.contains(target);
+            
+            // If clicking on a toggle button:
+            // - If the OTHER menu is open, close it first (then the toggle will open its own menu)
+            // - If clicking on the toggle for the menu that's already open, let it handle the toggle (close)
+            // - If no menus are open, let the toggle handle opening
+            if (isCalendarToggle && dropdownOpen) {
+                // Calendar toggle clicked while dropdown is open - close dropdown
+                this.hideStreamsDropdown();
+                return; // Let calendar toggle handle opening calendar
+            }
+            
+            if (isDropdownToggle && calendarOpen) {
+                // Dropdown toggle clicked while calendar is open - close calendar
+                this.toggleExpanded(collapsedView, expandedView);
+                return; // Let dropdown toggle handle opening dropdown
+            }
+            
+            // If clicking inside the calendar while dropdown is open, close the dropdown and return
+            if (isInsideCalendar && dropdownOpen) {
+                this.hideStreamsDropdown();
+                return;
+            }
+            
+            // If clicking inside the dropdown while calendar is open, close the calendar and return
+            if (isInsideDropdown && calendarOpen) {
+                this.toggleExpanded(collapsedView, expandedView);
+                return;
+            }
+            
+            // If clicking on toggle buttons when their menu is already open or no menus are open,
+            // let them handle it (they'll toggle their own menu)
+            if (isCalendarToggle || isDropdownToggle) {
+                return;
+            }
+            
+            // Close calendar if open (closes when clicking anywhere, including inside calendar)
+            if (calendarOpen) {
                 this.toggleExpanded(collapsedView, expandedView);
             }
             
-            // Only close dropdown if it's visible and click is outside the component
-            if (this.streamsDropdown && !this.streamsDropdown.classList.contains('streams-bar-dropdown-hidden') && !this.component.contains(e.target as Node)) {
+            // Close dropdown if visible (closes when clicking anywhere, including inside dropdown)
+            // Note: Dropdown items use stopPropagation, so they won't trigger this handler
+            // but they call selectStream which closes the dropdown anyway
+            if (dropdownOpen) {
                 this.hideStreamsDropdown();
             }
         };
@@ -1122,6 +1194,12 @@ export class StreamsBarComponent extends Component {
         // Create single event handler for all day clicks
         this.calendarClickHandler = (e: Event) => {
             const target = e.target as HTMLElement;
+            
+            // Close dropdown if it's open when clicking anywhere in calendar
+            if (this.streamsDropdown && !this.streamsDropdown.classList.contains('streams-bar-dropdown-hidden')) {
+                this.hideStreamsDropdown();
+            }
+            
             const dayEl = target.closest('.streams-bar-day:not(.empty)') as HTMLElement;
             
             if (dayEl) {

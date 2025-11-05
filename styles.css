@@ -1,4 +1,16 @@
 /*********************************************************
+ * ANIMATIONS
+ *********************************************************/
+@keyframes streams-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/*********************************************************
  * GLOBAL STYLES & INDICATORS
  *********************************************************/
 .streams-global-indicator {
@@ -215,28 +227,19 @@
  * STREAMS BAR - MAIN COMPONENT
  *********************************************************/
 .streams-bar-component {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 10000;
-    font-size: 12px;
-    margin: 0;
-    pointer-events: auto;
-    border-bottom: 1px solid var(--background-modifier-border);
-    display: flex;
-    align-items: center;
-    padding: 0 14px;
-    backdrop-filter: blur(8px);
-}
-
-.streams-bar-component {
     position: relative;
     width: 100%;
     background-color: var(--background-primary);
     padding: 4px 6px 4px 6px;
     font-size: 14px;
     line-height: 1.4;
+    margin: 0;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--background-modifier-border);
+    backdrop-filter: blur(8px);
+    z-index: 10;
 }
 
 .streams-markdown-view-content {
@@ -495,6 +498,11 @@
     z-index: 10000;
     overflow: visible;
     display: none;
+}
+
+.streams-bar-streams-dropdown.streams-bar-dropdown-visible,
+.streams-bar-streams-dropdown.streams-dropdown--visible {
+    display: block !important;
 }
 
 .streams-bar-stream-item {
