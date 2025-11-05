@@ -108,16 +108,17 @@ export class ContextMenuService extends PluginAwareSliceService {
             let targetContent = '';
             
             if (targetFile) {
-                targetContent = await this.getPlugin().app.vault.read(targetFile as TFile);
+                targetContent = await this.getPlugin().app.vault.cachedRead(targetFile as TFile);
             } else {
                 targetContent = '';
                 targetFile = await this.getPlugin().app.vault.create(filePath, targetContent);
             }
             
             const textToAdd = this.prepareTextToAdd(text, addDivider, prepend);
-            const newContent = this.insertTextIntoContent(targetContent, textToAdd, prepend);
             
-            await this.getPlugin().app.vault.modify(targetFile as TFile, newContent);
+            await this.getPlugin().app.vault.process(targetFile as TFile, (content) => {
+                return this.insertTextIntoContent(content, textToAdd, prepend);
+            });
             
             if (sourceEditor.getSelection() === text) {
                 sourceEditor.replaceSelection('');
@@ -156,7 +157,7 @@ export class ContextMenuService extends PluginAwareSliceService {
     }
 
     private getStreams(): Stream[] {
-        const plugin = this.getPlugin() as any;
+        const plugin = this.getPlugin() as StreamsPluginInterface;
         return plugin.settings?.streams || [];
     }
 
@@ -165,7 +166,8 @@ export class ContextMenuService extends PluginAwareSliceService {
     }
 
     private getService(serviceName: string): unknown {
-        const container = (this.getPlugin() as any).sliceContainer;
+        const plugin = this.getPlugin() as StreamsPluginInterface;
+        const container = (plugin as unknown as { sliceContainer?: { get: (name: string) => unknown } }).sliceContainer;
         return container?.get(serviceName);
     }
 }

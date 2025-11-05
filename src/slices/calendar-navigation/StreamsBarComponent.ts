@@ -335,8 +335,7 @@ export class StreamsBarComponent extends Component {
             this.toggleStreamsDropdown();
         });
 
-        this.streamsDropdown = changeStreamSection.createDiv('streams-bar-streams-dropdown streams-dropdown');
-        this.streamsDropdown.style.display = 'none'; // Start hidden
+        this.streamsDropdown = changeStreamSection.createDiv('streams-bar-streams-dropdown streams-dropdown streams-bar-dropdown-hidden');
         this.populateStreamsDropdown();
 
         const topNav = expandedView.createDiv('streams-bar-top-nav');
@@ -464,7 +463,7 @@ export class StreamsBarComponent extends Component {
             }
             
             // Only close dropdown if it's visible and click is outside the component
-            if (this.streamsDropdown && this.streamsDropdown.style.display !== 'none' && !this.component.contains(e.target as Node)) {
+            if (this.streamsDropdown && !this.streamsDropdown.classList.contains('streams-bar-dropdown-hidden') && !this.component.contains(e.target as Node)) {
                 this.hideStreamsDropdown();
             }
         };
@@ -548,7 +547,7 @@ export class StreamsBarComponent extends Component {
      */
     private async isFileEncrypted(file: TFile): Promise<boolean> {
         try {
-            const content = await this.app.vault.read(file);
+            const content = await this.app.vault.cachedRead(file);
             return this.isEncryptedContent(content);
         } catch (error) {
             centralizedLogger.error('Error reading file content for encryption check:', error);
@@ -584,7 +583,7 @@ export class StreamsBarComponent extends Component {
             }
 
             // Try to read the file content to see if it's accessible
-            const content = await this.app.vault.read(file);
+            const content = await this.app.vault.cachedRead(file);
             
             // If we can read the content and it's not encrypted patterns, it's unlocked
             if (content && !this.isEncryptedContent(content)) {
@@ -913,7 +912,7 @@ export class StreamsBarComponent extends Component {
 
     private toggleStreamsDropdown() {
         if (this.streamsDropdown) {
-            const isVisible = this.streamsDropdown.style.display !== 'none';
+            const isVisible = !this.streamsDropdown.classList.contains('streams-bar-dropdown-hidden');
             if (isVisible) {
                 this.hideStreamsDropdown();
             } else {
@@ -924,14 +923,16 @@ export class StreamsBarComponent extends Component {
 
     private showStreamsDropdown() {
         if (this.streamsDropdown) {
-            this.streamsDropdown.style.display = 'block';
+            this.streamsDropdown.removeClass('streams-bar-dropdown-hidden');
+            this.streamsDropdown.addClass('streams-bar-dropdown-visible');
             this.streamsDropdown.addClass('streams-dropdown--visible');
         }
     }
 
     private hideStreamsDropdown() {
         if (this.streamsDropdown) {
-            this.streamsDropdown.style.display = 'none';
+            this.streamsDropdown.addClass('streams-bar-dropdown-hidden');
+            this.streamsDropdown.removeClass('streams-bar-dropdown-visible');
             this.streamsDropdown.removeClass('streams-dropdown--visible');
         }
     }
@@ -1061,7 +1062,9 @@ export class StreamsBarComponent extends Component {
                 
                 // Clear existing dots
                 if (dotContainer) {
-                    dotContainer.innerHTML = '';
+                    while (dotContainer.firstChild) {
+                        dotContainer.removeChild(dotContainer.firstChild);
+                    }
                 }
                 
                 // Apply classes efficiently

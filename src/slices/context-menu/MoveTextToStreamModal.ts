@@ -280,12 +280,20 @@ export class MoveTextToStreamModal extends Modal {
                     });
             });
 
-        this.dateSetting.settingEl.style.display = this.useSourceDate ? 'none' : 'block';
+        if (this.useSourceDate) {
+            this.dateSetting.settingEl.addClass('streams-date-setting-hidden');
+        } else {
+            this.dateSetting.settingEl.removeClass('streams-date-setting-hidden');
+        }
     }
 
     private updateDateSetting(): void {
         if (this.dateSetting) {
-            this.dateSetting.settingEl.style.display = this.useSourceDate ? 'none' : 'block';
+            if (this.useSourceDate) {
+                this.dateSetting.settingEl.addClass('streams-date-setting-hidden');
+            } else {
+                this.dateSetting.settingEl.removeClass('streams-date-setting-hidden');
+            }
         }
         
         // Update the toggle text label

@@ -1,5 +1,5 @@
 import { PluginAwareSliceService } from '../../shared/base-slice';
-import { CommandService } from '../../shared/interfaces';
+import { CommandService, StreamsPluginInterface } from '../../shared/interfaces';
 import { StreamManagementService } from '../stream-management/StreamManagementService';
 
 export class CommandRegistrationService extends PluginAwareSliceService implements CommandService {
@@ -31,10 +31,10 @@ export class CommandRegistrationService extends PluginAwareSliceService implemen
     }
 
 
-    private registerStreamCommands(plugin: any): void {
+    private registerStreamCommands(plugin: StreamsPluginInterface): void {
         // Debug command for updateStreamBarFromFile functionality
         plugin.addCommand({
-            id: 'streams-debug-update-stream-bar',
+            id: 'debug-update-stream-bar',
             name: 'Debug: Update Stream Bar from File',
             callback: async () => {
                 await this.testUpdateStreamBarFromFile();
@@ -47,8 +47,9 @@ export class CommandRegistrationService extends PluginAwareSliceService implemen
         return this.getService('stream-management') as StreamManagementService;
     }
 
-    private getService(serviceName: string): any {
-        const container = (this.getPlugin() as any).sliceContainer;
+    private getService(serviceName: string): unknown {
+        const plugin = this.getPlugin() as StreamsPluginInterface;
+        const container = (plugin as unknown as { sliceContainer?: { get: (name: string) => unknown } }).sliceContainer;
         if (container) {
             return container.get(serviceName);
         }
@@ -56,7 +57,7 @@ export class CommandRegistrationService extends PluginAwareSliceService implemen
     }
 
     private async testUpdateStreamBarFromFile(): Promise<void> {
-        const plugin = this.getPlugin() as any;
+        const plugin = this.getPlugin() as StreamsPluginInterface;
         const apiService = this.getService('api');
         
         if (!apiService) {

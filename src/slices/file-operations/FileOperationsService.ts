@@ -56,7 +56,7 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
         const plugin = this.getPlugin();
         
         plugin.addCommand({
-            id: 'streams-open-today-current-stream',
+            id: 'open-today-current-stream',
             name: 'Open today for current stream',
             callback: () => {
                 const command = new OpenTodayCurrentStreamCommand(
@@ -69,7 +69,7 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
             }
         });
 
-        this.registeredCommands.push('streams-open-today-current-stream');
+        this.registeredCommands.push('open-today-current-stream');
     }
 
     unregisterCommands(): void {

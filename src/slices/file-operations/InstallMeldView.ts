@@ -100,12 +100,7 @@ export class InstallMeldView extends ItemView {
         this.contentEl.empty();
         this.contentEl.addClass('streams-install-meld-container');
         
-        // Set up the content element styling
-        this.contentEl.style.height = '100%';
-        this.contentEl.style.width = '100%';
-        this.contentEl.style.display = 'flex';
-        this.contentEl.style.alignItems = 'center';
-        this.contentEl.style.justifyContent = 'center';
+        // Content element styling is handled by CSS class
         
         // Hide any empty-state elements that might still be present
         this.hideEmptyStates();
@@ -191,11 +186,7 @@ export class InstallMeldView extends ItemView {
             const emptyStates = this.leaf.view.containerEl.querySelectorAll('.empty-state, .empty-state-container');
             emptyStates.forEach(el => {
                 const htmlEl = el as HTMLElement;
-                htmlEl.style.display = 'none';
-                htmlEl.style.visibility = 'hidden';
-                htmlEl.style.opacity = '0';
-                htmlEl.style.height = '0';
-                htmlEl.style.overflow = 'hidden';
+                htmlEl.addClass('streams-empty-state-hidden');
             });
         };
         

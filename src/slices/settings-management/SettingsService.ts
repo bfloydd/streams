@@ -11,7 +11,7 @@ export class SettingsService extends SettingsAwareSliceService {
     async initialize(): Promise<void> {
         if (this.initialized) return;
 
-        this.settingsTab = new StreamsSettingTab(this.getPlugin().app, this.getPlugin() as any);
+        this.settingsTab = new StreamsSettingTab(this.getPlugin().app, this.getPlugin() as StreamsPluginInterface);
         this.getPlugin().addSettingTab(this.settingsTab);
 
         this.initialized = true;
@@ -161,9 +161,6 @@ export class StreamsSettingTab extends PluginSettingTab {
         
         // Add reorder controls to the header
         const reorderContainer = header.createDiv('streams-reorder-container');
-        reorderContainer.style.display = 'flex';
-        reorderContainer.style.gap = '0.25em';
-        reorderContainer.style.marginLeft = 'auto';
         
         // Move up button - create simple HTML button
         const upButton = reorderContainer.createEl('button', {
@@ -352,9 +349,6 @@ export class StreamsSettingTab extends PluginSettingTab {
         // Add warning if Meld is not available
         if (!isMeldAvailable) {
             const warningEl = container.createDiv('streams-encryption-warning');
-            warningEl.style.color = 'var(--text-error)';
-            warningEl.style.fontSize = '0.9em';
-            warningEl.style.marginTop = '0.5em';
             warningEl.textContent = '⚠️ Meld plugin is required for encryption features';
         }
     }

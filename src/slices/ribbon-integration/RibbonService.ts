@@ -151,7 +151,7 @@ export class RibbonService extends SettingsAwareSliceService {
         // Remove existing command if it exists
         this.removeStreamCommand(stream.id);
 
-        const commandId = `streams-open-today-${stream.id}`;
+        const commandId = `open-today-${stream.id}`;
         
         this.getPlugin().addCommand({
             id: commandId,

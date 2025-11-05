@@ -37,6 +37,12 @@
     margin-left: auto;
 }
 
+.streams-encryption-warning {
+    color: var(--text-error);
+    font-size: 0.9em;
+    margin-top: 0.5em;
+}
+
 .streams-reorder-container .setting-item {
     margin: 0;
     padding: 0;
@@ -261,6 +267,14 @@
 
 .streams-bar-component .streams-dropdown--visible {
     display: block;
+}
+
+.streams-bar-dropdown-hidden {
+    display: none !important;
+}
+
+.streams-bar-dropdown-visible {
+    display: block !important;
 }
 
 .streams-bar-component--visible {
@@ -1593,6 +1607,18 @@
     box-sizing: border-box;
     flex-direction: column;
     position: relative;
+}
+
+.streams-empty-state-hidden {
+    display: none !important;
+    visibility: hidden;
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+.streams-date-setting-hidden {
+    display: none !important;
 }
 
 .streams-install-meld-content {
