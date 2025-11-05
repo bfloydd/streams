@@ -303,12 +303,14 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
             dateStateManager.setCurrentDate(date);
             
             // Use the proper Obsidian view system instead of direct DOM manipulation
-            // Check if Meld is available - if not, always show InstallMeldView
+            // Check if Meld is available and stream encryption status to determine view
             let viewType: string;
             if (!isMeldPluginAvailable(app)) {
-                viewType = INSTALL_MELD_VIEW_TYPE;
+                // Meld not available: show InstallMeldView only if stream has encryption enabled
+                // Otherwise show CreateFileView (normal behavior)
+                viewType = stream.encryptThisStream ? INSTALL_MELD_VIEW_TYPE : CREATE_FILE_VIEW_TYPE;
             } else {
-                // Choose the appropriate view type based on whether the stream is encrypted
+                // Meld available: choose based on stream encryption setting
                 viewType = stream.encryptThisStream ? CREATE_FILE_VIEW_ENCRYPTED_TYPE : CREATE_FILE_VIEW_TYPE;
             }
             
