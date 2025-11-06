@@ -1,7 +1,9 @@
-import { App, TFile, WorkspaceLeaf, ItemView, setIcon } from 'obsidian';
+import { App, TFile, WorkspaceLeaf, ItemView, setIcon, Notice } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { DateStateManager } from '../../shared/date-state-manager';
+import { TIMING } from '../../shared/timing-constants';
+import { getPluginById, getCommands, executeCommandById, getSetting } from '../../shared/obsidian-types';
 
 // Interface for the streams plugin
 interface StreamsPlugin {
@@ -275,7 +277,7 @@ export class CreateFileView extends ItemView {
     private async createAndOpenFile(): Promise<void> {
         try {
             // Get the file operations service to use the strategy pattern
-            const plugin = (this.app as any).plugins?.plugins?.['streams'];
+            const plugin = getPluginById(this.app, 'streams');
             if (!plugin) {
                 centralizedLogger.error('Streams plugin not found');
                 return;
@@ -283,10 +285,10 @@ export class CreateFileView extends ItemView {
             
             // Check if encryption is enabled but Meld is not available
             if (this.stream.encryptThisStream) {
-                const fileOpsService = plugin.getFileOperationsService?.();
+                const fileOpsService = (plugin as any).getFileOperationsService?.();
                 if (fileOpsService && !fileOpsService.isMeldPluginAvailable()) {
                     // Show error and don't create file
-                    new (this.app as any).Notice(fileOpsService.getMeldUnavailableMessage());
+                    new Notice(fileOpsService.getMeldUnavailableMessage());
                     return;
                 }
             }
@@ -361,12 +363,13 @@ export class CreateFileView extends ItemView {
             }
             
             // Small delay to ensure the file is properly active
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, TIMING.FILE_OPERATION_DELAY));
             
             // Try to execute the Meld encryption command
-            const command = (this.app as any).commands?.commands?.['meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note'];
+            const commands = getCommands(this.app);
+            const command = commands?.['meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note'];
             
-            if (command && command.callback && typeof command.callback === 'function') {
+            if (command?.callback && typeof command.callback === 'function') {
                 try {
                     await command.callback();
                 } catch (cmdError) {
@@ -375,7 +378,7 @@ export class CreateFileView extends ItemView {
             } else {
                 // Fallback: Use command palette API
                 try {
-                    await (this.app as any).commands.executeCommandById('meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note');
+                    await executeCommandById(this.app, 'meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note');
                 } catch (altError) {
                     centralizedLogger.error('Meld encryption command failed:', altError);
                 }
@@ -401,7 +404,7 @@ export class CreateFileView extends ItemView {
             }
             
             // Get the file operations service
-            const plugin = (this.app as any).plugins?.plugins?.['streams'];
+            const plugin = getPluginById(this.app, 'streams');
             if (!plugin) {
                 centralizedLogger.error('Streams plugin not found');
                 return null;

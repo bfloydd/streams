@@ -1,6 +1,7 @@
 import { App } from 'obsidian';
 import { PluginAwareSliceService } from '../../shared/base-slice';
 import { centralizedLogger } from '../../shared/centralized-logger';
+import { getPlugins, getCommands } from '../../shared/obsidian-types';
 
 /**
  * Service for detecting and validating Meld plugin availability
@@ -25,7 +26,7 @@ export class MeldDetectionService extends PluginAwareSliceService {
             const app = this.getPlugin().app;
             
             // Check if the Meld plugin is installed and enabled
-            const plugins = (app as any).plugins?.plugins;
+            const plugins = getPlugins(app);
             if (!plugins) return false;
             
             // Check for Meld plugin
@@ -33,7 +34,7 @@ export class MeldDetectionService extends PluginAwareSliceService {
             if (!meldPlugin) return false;
             
             // Check if the specific command exists
-            const commands = (app as any).commands?.commands;
+            const commands = getCommands(app);
             if (!commands) return false;
             
             return !!commands[this.meldCommandId];
@@ -60,9 +61,10 @@ export class MeldDetectionService extends PluginAwareSliceService {
             }
             
             const app = this.getPlugin().app;
-            const command = (app as any).commands?.commands?.[this.meldCommandId];
+            const commands = getCommands(app);
+            const command = commands?.[this.meldCommandId];
             
-            if (command) {
+            if (command?.callback) {
                 await command.callback();
                 return true;
             } else {

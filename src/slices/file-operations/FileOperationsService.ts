@@ -9,6 +9,7 @@ import { InstallMeldView, INSTALL_MELD_VIEW_TYPE } from './InstallMeldView';
 import { FileCreationInterface, NormalFileStrategy, MeldEncryptedFileStrategy } from './file-creation-strategies';
 import { MeldDetectionService } from '../meld-integration';
 import { centralizedLogger } from '../../shared/centralized-logger';
+import { encryptionDetectionService } from '../../shared/encryption-detection-service';
 
 export class FileOperationsService extends PluginAwareSliceService implements CommandService, ViewService {
     private registeredCommands: string[] = [];
@@ -147,17 +148,9 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
 
     /**
      * Check if file content appears to be encrypted
+     * @deprecated Use encryptionDetectionService.isEncryptedContent() instead
      */
     public isEncryptedContent(content: string): boolean {
-        // Common patterns that indicate encrypted content
-        const encryptedPatterns = [
-            /^-----BEGIN PGP MESSAGE-----/,
-            /^-----BEGIN ENCRYPTED MESSAGE-----/,
-            /^-----BEGIN MESSAGE-----/,
-            /^U2FsdGVkX1/, // Base64 encoded encrypted content (common in some encryption tools)
-            /^[A-Za-z0-9+/]{100,}={0,2}$/ // Long base64 strings (potential encrypted content)
-        ];
-
-        return encryptedPatterns.some(pattern => pattern.test(content.trim()));
+        return encryptionDetectionService.isEncryptedContent(content);
     }
 }

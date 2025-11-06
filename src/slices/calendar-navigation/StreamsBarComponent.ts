@@ -9,6 +9,11 @@ import { CREATE_FILE_VIEW_ENCRYPTED_TYPE } from '../file-operations/CreateFileVi
 import { DateStateManager } from '../../shared/date-state-manager';
 import { performanceMonitor } from '../../shared/performance-monitor';
 import { eventBus, EVENTS } from '../../shared/event-bus';
+import { encryptionDetectionService } from '../../shared/encryption-detection-service';
+import { MeldDetectionService } from '../meld-integration';
+import { TIMING } from '../../shared/timing-constants';
+import { getContentIndicatorSize } from '../../shared/file-size-constants';
+import { getSetting, getPluginById } from '../../shared/obsidian-types';
 
 interface ContentIndicator {
     exists: boolean;
@@ -45,6 +50,7 @@ export class StreamsBarComponent extends Component {
     private streams: Stream[];
     private plugin: PluginInterface | null;
     private dateStateManager: DateStateManager;
+    private meldDetectionService: MeldDetectionService;
     private unsubscribeDateChanged: (() => void) | null = null;
     private unsubscribeActiveStreamChanged: (() => void) | null = null;
     private unsubscribeSettingsChanged: (() => void) | null = null;
@@ -135,6 +141,16 @@ export class StreamsBarComponent extends Component {
         this.streams = streams;
         this.plugin = plugin;
         this.dateStateManager = DateStateManager.getInstance();
+        
+        // Initialize Meld detection service
+        this.meldDetectionService = new MeldDetectionService();
+        if (plugin) {
+            this.meldDetectionService.setPlugin(plugin as any);
+            // Initialize asynchronously (fire and forget)
+            this.meldDetectionService.initialize().catch(error => {
+                centralizedLogger.error('Error initializing MeldDetectionService:', error);
+            });
+        }
         
         // Initialize the month view to the current date
         this.currentMonthView = new Date();
@@ -326,9 +342,11 @@ export class StreamsBarComponent extends Component {
         settingsButton.setAttribute('aria-label', 'Open Streams plugin settings');
         settingsButton.addEventListener('click', async (e) => {
             e.stopPropagation();
-            const setting = (this.app as any).setting;
-            setting.open();
-            setting.openTabById('streams');
+            const setting = getSetting(this.app);
+            if (setting) {
+                setting.open?.();
+                setting.openTabById?.('streams');
+            }
         });
 
         const changeStreamSection = collapsedView.createDiv('streams-bar-change-stream');
@@ -586,19 +604,11 @@ export class StreamsBarComponent extends Component {
 
         // Check if file is encrypted by extension or content
         if (!isEncrypted) {
-            isEncrypted = file.path.endsWith('.mdenc') || await this.isFileEncrypted(file);
+            isEncrypted = encryptionDetectionService.isEncryptedFileByPath(file.path) || await encryptionDetectionService.isFileEncrypted(this.app, file);
         }
 
         const fileSize = file.stat.size;
-
-        let size: 'small' | 'medium' | 'large';
-        if (fileSize < 1024) {
-            size = 'small';
-        } else if (fileSize < 5120) {
-            size = 'medium';
-        } else {
-            size = 'large';
-        }
+        const size = getContentIndicatorSize(fileSize);
 
         // Determine if encrypted file is locked or unlocked
         let isLocked = false;
@@ -614,34 +624,6 @@ export class StreamsBarComponent extends Component {
         };
     }
 
-    /**
-     * Check if a file is encrypted by examining its content
-     */
-    private async isFileEncrypted(file: TFile): Promise<boolean> {
-        try {
-            const content = await this.app.vault.cachedRead(file);
-            return this.isEncryptedContent(content);
-        } catch (error) {
-            centralizedLogger.error('Error reading file content for encryption check:', error);
-            return false;
-        }
-    }
-
-    /**
-     * Check if file content appears to be encrypted
-     */
-    private isEncryptedContent(content: string): boolean {
-        // Common patterns that indicate encrypted content
-        const encryptedPatterns = [
-            /^-----BEGIN PGP MESSAGE-----/,
-            /^-----BEGIN ENCRYPTED MESSAGE-----/,
-            /^-----BEGIN MESSAGE-----/,
-            /^U2FsdGVkX1/, // Base64 encoded encrypted content (common in some encryption tools)
-            /^[A-Za-z0-9+/]{100,}={0,2}$/ // Long base64 strings (potential encrypted content)
-        ];
-
-        return encryptedPatterns.some(pattern => pattern.test(content.trim()));
-    }
 
     /**
      * Check if an encrypted file is currently locked (requires decryption to access)
@@ -658,12 +640,12 @@ export class StreamsBarComponent extends Component {
             const content = await this.app.vault.cachedRead(file);
             
             // If we can read the content and it's not encrypted patterns, it's unlocked
-            if (content && !this.isEncryptedContent(content)) {
+            if (content && !encryptionDetectionService.isEncryptedContent(content)) {
                 return false;
             }
 
             // If content contains encrypted patterns, it's locked
-            return this.isEncryptedContent(content);
+            return encryptionDetectionService.isEncryptedContent(content);
         } catch (error) {
             // If we can't read the file, consider it locked
             centralizedLogger.debug('Could not read encrypted file, considering it locked:', error);
@@ -675,24 +657,7 @@ export class StreamsBarComponent extends Component {
      * Check if Meld plugin is available
      */
     private isMeldPluginAvailable(): boolean {
-        try {
-            // Check if the Meld plugin is installed and enabled
-            const plugins = (this.app as any).plugins?.plugins;
-            if (!plugins) return false;
-            
-            // Check for Meld plugin
-            const meldPlugin = plugins['meld-encrypt'];
-            if (!meldPlugin) return false;
-            
-            // Check if the specific command exists
-            const commands = (this.app as any).commands?.commands;
-            if (!commands) return false;
-            
-            return !!commands['meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note'];
-        } catch (error) {
-            centralizedLogger.error('Error checking Meld plugin availability:', error);
-            return false;
-        }
+        return this.meldDetectionService?.isMeldPluginAvailable() || false;
     }
 
     private async updateCalendarGrid(grid: HTMLElement) {
@@ -874,11 +839,11 @@ export class StreamsBarComponent extends Component {
                 if (grid.children.length > 0) {
                     setTimeout(() => {
                         this.updateGridContent(grid);
-                    }, 10);
+                    }, TIMING.SHORT_DELAY);
                 } else {
                     setTimeout(() => {
                         this.updateCalendarGrid(grid);
-                    }, 10);
+                    }, TIMING.SHORT_DELAY);
                 }
             }
         }

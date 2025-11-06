@@ -7,7 +7,7 @@ import { INSTALL_MELD_VIEW_TYPE } from '../file-operations/InstallMeldView';
 import { CREATE_FILE_VIEW_ENCRYPTED_TYPE } from '../file-operations/CreateFileViewEncrypted';
 import { Stream } from '../../shared/types';
 import { eventBus, EVENTS } from '../../shared/event-bus';
-import { measurePerformance, registerCleanupTask, serviceRegistry } from '../../shared';
+import { measurePerformance, registerCleanupTask, serviceRegistry, TIMING } from '../../shared';
 import { centralizedLogger } from '../../shared/centralized-logger';
 
 export class CalendarNavigationService extends SettingsAwareSliceService {
@@ -26,7 +26,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         setTimeout(() => {
             this.refreshStreamsBarComponentsForNewViews();
             this.isInitializing = false;
-        }, 100);
+        }, TIMING.INITIALIZATION_DELAY);
 
         this.initialized = true;
     }
@@ -108,7 +108,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
                 if (file) {
                     setTimeout(async () => {
                         await this.ensureStreamsBarComponentForFile(file.path);
-                    }, 100);
+                    }, TIMING.STANDARD_DELAY);
                 }
             })
         );

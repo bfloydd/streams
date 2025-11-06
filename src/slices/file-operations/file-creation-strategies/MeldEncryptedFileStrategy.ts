@@ -1,6 +1,8 @@
 import { App, TFile } from 'obsidian';
 import { FileCreationInterface } from './FileCreationStrategy';
 import { centralizedLogger } from '../../../shared/centralized-logger';
+import { TIMING } from '../../../shared/timing-constants';
+import { getPlugins, getCommands, executeCommandById } from '../../../shared/obsidian-types';
 
 /**
  * Strategy for creating encrypted files using Meld plugin
@@ -42,7 +44,8 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
             }
             
             // Get the Meld plugin instance
-            const meldPlugin = (app as any).plugins?.plugins?.['meld-encrypt'];
+            const plugins = getPlugins(app);
+            const meldPlugin = plugins?.['meld-encrypt'];
             if (!meldPlugin) {
                 throw new Error('Meld plugin instance not found');
             }
@@ -60,7 +63,8 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
             }
             
             // Fallback: Use command execution
-            const command = (app as any).commands?.commands?.[this.meldCommandId];
+            const commands = getCommands(app);
+            const command = commands?.[this.meldCommandId];
             if (command) {
                 if (command.callback.length > 0) {
                     // Command accepts parameters
@@ -91,7 +95,7 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
                         
                         // Set as active leaf and execute command
                         app.workspace.setActiveLeaf(fileLeaf, { focus: true });
-                        await new Promise(resolve => setTimeout(resolve, 100));
+                        await new Promise(resolve => setTimeout(resolve, TIMING.FILE_OPERATION_DELAY));
                         await command.callback();
                         
                     } finally {
@@ -113,7 +117,7 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
     private isMeldPluginAvailable(app: App): boolean {
         try {
             // Check if the Meld plugin is installed and enabled
-            const plugins = (app as any).plugins?.plugins;
+            const plugins = getPlugins(app);
             if (!plugins) return false;
             
             // Check for Meld plugin
@@ -121,7 +125,7 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
             if (!meldPlugin) return false;
             
             // Check if the specific command exists
-            const commands = (app as any).commands?.commands;
+            const commands = getCommands(app);
             if (!commands) return false;
             
             return !!commands[this.meldCommandId];

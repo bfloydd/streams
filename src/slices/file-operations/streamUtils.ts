@@ -5,38 +5,34 @@ import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './CreateFileView';
 import { InstallMeldView, INSTALL_MELD_VIEW_TYPE } from './InstallMeldView';
 import { CreateFileViewEncrypted, CREATE_FILE_VIEW_ENCRYPTED_TYPE } from './CreateFileViewEncrypted';
 import { DateStateManager } from '../../shared/date-state-manager';
+import { encryptionDetectionService } from '../../shared/encryption-detection-service';
+import { MeldDetectionService } from '../meld-integration';
+import { getPlugins, getCommands } from '../../shared/obsidian-types';
 
 /**
  * Check if file content appears to be encrypted
+ * @deprecated Use encryptionDetectionService.isEncryptedContent() instead
  */
 function isEncryptedContent(content: string): boolean {
-    // Common patterns that indicate encrypted content
-    const encryptedPatterns = [
-        /^-----BEGIN PGP MESSAGE-----/,
-        /^-----BEGIN ENCRYPTED MESSAGE-----/,
-        /^-----BEGIN MESSAGE-----/,
-        /^U2FsdGVkX1/, // Base64 encoded encrypted content (common in some encryption tools)
-        /^[A-Za-z0-9+/]{100,}={0,2}$/ // Long base64 strings (potential encrypted content)
-    ];
-
-    return encryptedPatterns.some(pattern => pattern.test(content.trim()));
+    return encryptionDetectionService.isEncryptedContent(content);
 }
 
 /**
  * Check if Meld plugin is available
+ * @deprecated Use MeldDetectionService instead
  */
 function isMeldPluginAvailable(app: App): boolean {
+    // Create a temporary service instance to check Meld availability
+    // Note: This is a workaround for utility functions that don't have plugin context
+    // Ideally, these utility functions should be refactored to accept services
     try {
-        // Check if the Meld plugin is installed and enabled
-        const plugins = (app as any).plugins?.plugins;
+        const plugins = getPlugins(app);
         if (!plugins) return false;
         
-        // Check for Meld plugin
         const meldPlugin = plugins['meld-encrypt'];
         if (!meldPlugin) return false;
         
-        // Check if the specific command exists
-        const commands = (app as any).commands?.commands;
+        const commands = getCommands(app);
         if (!commands) return false;
         
         return !!commands['meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note'];

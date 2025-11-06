@@ -36,3 +36,16 @@ export * from './centralized-logger';
 
 // Modal state management
 export * from './modal-state-manager';
+
+// Encryption detection
+export * from './encryption-detection-service';
+
+// Constants
+export * from './timing-constants';
+export * from './file-size-constants';
+
+// Event handler registry
+export * from './event-handler-registry';
+
+// Obsidian type extensions
+export * from './obsidian-types';
