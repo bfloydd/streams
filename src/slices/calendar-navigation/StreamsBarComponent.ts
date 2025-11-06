@@ -1,6 +1,8 @@
 import { App, WorkspaceLeaf, TFile, MarkdownView, View, Component, setIcon, Plugin } from 'obsidian';
-import { Stream } from '../../shared/types';
+import { Stream, StreamsSettings } from '../../shared/types';
+import { DateState } from '../../shared/date-state-manager';
 import { centralizedLogger } from '../../shared/centralized-logger';
+import { StreamsPluginInterface } from '../../shared/interfaces';
 import { OpenStreamDateCommand } from '../file-operations/OpenStreamDateCommand';
 import { OpenTodayCurrentStreamCommand } from '../file-operations/OpenTodayCurrentStreamCommand';
 import { CREATE_FILE_VIEW_TYPE, CreateFileView } from '../file-operations/CreateFileView';
@@ -34,7 +36,7 @@ interface PluginInterface {
         barStyle?: 'default' | 'modern';
     };
     saveSettings(): void;
-    setActiveStream(streamId: string, force?: boolean): void;
+    setActiveStream(streamId: string, force?: boolean): Promise<void>;
 }
 
 export class StreamsBarComponent extends Component {
@@ -370,7 +372,7 @@ export class StreamsBarComponent extends Component {
         homeButton.setAttribute('aria-label', 'Go to current stream today');
         this.eventRegistry.register(homeButton, 'click', async (e: Event) => {
             e.stopPropagation();
-            const command = new OpenTodayCurrentStreamCommand(this.app, this.streams, this.reuseCurrentTab, this.plugin);
+            const command = new OpenTodayCurrentStreamCommand(this.app, this.streams, this.reuseCurrentTab, (this.plugin ?? undefined) as StreamsPluginInterface | undefined);
             await command.execute();
         });
     }
@@ -715,7 +717,7 @@ export class StreamsBarComponent extends Component {
         }
     }
 
-    private handleDateStateChange(state: any): void {
+    private handleDateStateChange(state: DateState): void {
         // Update the today button display
         this.updateTodayButton();
         
@@ -733,7 +735,7 @@ export class StreamsBarComponent extends Component {
         }
     }
 
-    private handleActiveStreamChange(eventData: any): void {
+    private handleActiveStreamChange(eventData: { streamId: string }): void {
         const { streamId } = eventData;
         
         if (!streamId) {
@@ -777,7 +779,7 @@ export class StreamsBarComponent extends Component {
         }
     }
     
-    private handleSettingsChange(settings: any): void {
+    private handleSettingsChange(settings: StreamsSettings): void {
         // Apply the new bar style if it changed
         this.applyBarStyle();
         

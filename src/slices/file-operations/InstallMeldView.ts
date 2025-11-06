@@ -1,7 +1,7 @@
 import { App, TFile, WorkspaceLeaf, ItemView, setIcon, Notice } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
-import { DateStateManager } from '../../shared/date-state-manager';
+import { DateStateManager, DateState } from '../../shared/date-state-manager';
 import { ViewWithEmptyStateObserver, getSetting } from '../../shared/obsidian-types';
 
 export const INSTALL_MELD_VIEW_TYPE = 'streams-install-meld-view';
@@ -225,7 +225,7 @@ export class InstallMeldView extends ItemView {
         });
     }
     
-    private handleDateChange(state: any): void {
+    private handleDateChange(state: DateState): void {
         // Update the file path based on the new date
         const fileName = `${this.formatDateToYYYYMMDD(state.currentDate)}.mdenc`;
         const folderPath = this.filePath.substring(0, this.filePath.lastIndexOf('/'));

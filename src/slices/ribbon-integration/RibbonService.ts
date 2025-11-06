@@ -53,7 +53,7 @@ export class RibbonService extends SettingsAwareSliceService {
         this.removeStreamCommand(streamId);
     }
 
-    onSettingsChanged(settings: any): void {
+    onSettingsChanged(settings: StreamsSettings): void {
         this.updateAllRibbonIcons();
     }
 

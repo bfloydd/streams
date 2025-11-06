@@ -1,6 +1,8 @@
 import { App, Plugin } from 'obsidian';
 import { Stream, StreamsSettings } from './types';
 import { SliceContainer } from './container';
+import { Logger } from '../slices/debug-logging';
+import { FileOperationsService } from '../slices/file-operations';
 
 /**
  * Base interface for all slice services
@@ -64,14 +66,14 @@ export interface ViewService {
 export interface StreamsPluginInterface extends Plugin {
     settings: StreamsSettings;
     app: App;
-    log: any; // Logger type will be defined in debug-logging slice
+    log: Logger | undefined;
     sliceContainer?: SliceContainer;
     
     // Core methods that slices need
     saveSettings(): Promise<void>;
     refreshAllStreamsBarComponents(): void;
     updateAllStreamsBarComponents(): void;
-    setActiveStream(streamId: string, force?: boolean): void;
+    setActiveStream(streamId: string, force?: boolean): Promise<void>;
     getActiveStream(): Stream | undefined;
-    getFileOperationsService(): any;
+    getFileOperationsService(): FileOperationsService | undefined;
 }

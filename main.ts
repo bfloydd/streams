@@ -1,15 +1,17 @@
 import { Plugin } from 'obsidian';
 import { Stream, StreamsSettings } from './src/shared/types';
 import { sliceContainer, serviceRegistry, DEFAULT_SETTINGS, ServiceLoader } from './src/shared';
-import { StreamsAPI } from './src/slices/api';
+import { StreamsAPI, StreamInfo, PluginVersion } from './src/slices/api';
 import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './src/slices/file-operations/CreateFileView';
 import { InstallMeldView, INSTALL_MELD_VIEW_TYPE } from './src/slices/file-operations/InstallMeldView';
 import { CreateFileViewEncrypted, CREATE_FILE_VIEW_ENCRYPTED_TYPE } from './src/slices/file-operations/CreateFileViewEncrypted';
+import { Logger } from './src/slices/debug-logging';
+import { FileOperationsService } from './src/slices/file-operations';
 
 
 export default class StreamsPlugin extends Plugin implements StreamsAPI {
 	settings: StreamsSettings;
-	public log: any; // Will be set by DebugLoggingService
+	public log: Logger | undefined;
 
 	async onload() {
 		sliceContainer.setPlugin(this);
@@ -110,8 +112,8 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 	// ============================================================================
 
 	// Stream Management
-	setActiveStream(streamId: string, force?: boolean): void {
-		serviceRegistry.streamManagement?.setActiveStream(streamId, force);
+	async setActiveStream(streamId: string, force?: boolean): Promise<void> {
+		await serviceRegistry.streamManagement?.setActiveStream(streamId, force);
 	}
 
 	getActiveStream(): Stream | null {
@@ -147,7 +149,7 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		return serviceRegistry.api?.getCommandStreams() || [];
 	}
 
-	getStreamInfo(streamId: string): any {
+	getStreamInfo(streamId: string): StreamInfo | null {
 		return serviceRegistry.api?.getStreamInfo(streamId) || null;
 	}
 
@@ -164,7 +166,7 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		return serviceRegistry.api?.hasStreams() || false;
 	}
 
-	getVersion(): any {
+	getVersion(): PluginVersion {
 		return serviceRegistry.api?.getVersion() || { version: '1.0.0', minAppVersion: '0.15.0', name: 'Streams', id: 'streams' };
 	}
 
@@ -174,7 +176,7 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 	}
 
 	// Internal Services (for plugin functionality)
-	getFileOperationsService(): any {
+	getFileOperationsService(): FileOperationsService | undefined {
 		return serviceRegistry.fileOperations;
 	}
 }

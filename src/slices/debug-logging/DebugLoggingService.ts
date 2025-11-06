@@ -4,6 +4,7 @@ import { Logger, LogLevel } from './Logger';
 import { ToggleDebugLoggingCommand } from './ToggleDebugLoggingCommand';
 import { Command } from '../../shared/interfaces';
 import { centralizedLogger } from '../../shared/centralized-logger';
+import { StreamsSettings } from '../../shared/types';
 
 export class DebugLoggingService extends SettingsAwareSliceService {
     private logger: Logger;
@@ -34,7 +35,7 @@ export class DebugLoggingService extends SettingsAwareSliceService {
         this.initialized = false;
     }
 
-    onSettingsChanged(settings: any): void {
+    onSettingsChanged(settings: StreamsSettings): void {
         if (settings.debugLoggingEnabled) {
             centralizedLogger.enable(LogLevel.DEBUG);
         } else {

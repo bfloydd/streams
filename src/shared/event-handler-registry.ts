@@ -3,6 +3,8 @@
  * Reduces manual cleanup code and prevents memory leaks
  */
 
+import { centralizedLogger } from './centralized-logger';
+
 /**
  * Registry for managing event listeners with automatic cleanup
  */
@@ -81,7 +83,7 @@ export class EventHandlerRegistry {
             try {
                 cleanup();
             } catch (error) {
-                console.error('Error during event handler cleanup:', error);
+                centralizedLogger.error('Error during event handler cleanup:', error);
             }
         });
         this.handlers = [];

@@ -3,7 +3,7 @@ import { SettingsAwareSliceService } from '../../shared/base-slice';
 import { CREATE_FILE_VIEW_TYPE } from '../../shared/constants';
 import { INSTALL_MELD_VIEW_TYPE } from '../file-operations/InstallMeldView';
 import { CREATE_FILE_VIEW_ENCRYPTED_TYPE } from '../file-operations/CreateFileViewEncrypted';
-import { Stream } from '../../shared/types';
+import { Stream, StreamsSettings } from '../../shared/types';
 import { eventBus, EVENTS } from '../../shared/event-bus';
 import { measurePerformance, registerCleanupTask, TIMING } from '../../shared';
 import { ViewManagementService } from './ViewManagementService';
@@ -70,7 +70,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         eventBus.subscribe(EVENTS.SETTINGS_CHANGED, (event) => this.onSettingsChanged(event.data));
     }
 
-    onSettingsChanged(settings: any): void {
+    onSettingsChanged(settings: StreamsSettings): void {
         // Update existing components with new settings
         this.updateExistingComponentsSettings(settings);
         
@@ -201,7 +201,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         this.refreshStreamsBarComponentsForNewViews();
     }
 
-    private updateExistingComponentsSettings(settings: any): void {
+    private updateExistingComponentsSettings(settings: StreamsSettings): void {
         if (this.componentLifecycleManager) {
             this.componentLifecycleManager.updateExistingComponentsSettings(settings);
         }

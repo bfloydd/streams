@@ -3,6 +3,7 @@ import { Stream } from '../../shared/types';
 import { openStreamDate } from './streamUtils';
 import { Logger } from '../debug-logging/Logger';
 import { Command } from '../../shared/interfaces';
+import { StreamsPluginInterface } from '../../shared/interfaces';
 
 const log = new Logger();
 
@@ -11,15 +12,8 @@ export class OpenTodayCurrentStreamCommand implements Command {
         private app: App,
         private streams: Stream[],
         private reuseCurrentTab: boolean = false,
-        private plugin?: any // The main plugin instance to access active stream
+        private plugin?: StreamsPluginInterface
     ) {}
-    
-    // Interface for the plugin instance
-    private getPluginInterface() {
-        return this.plugin as {
-            getActiveStream(): Stream | null;
-        };
-    }
 
     async execute(): Promise<void> {
         log.debug('Executing OpenTodayCurrentStreamCommand');
@@ -46,9 +40,8 @@ export class OpenTodayCurrentStreamCommand implements Command {
     
     private findCurrentStream(): Stream | null {
         // Get the active stream from the main plugin's centralized tracking
-        const pluginInterface = this.getPluginInterface();
-        if (pluginInterface && pluginInterface.getActiveStream) {
-            const activeStream = pluginInterface.getActiveStream();
+        if (this.plugin) {
+            const activeStream = this.plugin.getActiveStream();
             if (activeStream) {
                 log.debug(`Found active stream from plugin: ${activeStream.name}`);
                 return activeStream;

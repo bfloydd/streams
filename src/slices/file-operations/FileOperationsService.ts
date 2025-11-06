@@ -1,6 +1,7 @@
 import { App, TFile, WorkspaceLeaf } from 'obsidian';
 import { PluginAwareSliceService } from '../../shared/base-slice';
 import { CommandService, ViewService } from '../../shared/interfaces';
+import { Stream } from '../../shared/types';
 import { OpenStreamDateCommand } from './OpenStreamDateCommand';
 import { OpenTodayStreamCommand } from './OpenTodayStreamCommand';
 import { OpenTodayCurrentStreamCommand } from './OpenTodayCurrentStreamCommand';
@@ -77,7 +78,7 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
         this.registeredCommands = [];
     }
 
-    async openStreamDate(stream: any, date: Date, reuseCurrentTab: boolean = false): Promise<void> {
+    async openStreamDate(stream: Stream, date: Date, reuseCurrentTab: boolean = false): Promise<void> {
         const command = new OpenStreamDateCommand(
             this.getPlugin().app,
             stream,
@@ -87,7 +88,7 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
         await command.execute();
     }
 
-    async openTodayStream(stream: any, reuseCurrentTab: boolean = false): Promise<void> {
+    async openTodayStream(stream: Stream, reuseCurrentTab: boolean = false): Promise<void> {
         const command = new OpenTodayStreamCommand(
             this.getPlugin().app,
             stream,
@@ -100,14 +101,14 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
     /**
      * Get the appropriate file creation strategy for a stream
      */
-    private getFileCreationStrategy(stream: any): FileCreationInterface {
+    private getFileCreationStrategy(stream: Stream): FileCreationInterface {
         if (stream.encryptThisStream) {
             // Check if Meld is available before using encryption strategy
             if (this.meldDetectionService.isMeldPluginAvailable()) {
                 return this.meldEncryptedFileStrategy;
             } else {
                 // Fall back to normal strategy if Meld is not available
-                console.warn('Meld plugin not available, falling back to normal file creation');
+                centralizedLogger.warn('Meld plugin not available, falling back to normal file creation');
                 return this.normalFileStrategy;
             }
         }
@@ -117,7 +118,7 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
     /**
      * Create a file using the appropriate strategy
      */
-    async createFile(filePath: string, content: string, stream: any): Promise<any> {
+    async createFile(filePath: string, content: string, stream: Stream): Promise<TFile | null> {
         const strategy = this.getFileCreationStrategy(stream);
         return await strategy.createFile(this.getPlugin().app, filePath, content);
     }

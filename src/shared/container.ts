@@ -10,14 +10,21 @@ export class SliceContainer {
     private plugin: Plugin | null = null;
 
     /**
+     * Type guard to check if a service is plugin-aware
+     */
+    private isPluginAwareService(service: SliceService): service is PluginAwareService {
+        return 'setPlugin' in service;
+    }
+
+    /**
      * Register a service in the container
      */
     register<T extends SliceService>(name: string, service: T): T {
         this.services.set(name, service);
         
         // If service is plugin-aware, set the plugin
-        if (this.plugin && 'setPlugin' in service) {
-            (service as unknown as PluginAwareService).setPlugin(this.plugin);
+        if (this.plugin && this.isPluginAwareService(service)) {
+            service.setPlugin(this.plugin);
         }
         
         return service;
@@ -38,8 +45,8 @@ export class SliceContainer {
         
         // Update all existing plugin-aware services
         for (const service of this.services.values()) {
-            if ('setPlugin' in service) {
-                (service as unknown as PluginAwareService).setPlugin(plugin);
+            if (this.isPluginAwareService(service)) {
+                service.setPlugin(plugin);
             }
         }
     }

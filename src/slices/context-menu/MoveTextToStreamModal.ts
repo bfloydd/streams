@@ -1,12 +1,12 @@
-import { App, Modal, Setting, TFile, MarkdownView, Notice } from 'obsidian';
+import { App, Modal, Setting, TFile, MarkdownView, Notice, Editor } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { ModalStateManager } from '../../shared/modal-state-manager';
 
 export interface MoveTextOptions {
     selectedText: string;
-    sourceEditor: any;
-    sourceView: any;
+    sourceEditor: Editor;
+    sourceView: MarkdownView;
 }
 
 export class MoveTextToStreamModal extends Modal {
@@ -18,8 +18,8 @@ export class MoveTextToStreamModal extends Modal {
     private prependMode: boolean = false; // true = prepend, false = append
     private addDivider: boolean = true; // true = add --- divider, false = no divider
     private selectedText: string;
-    private sourceEditor: any;
-    private sourceView: any;
+    private sourceEditor: Editor;
+    private sourceView: MarkdownView;
     private toggleTextInput: HTMLInputElement | null = null;
     private stateManager: ModalStateManager;
     private onMove: (options: {
@@ -28,8 +28,8 @@ export class MoveTextToStreamModal extends Modal {
         prepend: boolean;
         addDivider: boolean;
         text: string;
-        sourceEditor: any;
-        sourceView: any;
+        sourceEditor: Editor;
+        sourceView: MarkdownView;
     }) => Promise<void>;
 
     constructor(
@@ -42,8 +42,8 @@ export class MoveTextToStreamModal extends Modal {
             prepend: boolean;
             addDivider: boolean;
             text: string;
-            sourceEditor: any;
-            sourceView: any;
+            sourceEditor: Editor;
+            sourceView: MarkdownView;
         }) => Promise<void>
     ) {
         super(app);

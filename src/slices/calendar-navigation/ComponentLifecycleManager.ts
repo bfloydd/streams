@@ -1,5 +1,5 @@
 import { App, WorkspaceLeaf } from 'obsidian';
-import { Stream } from '../../shared/types';
+import { Stream, StreamsSettings } from '../../shared/types';
 import { StreamsBarComponent } from './StreamsBarComponent';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { serviceRegistry } from '../../shared';
@@ -72,7 +72,7 @@ export class ComponentLifecycleManager {
     /**
      * Update settings for all existing components
      */
-    updateExistingComponentsSettings(settings: any): void {
+    updateExistingComponentsSettings(settings: StreamsSettings): void {
         // Update the reuseCurrentTab setting for all existing components
         for (const component of this.calendarComponents.values()) {
             if (component && typeof component.updateReuseCurrentTab === 'function') {

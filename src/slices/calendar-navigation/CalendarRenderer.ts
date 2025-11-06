@@ -1,5 +1,5 @@
 import { Component, setIcon } from 'obsidian';
-import { DateStateManager } from '../../shared/date-state-manager';
+import { DateStateManager, DateState } from '../../shared/date-state-manager';
 import { performanceMonitor } from '../../shared/performance-monitor';
 import { ContentIndicator, ContentIndicatorService } from './ContentIndicatorService';
 import { DateNavigationService } from './DateNavigationService';
@@ -170,7 +170,7 @@ export class CalendarRenderer extends Component {
         dayElements: HTMLElement[], 
         contentIndicators: ContentIndicator[], 
         currentDate: Date, 
-        state: any
+        state: DateState
     ): void {
         // Use requestAnimationFrame to batch DOM updates
         requestAnimationFrame(() => {

@@ -87,10 +87,12 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.plugin.settings.debugLoggingEnabled = value;
                     
-                    if (value) {
-                        this.plugin.log.on();
-                    } else {
-                        this.plugin.log.off();
+                    if (this.plugin.log) {
+                        if (value) {
+                            this.plugin.log.on();
+                        } else {
+                            this.plugin.log.off();
+                        }
                     }
                     
                     await this.plugin.saveSettings();

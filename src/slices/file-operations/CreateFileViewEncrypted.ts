@@ -1,14 +1,14 @@
 import { App, TFile, WorkspaceLeaf, ItemView, setIcon, Notice, MarkdownView } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
-import { DateStateManager } from '../../shared/date-state-manager';
+import { DateStateManager, DateState } from '../../shared/date-state-manager';
 import { TIMING } from '../../shared/timing-constants';
 import { getPluginById, getCommands, executeCommandById } from '../../shared/obsidian-types';
 import { StreamsPluginInterface } from '../../shared/interfaces';
 
 // Interface for the streams plugin
 interface StreamsPlugin {
-    	setActiveStream(streamId: string, force?: boolean): void;
+    	setActiveStream(streamId: string, force?: boolean): Promise<void>;
 }
 
 // Interface for accessing app.plugins
@@ -89,7 +89,7 @@ export class CreateFileViewEncrypted extends ItemView {
                 
                 // If the stream changed, update the active stream
                 if (state.stream && state.stream.id !== previousStream.id) {
-                    this.setActiveStream();
+                    await this.setActiveStream();
                 }
                 
                 // Handle date parameter
@@ -113,7 +113,7 @@ export class CreateFileViewEncrypted extends ItemView {
         }
     }
 
-    private handleDateChange(state: any): void {
+    private handleDateChange(state: DateState): void {
         // Update the file path based on the new date
         const fileName = `${this.formatDateToYYYYMMDD(state.currentDate)}.md`;
         const folderPath = this.filePath.substring(0, this.filePath.lastIndexOf('/'));
@@ -136,7 +136,7 @@ export class CreateFileViewEncrypted extends ItemView {
 
     async onOpen(): Promise<void> {
         // Set this as the active stream in the main plugin
-        this.setActiveStream();
+        await this.setActiveStream();
         
         // Set up date change listener
         this.unsubscribeDateChanged = this.dateStateManager.onDateChanged((state) => {
@@ -384,14 +384,14 @@ export class CreateFileViewEncrypted extends ItemView {
         }
     }
     
-    private setActiveStream(): void {
+    private async setActiveStream(): Promise<void> {
         // Set this as the active stream in the main plugin
         // This is a user-initiated action (opening a create file view), so force the change
         try {
             const appWithPlugins = this.app as unknown as AppWithPlugins;
             const plugin = appWithPlugins.plugins.plugins['streams'];
             if (plugin?.setActiveStream) {
-                plugin.setActiveStream(this.stream.id, true);
+                await plugin.setActiveStream(this.stream.id, true);
             }
         } catch (error) {
             centralizedLogger.error('Error setting active stream:', error);

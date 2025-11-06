@@ -67,10 +67,16 @@ export class ContextMenuService extends PluginAwareSliceService {
             return;
         }
 
+        const sourceView = this.getPlugin().app.workspace.getActiveViewOfType(MarkdownView);
+        if (!sourceView) {
+            new Notice('No active markdown view found');
+            return;
+        }
+
         const moveOptions: MoveTextOptions = {
             selectedText,
             sourceEditor: editor,
-            sourceView: this.getPlugin().app.workspace.getActiveViewOfType(MarkdownView)
+            sourceView
         };
 
         const modal = new MoveTextToStreamModal(

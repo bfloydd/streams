@@ -8,7 +8,7 @@ interface PluginInterface {
     settings: {
         activeStreamId?: string;
     };
-    setActiveStream(streamId: string, force?: boolean): void;
+    setActiveStream(streamId: string, force?: boolean): Promise<void>;
 }
 
 /**
@@ -123,10 +123,10 @@ export class StreamSelector extends Component {
     /**
      * Select a stream and navigate to it
      */
-    private selectStream(stream: Stream): void {
+    private async selectStream(stream: Stream): Promise<void> {
         // Update the plugin's active stream - this will trigger the event listener
         if (this.plugin) {
-            this.plugin.setActiveStream(stream.id, true);
+            await this.plugin.setActiveStream(stream.id, true);
         }
         
         // Notify parent component
