@@ -62,9 +62,9 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
             callback: () => {
                 const command = new OpenTodayCurrentStreamCommand(
                     plugin.app, 
-                    this.getStreams(), 
-                    this.getSettings().reuseCurrentTab, 
-                    plugin as any
+                    plugin.settings?.streams || [], 
+                    plugin.settings?.reuseCurrentTab || false, 
+                    plugin
                 );
                 command.execute();
             }
@@ -96,15 +96,6 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
         await command.execute();
     }
 
-    private getStreams(): any[] {
-        const plugin = this.getPlugin() as any;
-        return plugin.settings?.streams || [];
-    }
-
-    private getSettings(): any {
-        const plugin = this.getPlugin() as any;
-        return plugin.settings || {};
-    }
     
     /**
      * Get the appropriate file creation strategy for a stream

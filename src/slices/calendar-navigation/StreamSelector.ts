@@ -1,4 +1,4 @@
-import { Component, setIcon } from 'obsidian';
+import { Component, setIcon, App } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { OpenStreamDateCommand } from '../file-operations/OpenStreamDateCommand';
 import { DateStateManager } from '../../shared/date-state-manager';
@@ -23,7 +23,7 @@ export class StreamSelector extends Component {
     private dropdown: HTMLElement;
     private streams: Stream[];
     private activeStreamId: string;
-    private app: any;
+    private app: App;
     private plugin: PluginInterface | null;
     private reuseCurrentTab: boolean;
     private dateStateManager: DateStateManager;
@@ -33,7 +33,7 @@ export class StreamSelector extends Component {
         dropdown: HTMLElement,
         streams: Stream[],
         activeStreamId: string,
-        app: any,
+        app: App,
         plugin: PluginInterface | null,
         reuseCurrentTab: boolean,
         onStreamSelected?: (stream: Stream) => void

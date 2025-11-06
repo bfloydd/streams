@@ -30,5 +30,11 @@ export const TIMING = {
      * Used when waiting for file system operations to complete
      */
     FILE_OPERATION_DELAY: 100,
+    
+    /**
+     * Touch delta threshold for gesture detection
+     * Used to determine if a touch movement is significant enough to trigger navigation
+     */
+    TOUCH_DELTA_THRESHOLD: 10,
 } as const;
 

@@ -1,9 +1,9 @@
-import { App, TFile, WorkspaceLeaf, ItemView, setIcon, Notice } from 'obsidian';
+import { App, TFile, WorkspaceLeaf, ItemView, setIcon } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { DateStateManager } from '../../shared/date-state-manager';
-import { TIMING } from '../../shared/timing-constants';
-import { getPluginById, getCommands, executeCommandById, getSetting } from '../../shared/obsidian-types';
+import { FileCreationService } from './FileCreationService';
+import { EmptyStateObserver } from './EmptyStateObserver';
 import { StreamsPluginInterface } from '../../shared/interfaces';
 
 // Interface for accessing app.plugins
@@ -24,6 +24,8 @@ export class CreateFileView extends ItemView {
     private stream: Stream;
     private dateStateManager: DateStateManager;
     private unsubscribeDateChanged: (() => void) | null = null;
+    private emptyStateObserver: EmptyStateObserver | null = null;
+    private fileCreationService: FileCreationService;
     
     constructor(
         leaf: WorkspaceLeaf, 
@@ -36,6 +38,7 @@ export class CreateFileView extends ItemView {
         this.filePath = filePath;
         this.stream = stream;
         this.dateStateManager = DateStateManager.getInstance();
+        this.fileCreationService = new FileCreationService(app);
     }
 
     getViewType(): string {
@@ -147,41 +150,19 @@ export class CreateFileView extends ItemView {
         
         // Content element styling is handled by CSS class
         
-        // Hide any empty-state elements that might still be present
-        const hideEmptyStates = () => {
-            const emptyStates = this.leaf.view.containerEl.querySelectorAll('.empty-state, .empty-state-container');
-            emptyStates.forEach(el => {
-                const htmlEl = el as HTMLElement;
-                htmlEl.addClass('streams-empty-state-hidden');
-            });
-        };
-        
-        // Hide them immediately
-        hideEmptyStates();
-        
-        // Set up a MutationObserver to hide them if they get recreated
-        const observer = new MutationObserver(() => {
-            hideEmptyStates();
-        });
-        
-        observer.observe(this.leaf.view.containerEl, {
-            childList: true,
-            subtree: true,
-            attributes: false
-        });
-        
-        // Store observer for cleanup
-        (this as any).emptyStateObserver = observer;
+        // Set up empty state observer
+        this.emptyStateObserver = new EmptyStateObserver(this.leaf);
+        this.emptyStateObserver.start();
         
         // Create our create file view content
         this.createFileViewContent(this.contentEl);
     }
 
     async onClose(): Promise<void> {
-        // Clean up the MutationObserver
-        if ((this as any).emptyStateObserver) {
-            (this as any).emptyStateObserver.disconnect();
-            (this as any).emptyStateObserver = null;
+        // Clean up the empty state observer
+        if (this.emptyStateObserver) {
+            this.emptyStateObserver.stop();
+            this.emptyStateObserver = null;
         }
         
         // Clean up date change listener
@@ -196,8 +177,8 @@ export class CreateFileView extends ItemView {
         }
         
         // Mark the view as invalid to prevent setState calls
-        this.contentEl = null as any;
-        this.leaf = null as any;
+        this.contentEl = null!;
+        this.leaf = null!;
     }
     
     private createFileViewContent(container: HTMLElement): void {
@@ -271,154 +252,7 @@ export class CreateFileView extends ItemView {
     }
     
     private async createAndOpenFile(): Promise<void> {
-        try {
-            // Get the file operations service to use the strategy pattern
-            const plugin = getPluginById(this.app, 'streams');
-            if (!plugin) {
-                centralizedLogger.error('Streams plugin not found');
-                return;
-            }
-            
-            // Check if encryption is enabled but Meld is not available
-            if (this.stream.encryptThisStream) {
-                const fileOpsService = (plugin as any).getFileOperationsService?.();
-                if (fileOpsService && !fileOpsService.isMeldPluginAvailable()) {
-                    // Show error and don't create file
-                    new Notice(fileOpsService.getMeldUnavailableMessage());
-                    return;
-                }
-            }
-            
-            // Create the file normally first (without encryption)
-            const file = await this.createFileNormally();
-            
-            if (file instanceof TFile) {
-                // Open the file in the current leaf (this will replace CreateFileView)
-                await this.leaf.openFile(file);
-                
-                // If encryption is enabled, trigger it after the file is opened
-                if (this.stream.encryptThisStream) {
-                    // Small delay to ensure the file is fully loaded
-                    setTimeout(async () => {
-                        await this.triggerEncryption(file);
-                    }, 200);
-                }
-            }
-        } catch (error) {
-            centralizedLogger.error('Error creating file:', error);
-        }
-    }
-    
-    private async createFileNormally(): Promise<TFile | null> {
-        try {
-            const folderPath = this.filePath.substring(0, this.filePath.lastIndexOf('/'));
-            
-            if (folderPath) {
-                try {
-                    const folderExists = this.app.vault.getAbstractFileByPath(folderPath);
-                    if (!folderExists) {
-                        await this.app.vault.createFolder(folderPath);
-                    }
-                } catch (error) {
-                    // Using existing folder
-                }
-            }
-            
-            // Create the file normally (without encryption)
-            const file = await this.app.vault.create(this.filePath, '');
-            return file instanceof TFile ? file : null;
-        } catch (error) {
-            centralizedLogger.error('Error creating file normally:', error);
-            return null;
-        }
-    }
-    
-    private async triggerEncryption(file: TFile): Promise<void> {
-        try {
-            // Ensure the file is the active file
-            const activeFile = this.app.workspace.getActiveFile();
-            
-            if (activeFile?.path !== file.path) {
-                // Find a leaf with this file and make it active
-                const fileLeaf = this.app.workspace.getLeavesOfType('markdown')
-                    .find(leaf => {
-                        try {
-                            const view = leaf.view as any;
-                            return view?.file?.path === file.path;
-                        } catch (e) {
-                            return false;
-                        }
-                    });
-                
-                if (fileLeaf) {
-                    this.app.workspace.setActiveLeaf(fileLeaf, { focus: true });
-                } else {
-                    centralizedLogger.error(`Could not find leaf with file: ${file.path}`);
-                    return;
-                }
-            }
-            
-            // Small delay to ensure the file is properly active
-            await new Promise(resolve => setTimeout(resolve, TIMING.FILE_OPERATION_DELAY));
-            
-            // Try to execute the Meld encryption command
-            const commands = getCommands(this.app);
-            const command = commands?.['meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note'];
-            
-            if (command?.callback && typeof command.callback === 'function') {
-                try {
-                    await command.callback();
-                } catch (cmdError) {
-                    centralizedLogger.error(`Meld command execution failed:`, cmdError);
-                }
-            } else {
-                // Fallback: Use command palette API
-                try {
-                    await executeCommandById(this.app, 'meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note');
-                } catch (altError) {
-                    centralizedLogger.error('Meld encryption command failed:', altError);
-                }
-            }
-        } catch (error) {
-            centralizedLogger.error(`Error triggering encryption for file ${file.path}:`, error);
-        }
-    }
-    
-    private async createFileWithStrategy(): Promise<TFile | null> {
-        try {
-            const folderPath = this.filePath.substring(0, this.filePath.lastIndexOf('/'));
-            
-            if (folderPath) {
-                try {
-                    const folderExists = this.app.vault.getAbstractFileByPath(folderPath);
-                    if (!folderExists) {
-                        await this.app.vault.createFolder(folderPath);
-                    }
-                } catch (error) {
-                    // Using existing folder
-                }
-            }
-            
-            // Get the file operations service
-            const plugin = getPluginById(this.app, 'streams') as StreamsPluginInterface | undefined;
-            if (!plugin) {
-                centralizedLogger.error('Streams plugin not found');
-                return null;
-            }
-            
-            const fileOpsService = plugin.getFileOperationsService?.();
-            if (fileOpsService) {
-                // Use the strategy pattern
-                return await fileOpsService.createFile(this.filePath, '', this.stream);
-            } else {
-                // Fallback to normal file creation
-                const file = await this.app.vault.create(this.filePath, '');
-                return file instanceof TFile ? file : null;
-            }
-        } catch (error) {
-            centralizedLogger.error('Error creating file with strategy:', error);
-            return null;
-        }
+        await this.fileCreationService.createAndOpenFile(this.filePath, this.stream, this.leaf);
     }
     
     private setActiveStream(): void {

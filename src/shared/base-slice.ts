@@ -1,10 +1,9 @@
 import { Plugin } from 'obsidian';
-import { SliceService, PluginAwareService, StreamAwareService, SettingsAwareService } from './interfaces';
+import { SliceService, PluginAwareService, StreamAwareService, SettingsAwareService, StreamsPluginInterface } from './interfaces';
 import { Stream, StreamsSettings } from './types';
 import { centralizedLogger } from './centralized-logger';
 
 export abstract class BaseSliceService implements SliceService {
-    protected plugin: Plugin | null = null;
     protected initialized = false;
 
     abstract initialize(): Promise<void>;
@@ -20,11 +19,13 @@ export abstract class BaseSliceService implements SliceService {
 }
 
 export abstract class PluginAwareSliceService extends BaseSliceService implements PluginAwareService {
+    protected plugin: StreamsPluginInterface | null = null;
+    
     setPlugin(plugin: Plugin): void {
-        this.plugin = plugin;
+        this.plugin = plugin as StreamsPluginInterface;
     }
 
-    protected getPlugin(): Plugin {
+    protected getPlugin(): StreamsPluginInterface {
         if (!this.plugin) {
             throw new Error('Plugin not set. Call setPlugin() first.');
         }
@@ -39,12 +40,12 @@ export abstract class StreamAwareSliceService extends PluginAwareSliceService im
     abstract onActiveStreamChanged(streamId: string | undefined): void;
 
     protected getStreams(): Stream[] {
-        const plugin = this.getPlugin() as any;
+        const plugin = this.getPlugin();
         return plugin.settings?.streams || [];
     }
 
     protected getActiveStream(): Stream | undefined {
-        const plugin = this.getPlugin() as any;
+        const plugin = this.getPlugin();
         const activeStreamId = plugin.settings?.activeStreamId;
         if (!activeStreamId) return undefined;
         return this.getStreams().find(s => s.id === activeStreamId);
@@ -55,14 +56,12 @@ export abstract class SettingsAwareSliceService extends PluginAwareSliceService 
     abstract onSettingsChanged(settings: StreamsSettings): void;
 
     protected getSettings(): StreamsSettings {
-        const plugin = this.getPlugin() as any;
+        const plugin = this.getPlugin();
         return plugin.settings;
     }
 
     protected async saveSettings(): Promise<void> {
-        const plugin = this.getPlugin() as any;
-        if (plugin.saveSettings) {
-            await plugin.saveSettings();
-        }
+        const plugin = this.getPlugin();
+        await plugin.saveSettings();
     }
 }

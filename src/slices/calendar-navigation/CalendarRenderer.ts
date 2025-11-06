@@ -4,6 +4,7 @@ import { performanceMonitor } from '../../shared/performance-monitor';
 import { ContentIndicator, ContentIndicatorService } from './ContentIndicatorService';
 import { DateNavigationService } from './DateNavigationService';
 import { TIMING } from '../../shared/timing-constants';
+import { EventHandlerRegistry } from '../../shared/event-handler-registry';
 
 /**
  * Component responsible for rendering the calendar grid
@@ -17,6 +18,7 @@ export class CalendarRenderer extends Component {
     private currentMonthView: Date;
     private onDateSelected: (day: number) => Promise<void>;
     private onDropdownClose?: () => void;
+    private eventRegistry: EventHandlerRegistry;
 
     constructor(
         grid: HTMLElement,
@@ -34,6 +36,7 @@ export class CalendarRenderer extends Component {
         this.onDateSelected = onDateSelected;
         this.onDropdownClose = onDropdownClose;
         this.dateStateManager = DateStateManager.getInstance();
+        this.eventRegistry = new EventHandlerRegistry();
     }
 
     /**
@@ -233,13 +236,6 @@ export class CalendarRenderer extends Component {
      * Setup event delegation for calendar day clicks for better performance
      */
     private setupCalendarEventDelegation(): void {
-        // Remove existing event listeners
-        const existingHandler = (this as any).calendarClickHandler;
-        if (existingHandler) {
-            this.grid.removeEventListener('click', existingHandler);
-            this.grid.removeEventListener('touchend', existingHandler, { passive: true } as AddEventListenerOptions);
-        }
-        
         // Create single event handler for all day clicks
         const calendarClickHandler = (e: Event) => {
             const target = e.target as HTMLElement;
@@ -262,21 +258,14 @@ export class CalendarRenderer extends Component {
             }
         };
         
-        // Store handler reference for cleanup
-        (this as any).calendarClickHandler = calendarClickHandler;
-        
-        // Add event listeners to grid container
-        this.grid.addEventListener('click', calendarClickHandler);
-        this.grid.addEventListener('touchend', calendarClickHandler, { passive: true } as AddEventListenerOptions);
+        // Register event listeners using EventHandlerRegistry for automatic cleanup
+        this.eventRegistry.register(this.grid, 'click', calendarClickHandler);
+        this.eventRegistry.register(this.grid, 'touchend', calendarClickHandler, { passive: true } as AddEventListenerOptions);
     }
 
     onunload(): void {
-        // Clean up event listeners
-        const handler = (this as any).calendarClickHandler;
-        if (handler && this.grid) {
-            this.grid.removeEventListener('click', handler);
-            this.grid.removeEventListener('touchend', handler, { passive: true } as AddEventListenerOptions);
-        }
+        // Clean up all registered event listeners
+        this.eventRegistry.cleanup();
     }
 }
 

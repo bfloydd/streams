@@ -1,4 +1,4 @@
-import { App, TFile, WorkspaceLeaf, ItemView, setIcon, Notice } from 'obsidian';
+import { App, TFile, WorkspaceLeaf, ItemView, setIcon, Notice, MarkdownView } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { DateStateManager } from '../../shared/date-state-manager';
@@ -28,6 +28,7 @@ export class CreateFileViewEncrypted extends ItemView {
     private stream: Stream;
     private dateStateManager: DateStateManager;
     private unsubscribeDateChanged: (() => void) | null = null;
+    private emptyStateObserver: MutationObserver | null = null;
     
     constructor(
         leaf: WorkspaceLeaf, 
@@ -174,7 +175,7 @@ export class CreateFileViewEncrypted extends ItemView {
         });
         
         // Store observer for cleanup
-        (this as any).emptyStateObserver = observer;
+        this.emptyStateObserver = observer;
         
         // Create our create file view encrypted content
         this.createFileViewEncryptedContent(this.contentEl);
@@ -182,9 +183,9 @@ export class CreateFileViewEncrypted extends ItemView {
 
     async onClose(): Promise<void> {
         // Clean up the MutationObserver
-        if ((this as any).emptyStateObserver) {
-            (this as any).emptyStateObserver.disconnect();
-            (this as any).emptyStateObserver = null;
+        if (this.emptyStateObserver) {
+            this.emptyStateObserver.disconnect();
+            this.emptyStateObserver = null;
         }
         
         // Clean up date change listener
@@ -199,8 +200,8 @@ export class CreateFileViewEncrypted extends ItemView {
         }
         
         // Mark the view as invalid to prevent setState calls
-        this.contentEl = null as any;
-        this.leaf = null as any;
+        this.contentEl = null!;
+        this.leaf = null!;
     }
     
     private createFileViewEncryptedContent(container: HTMLElement): void {
@@ -341,7 +342,7 @@ export class CreateFileViewEncrypted extends ItemView {
                 const fileLeaf = this.app.workspace.getLeavesOfType('markdown')
                     .find(leaf => {
                         try {
-                            const view = leaf.view as any;
+                            const view = leaf.view as MarkdownView;
                             return view?.file?.path === file.path;
                         } catch (e) {
                             return false;

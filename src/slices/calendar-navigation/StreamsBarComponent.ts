@@ -1,4 +1,4 @@
-import { App, WorkspaceLeaf, TFile, MarkdownView, View, Component, setIcon } from 'obsidian';
+import { App, WorkspaceLeaf, TFile, MarkdownView, View, Component, setIcon, Plugin } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { OpenStreamDateCommand } from '../file-operations/OpenStreamDateCommand';
@@ -18,6 +18,8 @@ import { StreamSelector } from './StreamSelector';
 import { ContentIndicatorService, ContentIndicator } from './ContentIndicatorService';
 import { DateNavigationService } from './DateNavigationService';
 import { EventHandlerRegistry } from '../../shared/event-handler-registry';
+import { TouchGestureHandler } from './TouchGestureHandler';
+import { DocumentEventHandler } from './DocumentEventHandler';
 
 // ContentIndicator interface moved to ContentIndicatorService
 
@@ -60,11 +62,10 @@ export class StreamsBarComponent extends Component {
     private unsubscribeDateChanged: (() => void) | null = null;
     private unsubscribeActiveStreamChanged: (() => void) | null = null;
     private unsubscribeSettingsChanged: (() => void) | null = null;
-    private documentClickHandler: ((e: Event) => void) | null = null;
-    private calendarClickHandler: ((e: Event) => void) | null = null;
-    private lastTouchX: number | null = null;
-    private lastTouchY: number | null = null;
+    private touchGestureHandler: TouchGestureHandler | null = null;
+    private documentEventHandler: DocumentEventHandler | null = null;
     private currentMonthView: Date; // Tracks which month is being displayed in the calendar
+    private timeoutIds: number[] = []; // Store timeout IDs for cleanup
     
     // Cached DOM elements for better performance
     private collapsedView: HTMLElement | null = null;
@@ -73,16 +74,9 @@ export class StreamsBarComponent extends Component {
     private changeStreamText: HTMLElement | null = null;
     private dateDisplay: HTMLElement | null = null;
     
-    // Event handler references for cleanup (kept for backward compatibility during transition)
+    // Event handler references for cleanup
     private prevButton: HTMLElement | null = null;
     private nextButton: HTMLElement | null = null;
-    private gridWheelHandler: ((e: WheelEvent) => void) | null = null;
-    private gridTouchMoveHandler: ((e: TouchEvent) => void) | null = null;
-    private gridTouchStartHandler: ((e: TouchEvent) => void) | null = null;
-    private prevButtonWheelHandler: ((e: WheelEvent) => void) | null = null;
-    private prevButtonTouchHandler: ((e: TouchEvent) => void) | null = null;
-    private nextButtonWheelHandler: ((e: WheelEvent) => void) | null = null;
-    private nextButtonTouchHandler: ((e: TouchEvent) => void) | null = null;
     
     private getDisplayStreamName(): string {
         if (this.plugin?.settings?.activeStreamId) {
@@ -158,7 +152,8 @@ export class StreamsBarComponent extends Component {
         // Initialize Meld detection service
         this.meldDetectionService = new MeldDetectionService();
         if (plugin) {
-            this.meldDetectionService.setPlugin(plugin as any);
+            // Cast to Plugin for MeldDetectionService which expects Plugin type
+            this.meldDetectionService.setPlugin(plugin as unknown as Plugin);
             // Initialize asynchronously (fire and forget)
             this.meldDetectionService.initialize().catch(error => {
                 centralizedLogger.error('Error initializing MeldDetectionService:', error);
@@ -309,6 +304,8 @@ export class StreamsBarComponent extends Component {
         this.setupCollapsedView(this.collapsedView);
         this.setupExpandedView(this.expandedView);
         this.setupCalendarHandlers(this.expandedView);
+        
+        // Setup document handlers after all UI elements are created
         this.setupDocumentHandlers(this.collapsedView, this.expandedView);
         
         // Force a re-render by triggering a layout recalculation
@@ -468,50 +465,22 @@ export class StreamsBarComponent extends Component {
     }
 
     private setupCalendarHandlers(expandedView: HTMLElement): void {
-        if (!this.grid) return;
+        if (!this.grid || !this.prevButton || !this.nextButton || !this.dateDisplay) return;
         
-        this.setupGridScrollHandlers();
-        this.setupMonthNavigationHandlers();
-    }
-
-    private setupGridScrollHandlers(): void {
-        if (!this.grid) return;
-        
-        this.gridWheelHandler = (e: WheelEvent) => {
-            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-        };
-        this.eventRegistry.register(this.grid, 'wheel', this.gridWheelHandler, { passive: false });
-
-        this.gridTouchMoveHandler = (e: TouchEvent) => {
-            const touch = e.touches[0];
-            if (touch) {
-                const deltaX = Math.abs(touch.clientX - (this.lastTouchX || touch.clientX));
-                const deltaY = Math.abs(touch.clientY - (this.lastTouchY || touch.clientY));
-                
-                if (deltaX > deltaY && deltaX > 10) {
-                    e.preventDefault();
-                    e.stopPropagation();
+        // Initialize touch gesture handler
+        this.touchGestureHandler = new TouchGestureHandler(
+            this.eventRegistry,
+            (direction: number) => {
+                if (this.dateDisplay) {
+                    this.navigateMonth(direction, this.dateDisplay);
                 }
             }
-        };
-        this.eventRegistry.register(this.grid, 'touchmove', this.gridTouchMoveHandler, { passive: false });
-
-        this.gridTouchStartHandler = (e: TouchEvent) => {
-            const touch = e.touches[0];
-            if (touch) {
-                this.lastTouchX = touch.clientX;
-                this.lastTouchY = touch.clientY;
-            }
-        };
-        this.eventRegistry.register(this.grid, 'touchstart', this.gridTouchStartHandler, { passive: true });
-    }
-
-    private setupMonthNavigationHandlers(): void {
-        if (!this.prevButton || !this.nextButton || !this.dateDisplay) return;
+        );
         
+        // Setup grid scroll handlers
+        this.touchGestureHandler.setupGridScrollHandlers(this.grid);
+        
+        // Setup month navigation click handlers
         const handlePrevMonth = (e: Event) => {
             e.preventDefault();
             e.stopPropagation();
@@ -531,160 +500,31 @@ export class StreamsBarComponent extends Component {
         this.eventRegistry.register(this.prevButton, 'click', handlePrevMonth);
         this.eventRegistry.register(this.nextButton, 'click', handleNextMonth);
 
-        this.setupTouchNavigationHandlers();
-        this.setupWheelNavigationHandlers();
-    }
-
-    private setupTouchNavigationHandlers(): void {
-        if (!this.prevButton || !this.nextButton || !this.dateDisplay) return;
-        
-        this.prevButtonTouchHandler = (e: TouchEvent) => {
-            e.preventDefault();
-            const handleTouchEnd = (e: TouchEvent) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (this.dateDisplay) {
-                    this.navigateMonth(-1, this.dateDisplay);
-                }
-            };
-            if (this.prevButton) {
-                this.eventRegistry.register(this.prevButton, 'touchend', handleTouchEnd, { passive: false, once: true });
-            }
-        };
-        this.eventRegistry.register(this.prevButton, 'touchstart', this.prevButtonTouchHandler, { passive: false });
-
-        this.nextButtonTouchHandler = (e: TouchEvent) => {
-            e.preventDefault();
-            const handleTouchEnd = (e: TouchEvent) => {
-                e.preventDefault();
-                e.stopPropagation();
-                if (this.dateDisplay) {
-                    this.navigateMonth(1, this.dateDisplay);
-                }
-            };
-            if (this.nextButton) {
-                this.eventRegistry.register(this.nextButton, 'touchend', handleTouchEnd, { passive: false, once: true });
-            }
-        };
-        this.eventRegistry.register(this.nextButton, 'touchstart', this.nextButtonTouchHandler, { passive: false });
-    }
-
-    private setupWheelNavigationHandlers(): void {
-        if (!this.prevButton || !this.nextButton) return;
-        
-        this.prevButtonWheelHandler = (e: WheelEvent) => {
-            e.preventDefault();
-            e.stopPropagation();
-        };
-        this.eventRegistry.register(this.prevButton, 'wheel', this.prevButtonWheelHandler, { passive: false });
-
-        this.nextButtonWheelHandler = (e: WheelEvent) => {
-            e.preventDefault();
-            e.stopPropagation();
-        };
-        this.eventRegistry.register(this.nextButton, 'wheel', this.nextButtonWheelHandler, { passive: false });
+        // Setup touch and wheel navigation handlers
+        this.touchGestureHandler.setupTouchNavigationHandlers(this.prevButton, this.nextButton, this.dateDisplay);
+        this.touchGestureHandler.setupWheelNavigationHandlers(this.prevButton, this.nextButton);
     }
 
     private setupDocumentHandlers(collapsedView: HTMLElement, expandedView: HTMLElement): void {
-        this.documentClickHandler = this.createDocumentClickHandler(collapsedView, expandedView);
-        this.eventRegistry.registerDocument('click', this.documentClickHandler);
-
-        this.eventRegistry.registerDocument('keydown', (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && this.expanded) {
-                e.preventDefault();
-                e.stopPropagation();
-                this.toggleExpanded(collapsedView, expandedView);
+        // Initialize document event handler after all UI elements are created
+        this.documentEventHandler = new DocumentEventHandler(
+            this.eventRegistry,
+            this.todayButton,
+            this.changeStreamSection,
+            this.streamsDropdown,
+            this.expandedView,
+            this.streamSelector,
+            () => {
+                if (this.collapsedView && this.expandedView) {
+                    this.toggleExpanded(this.collapsedView, this.expandedView);
+                }
+            },
+            () => {
+                this.hideStreamsDropdown();
             }
-        });
-    }
-
-    private createDocumentClickHandler(collapsedView: HTMLElement, expandedView: HTMLElement): (e: Event) => void {
-        return (e: Event) => {
-            const target = e.target as Node;
-            
-            const isCalendarToggle = !!(this.todayButton && (this.todayButton.contains(target) || this.todayButton === target));
-            const isDropdownToggle = !!(this.changeStreamSection && (this.changeStreamSection.contains(target) || this.changeStreamSection === target));
-            
-            const dropdownOpen = !!(this.streamSelector && this.streamSelector.isVisible());
-            const calendarOpen = !!this.expanded;
-            
-            const isInsideCalendar = !!(this.expandedView && this.expandedView.contains(target));
-            const isInsideDropdown = !!(this.streamsDropdown && this.streamsDropdown.contains(target));
-            
-            // Handle toggle button interactions
-            if (this.handleToggleButtonClicks(isCalendarToggle, isDropdownToggle, dropdownOpen, calendarOpen, collapsedView, expandedView)) {
-                return;
-            }
-            
-            // Handle clicks inside calendar/dropdown areas
-            if (this.handleAreaClicks(isInsideCalendar, isInsideDropdown, dropdownOpen, calendarOpen, collapsedView, expandedView)) {
-                return;
-            }
-            
-            // Close open menus when clicking outside
-            this.closeOpenMenus(calendarOpen, dropdownOpen, collapsedView, expandedView);
-        };
-    }
-
-    private handleToggleButtonClicks(
-        isCalendarToggle: boolean,
-        isDropdownToggle: boolean,
-        dropdownOpen: boolean,
-        calendarOpen: boolean,
-        collapsedView: HTMLElement,
-        expandedView: HTMLElement
-    ): boolean {
-        if (isCalendarToggle && dropdownOpen) {
-            this.hideStreamsDropdown();
-            return true;
-        }
+        );
         
-        if (isDropdownToggle && calendarOpen) {
-            this.toggleExpanded(collapsedView, expandedView);
-            return true;
-        }
-        
-        if (isCalendarToggle || isDropdownToggle) {
-            return true; // Let the toggle handle its own state
-        }
-        
-        return false;
-    }
-
-    private handleAreaClicks(
-        isInsideCalendar: boolean,
-        isInsideDropdown: boolean,
-        dropdownOpen: boolean,
-        calendarOpen: boolean,
-        collapsedView: HTMLElement,
-        expandedView: HTMLElement
-    ): boolean {
-        if (isInsideCalendar && dropdownOpen) {
-            this.hideStreamsDropdown();
-            return true;
-        }
-        
-        if (isInsideDropdown && calendarOpen) {
-            this.toggleExpanded(collapsedView, expandedView);
-            return true;
-        }
-        
-        return false;
-    }
-
-    private closeOpenMenus(
-        calendarOpen: boolean,
-        dropdownOpen: boolean,
-        collapsedView: HTMLElement,
-        expandedView: HTMLElement
-    ): void {
-        if (calendarOpen) {
-            this.toggleExpanded(collapsedView, expandedView);
-        }
-        
-        if (dropdownOpen) {
-            this.hideStreamsDropdown();
-        }
+        this.documentEventHandler.setupDocumentHandlers();
     }
 
     // Content indicator methods moved to ContentIndicatorService
@@ -719,13 +559,15 @@ export class StreamsBarComponent extends Component {
         
         if (this.expanded && this.calendarRenderer) {
             if (this.grid && this.grid.children.length > 0) {
-                setTimeout(() => {
+                const timeoutId = window.setTimeout(() => {
                     this.calendarRenderer!.updateGridContent();
                 }, TIMING.SHORT_DELAY);
+                this.timeoutIds.push(timeoutId);
             } else {
-                setTimeout(() => {
+                const timeoutId = window.setTimeout(() => {
                     this.calendarRenderer!.updateCalendarGrid();
                 }, TIMING.SHORT_DELAY);
+                this.timeoutIds.push(timeoutId);
             }
         }
     }
@@ -768,8 +610,23 @@ export class StreamsBarComponent extends Component {
             this.unsubscribeSettingsChanged = null;
         }
         
+        // Clean up extracted handlers
+        if (this.touchGestureHandler) {
+            this.touchGestureHandler.cleanup();
+            this.touchGestureHandler = null;
+        }
+        
+        if (this.documentEventHandler) {
+            this.documentEventHandler.cleanup();
+            this.documentEventHandler = null;
+        }
+        
         // Clean up all registered event listeners via registry
         this.eventRegistry.cleanup();
+        
+        // Clean up setTimeout callbacks
+        this.timeoutIds.forEach(id => window.clearTimeout(id));
+        this.timeoutIds = [];
         
         // Clean up calendar renderer component
         if (this.calendarRenderer) {
@@ -787,17 +644,6 @@ export class StreamsBarComponent extends Component {
         this.prevButton = null;
         this.nextButton = null;
         this.grid = null;
-        this.documentClickHandler = null;
-        this.calendarClickHandler = null;
-        this.gridWheelHandler = null;
-        this.gridTouchMoveHandler = null;
-        this.gridTouchStartHandler = null;
-        this.prevButtonWheelHandler = null;
-        this.prevButtonTouchHandler = null;
-        this.nextButtonWheelHandler = null;
-        this.nextButtonTouchHandler = null;
-        this.lastTouchX = null;
-        this.lastTouchY = null;
         
         if (this.component && this.component.parentElement) {
             this.component.remove();

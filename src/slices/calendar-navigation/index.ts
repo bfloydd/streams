@@ -1,6 +1,10 @@
-export * from './CalendarNavigationService';
-export * from './StreamsBarComponent';
-export * from './CalendarRenderer';
-export * from './StreamSelector';
-export * from './ContentIndicatorService';
-export * from './DateNavigationService';
+export { CalendarNavigationService } from './CalendarNavigationService';
+export { CalendarRenderer } from './CalendarRenderer';
+export { ContentIndicatorService } from './ContentIndicatorService';
+export { DateNavigationService } from './DateNavigationService';
+export { StreamsBarComponent } from './StreamsBarComponent';
+export { StreamSelector } from './StreamSelector';
+export { TouchGestureHandler } from './TouchGestureHandler';
+export { DocumentEventHandler } from './DocumentEventHandler';
+export { ViewManagementService } from './ViewManagementService';
+export { ComponentLifecycleManager } from './ComponentLifecycleManager';

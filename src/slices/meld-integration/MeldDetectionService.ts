@@ -24,7 +24,19 @@ export class MeldDetectionService extends PluginAwareSliceService {
     isMeldPluginAvailable(): boolean {
         try {
             const app = this.getPlugin().app;
-            
+            return MeldDetectionService.checkMeldAvailability(app);
+        } catch (error) {
+            centralizedLogger.error('Error checking Meld plugin availability:', error);
+            return false;
+        }
+    }
+    
+    /**
+     * Static helper to check Meld availability without requiring a plugin instance
+     * Useful for utility functions that don't have plugin context
+     */
+    static checkMeldAvailability(app: App): boolean {
+        try {
             // Check if the Meld plugin is installed and enabled
             const plugins = getPlugins(app);
             if (!plugins) return false;
@@ -37,7 +49,8 @@ export class MeldDetectionService extends PluginAwareSliceService {
             const commands = getCommands(app);
             if (!commands) return false;
             
-            return !!commands[this.meldCommandId];
+            const meldCommandId = 'meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note';
+            return !!commands[meldCommandId];
         } catch (error) {
             centralizedLogger.error('Error checking Meld plugin availability:', error);
             return false;

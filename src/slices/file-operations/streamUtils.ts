@@ -7,39 +7,14 @@ import { CreateFileViewEncrypted, CREATE_FILE_VIEW_ENCRYPTED_TYPE } from './Crea
 import { DateStateManager } from '../../shared/date-state-manager';
 import { encryptionDetectionService } from '../../shared/encryption-detection-service';
 import { MeldDetectionService } from '../meld-integration';
-import { getPlugins, getCommands } from '../../shared/obsidian-types';
+import { LeafSelectionService } from './LeafSelectionService';
 
 /**
- * Check if file content appears to be encrypted
- * @deprecated Use encryptionDetectionService.isEncryptedContent() instead
- */
-function isEncryptedContent(content: string): boolean {
-    return encryptionDetectionService.isEncryptedContent(content);
-}
-
-/**
- * Check if Meld plugin is available
- * @deprecated Use MeldDetectionService instead
+ * Check if Meld plugin is available using MeldDetectionService
+ * Uses static helper method for utility functions that don't have plugin context
  */
 function isMeldPluginAvailable(app: App): boolean {
-    // Create a temporary service instance to check Meld availability
-    // Note: This is a workaround for utility functions that don't have plugin context
-    // Ideally, these utility functions should be refactored to accept services
-    try {
-        const plugins = getPlugins(app);
-        if (!plugins) return false;
-        
-        const meldPlugin = plugins['meld-encrypt'];
-        if (!meldPlugin) return false;
-        
-        const commands = getCommands(app);
-        if (!commands) return false;
-        
-        return !!commands['meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note'];
-    } catch (error) {
-        centralizedLogger.error('Error checking Meld plugin availability:', error);
-        return false;
-    }
+    return MeldDetectionService.checkMeldAvailability(app);
 }
 
 /**
@@ -47,38 +22,12 @@ function isMeldPluginAvailable(app: App): boolean {
  */
 async function showInstallMeldView(app: App, file: TFile, stream: Stream, date: Date, reuseCurrentTab: boolean): Promise<void> {
     try {
-        // Handle leaf selection based on reuseCurrentTab setting
-        let leaf: WorkspaceLeaf | null = null;
-        
-        if (reuseCurrentTab) {
-            // Always try to reuse the current active leaf when reuseCurrentTab is enabled
-            const activeLeaf = app.workspace.activeLeaf;
-            if (activeLeaf) {
-                leaf = activeLeaf;
-            } else {
-                // Fallback: create a new leaf if no active leaf
-                try {
-                    leaf = app.workspace.getLeaf('tab');
-                } catch (error) {
-                    centralizedLogger.error('Failed to create new leaf:', error);
-                    return;
-                }
-            }
-        } else {
-            // Original behavior: only reuse empty/non-markdown views
-            const activeLeaf = app.workspace.activeLeaf;
-            if (activeLeaf && !activeLeaf.view.getViewType().includes('markdown')) {
-                leaf = activeLeaf;
-            } else {
-                // Create a new leaf if current one is not suitable
-                try {
-                    leaf = app.workspace.getLeaf('tab');
-                } catch (error) {
-                    centralizedLogger.error('Failed to create new leaf:', error);
-                    return;
-                }
-            }
-        }
+        // Use LeafSelectionService to select appropriate leaf
+        const leaf = LeafSelectionService.selectLeaf(
+            app,
+            reuseCurrentTab,
+            (viewType) => !viewType.includes('markdown')
+        );
         
         // Check if leaf is null before proceeding
         if (!leaf) {
@@ -247,39 +196,12 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
             }
         }
         
-        // Handle leaf selection based on reuseCurrentTab setting
-        let leaf: WorkspaceLeaf | null = null;
-        
-        if (reuseCurrentTab) {
-            // Always try to reuse the current active leaf when reuseCurrentTab is enabled
-            const activeLeaf = app.workspace.activeLeaf;
-            if (activeLeaf) {
-                leaf = activeLeaf;
-                // log.debug('Reusing current active leaf for CreateFileView (reuseCurrentTab enabled)');
-            } else {
-                // Fallback: create a new leaf if no active leaf
-                try {
-                    leaf = app.workspace.getLeaf('tab');
-                } catch (error) {
-                    centralizedLogger.error('Failed to create new leaf:', error);
-                    return;
-                }
-            }
-        } else {
-            // Original behavior: only reuse empty/non-markdown views
-            const activeLeaf = app.workspace.activeLeaf;
-            if (activeLeaf && !activeLeaf.view.getViewType().includes('markdown')) {
-                leaf = activeLeaf;
-            } else {
-                // Create a new leaf if current one is not suitable
-                try {
-                    leaf = app.workspace.getLeaf('tab');
-                } catch (error) {
-                    centralizedLogger.error('Failed to create new leaf:', error);
-                    return;
-                }
-            }
-        }
+        // Use LeafSelectionService to select appropriate leaf
+        const leaf = LeafSelectionService.selectLeaf(
+            app,
+            reuseCurrentTab,
+            (viewType) => !viewType.includes('markdown')
+        );
         
         // Check if leaf is null before proceeding
         if (!leaf) {
@@ -355,14 +277,8 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                 const dateStateManager = DateStateManager.getInstance();
                 dateStateManager.setCurrentDate(date);
                 
-                let leaf: WorkspaceLeaf | null = null;
-                
-                if (reuseCurrentTab) {
-                    const activeLeaf = app.workspace.activeLeaf;
-                    leaf = activeLeaf || app.workspace.getLeaf('tab');
-                } else {
-                    leaf = app.workspace.getLeaf('tab');
-                }
+                // Use LeafSelectionService to select appropriate leaf
+                const leaf = LeafSelectionService.selectLeaf(app, reuseCurrentTab);
 
                 if (leaf) {
                     await leaf.openFile(file);
@@ -377,60 +293,8 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
             const dateStateManager = DateStateManager.getInstance();
             dateStateManager.setCurrentDate(date);
             
-            // File is not encrypted, proceed with normal opening
-            let leaf: WorkspaceLeaf | null = null;
-            
-            if (reuseCurrentTab) {
-                // Always try to reuse the current active leaf when reuseCurrentTab is enabled
-                const activeLeaf = app.workspace.activeLeaf;
-                if (activeLeaf) {
-                    leaf = activeLeaf;
-                } else {
-                    // Fallback: look for existing leaf with the same file
-                    const existingLeaf = app.workspace.getLeavesOfType('markdown')
-                        .find(leaf => {
-                            try {
-                                const view = leaf.view as MarkdownView;
-                                const viewFile = view?.file;
-                                if (!viewFile || !file) return false;
-                                
-                                const viewPath = normalizePath(viewFile.path);
-                                const filePath = normalizePath(file.path);
-                                return viewPath === filePath;
-                            } catch (e) {
-                                return false;
-                            }
-                        });
-
-                    if (existingLeaf) {
-                        leaf = existingLeaf;
-                    } else {
-                        leaf = app.workspace.getLeaf('tab');
-                    }
-                }
-            } else {
-                // Original behavior: look for existing leaf with same file first
-                const existingLeaf = app.workspace.getLeavesOfType('markdown')
-                    .find(leaf => {
-                        try {
-                            const view = leaf.view as MarkdownView;
-                            const viewFile = view?.file;
-                            if (!viewFile || !file) return false;
-                            
-                            const viewPath = normalizePath(viewFile.path);
-                            const filePath = normalizePath(file.path);
-                            return viewPath === filePath;
-                        } catch (e) {
-                            return false;
-                        }
-                    });
-
-                if (existingLeaf) {
-                    leaf = existingLeaf;
-                } else {
-                    leaf = app.workspace.getLeaf('tab');
-                }
-            }
+            // Use LeafSelectionService to find existing leaf with file or create new one
+            const leaf = LeafSelectionService.selectLeafForFile(app, file, reuseCurrentTab);
             
             if (leaf) {
                 await leaf.openFile(file);
