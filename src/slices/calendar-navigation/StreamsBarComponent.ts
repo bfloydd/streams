@@ -12,15 +12,14 @@ import { eventBus, EVENTS } from '../../shared/event-bus';
 import { encryptionDetectionService } from '../../shared/encryption-detection-service';
 import { MeldDetectionService } from '../meld-integration';
 import { TIMING } from '../../shared/timing-constants';
-import { getContentIndicatorSize } from '../../shared/file-size-constants';
 import { getSetting, getPluginById } from '../../shared/obsidian-types';
+import { CalendarRenderer } from './CalendarRenderer';
+import { StreamSelector } from './StreamSelector';
+import { ContentIndicatorService, ContentIndicator } from './ContentIndicatorService';
+import { DateNavigationService } from './DateNavigationService';
+import { EventHandlerRegistry } from '../../shared/event-handler-registry';
 
-interface ContentIndicator {
-    exists: boolean;
-    size: 'small' | 'medium' | 'large';
-    isEncrypted?: boolean;
-    isLocked?: boolean;
-}
+// ContentIndicator interface moved to ContentIndicatorService
 
 // Extended View interface for views with contentEl property
 interface ViewWithContentEl extends View {
@@ -51,6 +50,13 @@ export class StreamsBarComponent extends Component {
     private plugin: PluginInterface | null;
     private dateStateManager: DateStateManager;
     private meldDetectionService: MeldDetectionService;
+    
+    // Extracted services and components
+    private contentIndicatorService: ContentIndicatorService;
+    private dateNavigationService: DateNavigationService;
+    private calendarRenderer: CalendarRenderer | null = null;
+    private streamSelector: StreamSelector | null = null;
+    private eventRegistry: EventHandlerRegistry;
     private unsubscribeDateChanged: (() => void) | null = null;
     private unsubscribeActiveStreamChanged: (() => void) | null = null;
     private unsubscribeSettingsChanged: (() => void) | null = null;
@@ -60,7 +66,14 @@ export class StreamsBarComponent extends Component {
     private lastTouchY: number | null = null;
     private currentMonthView: Date; // Tracks which month is being displayed in the calendar
     
-    // Event handler references for cleanup
+    // Cached DOM elements for better performance
+    private collapsedView: HTMLElement | null = null;
+    private expandedView: HTMLElement | null = null;
+    private changeStreamSection: HTMLElement | null = null;
+    private changeStreamText: HTMLElement | null = null;
+    private dateDisplay: HTMLElement | null = null;
+    
+    // Event handler references for cleanup (kept for backward compatibility during transition)
     private prevButton: HTMLElement | null = null;
     private nextButton: HTMLElement | null = null;
     private gridWheelHandler: ((e: WheelEvent) => void) | null = null;
@@ -151,6 +164,11 @@ export class StreamsBarComponent extends Component {
                 centralizedLogger.error('Error initializing MeldDetectionService:', error);
             });
         }
+        
+        // Initialize extracted services
+        this.contentIndicatorService = new ContentIndicatorService(app, stream, this.meldDetectionService);
+        this.dateNavigationService = new DateNavigationService(app, stream, reuseCurrentTab);
+        this.eventRegistry = new EventHandlerRegistry();
         
         // Initialize the month view to the current date
         this.currentMonthView = new Date();
@@ -277,32 +295,48 @@ export class StreamsBarComponent extends Component {
         
         const isInStream = streamPath.every((part, index) => streamPath[index] === filePath[index]);
         
-        if (isInStream && this.grid) {
-            this.updateGridContent(this.grid);
+        if (isInStream && this.calendarRenderer) {
+            this.calendarRenderer.updateGridContent();
             this.updateTodayButton();
         }
     }
 
     private initializeComponent() {
-
-        const collapsedView = this.component.createDiv('streams-bar-collapsed');
-        const expandedView = this.component.createDiv('streams-bar-expanded');
+        this.collapsedView = this.component.createDiv('streams-bar-collapsed');
+        this.expandedView = this.component.createDiv('streams-bar-expanded');
         
+        this.setupExpandedViewScroll(this.expandedView);
+        this.setupCollapsedView(this.collapsedView);
+        this.setupExpandedView(this.expandedView);
+        this.setupCalendarHandlers(this.expandedView);
+        this.setupDocumentHandlers(this.collapsedView, this.expandedView);
+        
+        // Force a re-render by triggering a layout recalculation
+        this.component.offsetHeight; // Force layout
+        this.component.addClass('streams-bar-component--visible');
+    }
+
+    private setupExpandedViewScroll(expandedView: HTMLElement): void {
         // Prevent scroll events on the expanded view from interfering with navigation
-        expandedView.addEventListener('wheel', (e) => {
-            // Only prevent horizontal scroll events that might interfere with month navigation
+        this.eventRegistry.register(expandedView, 'wheel', (e: WheelEvent) => {
             if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
                 e.preventDefault();
                 e.stopPropagation();
             }
         }, { passive: false });
+    }
 
+    private setupCollapsedView(collapsedView: HTMLElement): void {
         const navControls = collapsedView.createDiv('streams-bar-nav-controls');
-        
+        this.setupNavigationControls(navControls, collapsedView);
+        this.setupStreamSelector(collapsedView);
+    }
+
+    private setupNavigationControls(navControls: HTMLElement, collapsedView: HTMLElement): void {
         const prevDayButton = navControls.createDiv('streams-bar-day-nav prev-day');
         prevDayButton.setText('←');
         prevDayButton.setAttribute('aria-label', 'Previous day');
-        prevDayButton.addEventListener('click', async (e) => {
+        this.eventRegistry.register(prevDayButton, 'click', async (e: Event) => {
             e.stopPropagation();
             await this.navigateToAdjacentDay(-1);
         });
@@ -311,36 +345,44 @@ export class StreamsBarComponent extends Component {
         this.todayButton = todayButton;
         this.updateTodayButton();
         
-        todayButton.addEventListener('click', (e) => {
+        this.eventRegistry.register(todayButton, 'click', (e: Event) => {
             e.stopPropagation();
-            // Close dropdown if it's open when opening calendar
-            if (this.streamsDropdown && !this.streamsDropdown.classList.contains('streams-bar-dropdown-hidden')) {
+            if (this.streamSelector && this.streamSelector.isVisible()) {
                 this.hideStreamsDropdown();
             }
-            this.toggleExpanded(collapsedView, expandedView);
+            if (this.collapsedView && this.expandedView) {
+                this.toggleExpanded(this.collapsedView, this.expandedView);
+            }
         });
         
         const nextDayButton = navControls.createDiv('streams-bar-day-nav next-day');
         nextDayButton.setText('→');
         nextDayButton.setAttribute('aria-label', 'Next day');
-        nextDayButton.addEventListener('click', async (e) => {
+        this.eventRegistry.register(nextDayButton, 'click', async (e: Event) => {
             e.stopPropagation();
             await this.navigateToAdjacentDay(1);
         });
         
+        this.setupHomeButton(navControls);
+        this.setupSettingsButton(navControls);
+    }
+
+    private setupHomeButton(navControls: HTMLElement): void {
         const homeButton = navControls.createDiv('streams-bar-home-button');
         setIcon(homeButton, 'home');
         homeButton.setAttribute('aria-label', 'Go to current stream today');
-        homeButton.addEventListener('click', async (e) => {
+        this.eventRegistry.register(homeButton, 'click', async (e: Event) => {
             e.stopPropagation();
             const command = new OpenTodayCurrentStreamCommand(this.app, this.streams, this.reuseCurrentTab, this.plugin);
             await command.execute();
         });
-        
+    }
+
+    private setupSettingsButton(navControls: HTMLElement): void {
         const settingsButton = navControls.createDiv('streams-bar-settings-button');
         setIcon(settingsButton, 'settings');
         settingsButton.setAttribute('aria-label', 'Open Streams plugin settings');
-        settingsButton.addEventListener('click', async (e) => {
+        this.eventRegistry.register(settingsButton, 'click', async (e: Event) => {
             e.stopPropagation();
             const setting = getSetting(this.app);
             if (setting) {
@@ -348,64 +390,102 @@ export class StreamsBarComponent extends Component {
                 setting.openTabById?.('streams');
             }
         });
+    }
 
-        const changeStreamSection = collapsedView.createDiv('streams-bar-change-stream');
-        const changeStreamText = changeStreamSection.createDiv('streams-bar-change-stream-text');
-        changeStreamText.setText(this.getDisplayStreamName());
+    private setupStreamSelector(collapsedView: HTMLElement): void {
+        this.changeStreamSection = collapsedView.createDiv('streams-bar-change-stream');
+        this.changeStreamText = this.changeStreamSection.createDiv('streams-bar-change-stream-text');
+        this.changeStreamText.setText(this.getDisplayStreamName());
         
-        // Add encryption icon if stream is encrypted
-        this.updateStreamEncryptionIcon(changeStreamSection);
+        this.updateStreamEncryptionIcon(this.changeStreamSection);
         
-        changeStreamSection.addEventListener('click', (e) => {
+        this.eventRegistry.register(this.changeStreamSection, 'click', (e: Event) => {
             e.stopPropagation();
-            // Close calendar if it's open when opening dropdown
-            if (this.expanded) {
-                this.toggleExpanded(collapsedView, expandedView);
+            if (this.expanded && this.collapsedView && this.expandedView) {
+                this.toggleExpanded(this.collapsedView, this.expandedView);
             }
             this.toggleStreamsDropdown();
         });
 
-        this.streamsDropdown = changeStreamSection.createDiv('streams-bar-streams-dropdown streams-dropdown streams-bar-dropdown-hidden');
+        this.streamsDropdown = this.changeStreamSection.createDiv('streams-bar-streams-dropdown streams-dropdown streams-bar-dropdown-hidden');
         
-        // Close calendar if it's open when clicking anywhere in dropdown
-        this.streamsDropdown.addEventListener('click', (e) => {
-            if (this.expanded) {
-                this.toggleExpanded(collapsedView, expandedView);
+        this.streamSelector = new StreamSelector(
+            this.streamsDropdown,
+            this.streams,
+            this.getActiveStreamId(),
+            this.app,
+            this.plugin,
+            this.reuseCurrentTab,
+            () => {
+                // Dropdown will be closed by StreamSelector
+            }
+        );
+        this.streamSelector.populateStreamsDropdown();
+        
+        this.eventRegistry.register(this.streamsDropdown, 'click', (e: Event) => {
+            if (this.expanded && this.collapsedView && this.expandedView) {
+                this.toggleExpanded(this.collapsedView, this.expandedView);
             }
         });
-        
-        this.populateStreamsDropdown();
+    }
 
+    private setupExpandedView(expandedView: HTMLElement): void {
         const topNav = expandedView.createDiv('streams-bar-top-nav');
 
         const header = expandedView.createDiv('streams-bar-header');
         this.prevButton = header.createDiv('streams-bar-nav');
         this.prevButton.setText('←');
-        const dateDisplay = header.createDiv('streams-bar-date');
+        
+        this.dateDisplay = header.createDiv('streams-bar-date');
         const state = this.dateStateManager.getState();
-        // Initialize currentMonthView to match the selected date's month
         this.currentMonthView = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), 1);
-        dateDisplay.setText(this.formatMonthYear(this.currentMonthView));
+        this.dateDisplay.setText(this.dateNavigationService.formatMonthYear(this.currentMonthView));
+        
         this.nextButton = header.createDiv('streams-bar-nav');
         this.nextButton.setText('→');
 
-        const grid = expandedView.createDiv('streams-bar-grid');
-        this.grid = grid;
-        this.updateCalendarGrid(grid);
+        this.grid = expandedView.createDiv('streams-bar-grid');
+        
+        // Initialize calendar renderer component
+        this.calendarRenderer = new CalendarRenderer(
+            this.grid,
+            this.contentIndicatorService,
+            this.dateNavigationService,
+            this.currentMonthView,
+            async (day: number) => {
+                await this.dateNavigationService.selectDate(this.currentMonthView, day);
+                if (this.expanded && this.collapsedView && this.expandedView) {
+                    this.toggleExpanded(this.collapsedView, this.expandedView);
+                }
+            },
+            () => {
+                if (this.streamSelector) {
+                    this.streamSelector.hide();
+                }
+            }
+        );
+        this.calendarRenderer.updateCalendarGrid();
+    }
 
-        // Prevent scroll events on the calendar grid from interfering with navigation
+    private setupCalendarHandlers(expandedView: HTMLElement): void {
+        if (!this.grid) return;
+        
+        this.setupGridScrollHandlers();
+        this.setupMonthNavigationHandlers();
+    }
+
+    private setupGridScrollHandlers(): void {
+        if (!this.grid) return;
+        
         this.gridWheelHandler = (e: WheelEvent) => {
-            // Only prevent horizontal scroll events that might interfere with month navigation
             if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
                 e.preventDefault();
                 e.stopPropagation();
             }
         };
-        grid.addEventListener('wheel', this.gridWheelHandler, { passive: false });
+        this.eventRegistry.register(this.grid, 'wheel', this.gridWheelHandler, { passive: false });
 
-        // Prevent touch scroll events that might interfere with navigation
         this.gridTouchMoveHandler = (e: TouchEvent) => {
-            // Allow vertical scrolling but prevent horizontal scrolling that might trigger navigation
             const touch = e.touches[0];
             if (touch) {
                 const deltaX = Math.abs(touch.clientX - (this.lastTouchX || touch.clientX));
@@ -417,7 +497,7 @@ export class StreamsBarComponent extends Component {
                 }
             }
         };
-        grid.addEventListener('touchmove', this.gridTouchMoveHandler, { passive: false });
+        this.eventRegistry.register(this.grid, 'touchmove', this.gridTouchMoveHandler, { passive: false });
 
         this.gridTouchStartHandler = (e: TouchEvent) => {
             const touch = e.touches[0];
@@ -426,405 +506,209 @@ export class StreamsBarComponent extends Component {
                 this.lastTouchY = touch.clientY;
             }
         };
-        grid.addEventListener('touchstart', this.gridTouchStartHandler, { passive: true });
+        this.eventRegistry.register(this.grid, 'touchstart', this.gridTouchStartHandler, { passive: true });
+    }
 
-        // Add event handlers to prevent scroll events from triggering navigation
+    private setupMonthNavigationHandlers(): void {
+        if (!this.prevButton || !this.nextButton || !this.dateDisplay) return;
+        
         const handlePrevMonth = (e: Event) => {
             e.preventDefault();
             e.stopPropagation();
-            this.navigateMonth(-1, dateDisplay, grid);
+            if (this.dateDisplay) {
+                this.navigateMonth(-1, this.dateDisplay);
+            }
         };
 
         const handleNextMonth = (e: Event) => {
             e.preventDefault();
             e.stopPropagation();
-            this.navigateMonth(1, dateDisplay, grid);
+            if (this.dateDisplay) {
+                this.navigateMonth(1, this.dateDisplay);
+            }
         };
 
-        // Add click event listeners
-        this.prevButton.addEventListener('click', handlePrevMonth);
-        this.nextButton.addEventListener('click', handleNextMonth);
+        this.eventRegistry.register(this.prevButton, 'click', handlePrevMonth);
+        this.eventRegistry.register(this.nextButton, 'click', handleNextMonth);
 
-        // Add touch event listeners to prevent scroll interference and handle navigation
+        this.setupTouchNavigationHandlers();
+        this.setupWheelNavigationHandlers();
+    }
+
+    private setupTouchNavigationHandlers(): void {
+        if (!this.prevButton || !this.nextButton || !this.dateDisplay) return;
+        
         this.prevButtonTouchHandler = (e: TouchEvent) => {
             e.preventDefault();
-            // Trigger navigation on touchend for mobile
             const handleTouchEnd = (e: TouchEvent) => {
                 e.preventDefault();
                 e.stopPropagation();
-                this.navigateMonth(-1, dateDisplay, grid);
-                if (this.prevButton) {
-                    this.prevButton.removeEventListener('touchend', handleTouchEnd);
+                if (this.dateDisplay) {
+                    this.navigateMonth(-1, this.dateDisplay);
                 }
             };
             if (this.prevButton) {
-                this.prevButton.addEventListener('touchend', handleTouchEnd, { passive: false });
+                this.eventRegistry.register(this.prevButton, 'touchend', handleTouchEnd, { passive: false, once: true });
             }
         };
-        this.prevButton.addEventListener('touchstart', this.prevButtonTouchHandler, { passive: false });
+        this.eventRegistry.register(this.prevButton, 'touchstart', this.prevButtonTouchHandler, { passive: false });
 
         this.nextButtonTouchHandler = (e: TouchEvent) => {
             e.preventDefault();
-            // Trigger navigation on touchend for mobile
             const handleTouchEnd = (e: TouchEvent) => {
                 e.preventDefault();
                 e.stopPropagation();
-                this.navigateMonth(1, dateDisplay, grid);
-                if (this.nextButton) {
-                    this.nextButton.removeEventListener('touchend', handleTouchEnd);
+                if (this.dateDisplay) {
+                    this.navigateMonth(1, this.dateDisplay);
                 }
             };
             if (this.nextButton) {
-                this.nextButton.addEventListener('touchend', handleTouchEnd, { passive: false });
+                this.eventRegistry.register(this.nextButton, 'touchend', handleTouchEnd, { passive: false, once: true });
             }
         };
-        this.nextButton.addEventListener('touchstart', this.nextButtonTouchHandler, { passive: false });
+        this.eventRegistry.register(this.nextButton, 'touchstart', this.nextButtonTouchHandler, { passive: false });
+    }
 
-        // Add wheel event listeners to prevent scroll from triggering navigation
+    private setupWheelNavigationHandlers(): void {
+        if (!this.prevButton || !this.nextButton) return;
+        
         this.prevButtonWheelHandler = (e: WheelEvent) => {
             e.preventDefault();
             e.stopPropagation();
         };
-        this.prevButton.addEventListener('wheel', this.prevButtonWheelHandler, { passive: false });
+        this.eventRegistry.register(this.prevButton, 'wheel', this.prevButtonWheelHandler, { passive: false });
 
         this.nextButtonWheelHandler = (e: WheelEvent) => {
             e.preventDefault();
             e.stopPropagation();
         };
-        this.nextButton.addEventListener('wheel', this.nextButtonWheelHandler, { passive: false });
+        this.eventRegistry.register(this.nextButton, 'wheel', this.nextButtonWheelHandler, { passive: false });
+    }
 
+    private setupDocumentHandlers(collapsedView: HTMLElement, expandedView: HTMLElement): void {
+        this.documentClickHandler = this.createDocumentClickHandler(collapsedView, expandedView);
+        this.eventRegistry.registerDocument('click', this.documentClickHandler);
 
-        // Store the click handler reference for cleanup
-        this.documentClickHandler = (e: Event) => {
-            const target = e.target as Node;
-            
-            // Check if click is on the toggle buttons - if so, let them handle the toggle
-            const isCalendarToggle = this.todayButton && (this.todayButton.contains(target) || this.todayButton === target);
-            const isDropdownToggle = changeStreamSection && (changeStreamSection.contains(target) || changeStreamSection === target);
-            
-            const dropdownOpen = this.streamsDropdown && !this.streamsDropdown.classList.contains('streams-bar-dropdown-hidden');
-            const calendarOpen = this.expanded;
-            
-            // Check if clicking inside the calendar or dropdown areas
-            // Note: expandedView is the calendar popup, component is the entire bar
-            const expandedCalendarView = this.component.querySelector('.streams-bar-expanded') as HTMLElement;
-            const isInsideCalendar = expandedCalendarView && expandedCalendarView.contains(target);
-            const isInsideDropdown = this.streamsDropdown && this.streamsDropdown.contains(target);
-            
-            // If clicking on a toggle button:
-            // - If the OTHER menu is open, close it first (then the toggle will open its own menu)
-            // - If clicking on the toggle for the menu that's already open, let it handle the toggle (close)
-            // - If no menus are open, let the toggle handle opening
-            if (isCalendarToggle && dropdownOpen) {
-                // Calendar toggle clicked while dropdown is open - close dropdown
-                this.hideStreamsDropdown();
-                return; // Let calendar toggle handle opening calendar
-            }
-            
-            if (isDropdownToggle && calendarOpen) {
-                // Dropdown toggle clicked while calendar is open - close calendar
-                this.toggleExpanded(collapsedView, expandedView);
-                return; // Let dropdown toggle handle opening dropdown
-            }
-            
-            // If clicking inside the calendar while dropdown is open, close the dropdown and return
-            if (isInsideCalendar && dropdownOpen) {
-                this.hideStreamsDropdown();
-                return;
-            }
-            
-            // If clicking inside the dropdown while calendar is open, close the calendar and return
-            if (isInsideDropdown && calendarOpen) {
-                this.toggleExpanded(collapsedView, expandedView);
-                return;
-            }
-            
-            // If clicking on toggle buttons when their menu is already open or no menus are open,
-            // let them handle it (they'll toggle their own menu)
-            if (isCalendarToggle || isDropdownToggle) {
-                return;
-            }
-            
-            // Close calendar if open (closes when clicking anywhere, including inside calendar)
-            if (calendarOpen) {
-                this.toggleExpanded(collapsedView, expandedView);
-            }
-            
-            // Close dropdown if visible (closes when clicking anywhere, including inside dropdown)
-            // Note: Dropdown items use stopPropagation, so they won't trigger this handler
-            // but they call selectStream which closes the dropdown anyway
-            if (dropdownOpen) {
-                this.hideStreamsDropdown();
-            }
-        };
-        
-        document.addEventListener('click', this.documentClickHandler);
-
-        document.addEventListener('keydown', (e) => {
+        this.eventRegistry.registerDocument('keydown', (e: KeyboardEvent) => {
             if (e.key === 'Escape' && this.expanded) {
                 e.preventDefault();
                 e.stopPropagation();
                 this.toggleExpanded(collapsedView, expandedView);
             }
         });
-
-        // Force a re-render by triggering a layout recalculation
-        this.component.offsetHeight; // Force layout
-
-        // Also try to make sure the component is visible
-        this.component.addClass('streams-bar-component--visible');
-
     }
 
-    private async getContentIndicator(date: Date): Promise<ContentIndicator> {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const fileName = `${year}-${month}-${day}.md`;
-        
-        const folderPath = this.selectedStream.folder
-            .split(/[/\\]/)
-            .filter(Boolean)
-            .join('/');
-        
-        const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
-        let file = this.app.vault.getAbstractFileByPath(filePath);
-        let isEncrypted = false;
-
-        // If file not found, check for encrypted version (.mdenc)
-        if (!file) {
-            const encryptedFilePath = filePath.replace(/\.md$/, '.mdenc');
-            file = this.app.vault.getAbstractFileByPath(encryptedFilePath);
-            isEncrypted = true;
-        }
-
-        if (!(file instanceof TFile)) {
-            return { exists: false, size: 'small' };
-        }
-
-        // Check if file is encrypted by extension or content
-        if (!isEncrypted) {
-            isEncrypted = encryptionDetectionService.isEncryptedFileByPath(file.path) || await encryptionDetectionService.isFileEncrypted(this.app, file);
-        }
-
-        const fileSize = file.stat.size;
-        const size = getContentIndicatorSize(fileSize);
-
-        // Determine if encrypted file is locked or unlocked
-        let isLocked = false;
-        if (isEncrypted) {
-            isLocked = await this.isEncryptedFileLocked(file);
-        }
-
-        return { 
-            exists: true, 
-            size, 
-            isEncrypted, 
-            isLocked 
-        };
-    }
-
-
-    /**
-     * Check if an encrypted file is currently locked (requires decryption to access)
-     */
-    private async isEncryptedFileLocked(file: TFile): Promise<boolean> {
-        try {
-            // Check if Meld plugin is available
-            if (!this.isMeldPluginAvailable()) {
-                // If Meld is not available, consider the file locked
-                return true;
-            }
-
-            // Try to read the file content to see if it's accessible
-            const content = await this.app.vault.cachedRead(file);
+    private createDocumentClickHandler(collapsedView: HTMLElement, expandedView: HTMLElement): (e: Event) => void {
+        return (e: Event) => {
+            const target = e.target as Node;
             
-            // If we can read the content and it's not encrypted patterns, it's unlocked
-            if (content && !encryptionDetectionService.isEncryptedContent(content)) {
-                return false;
-            }
-
-            // If content contains encrypted patterns, it's locked
-            return encryptionDetectionService.isEncryptedContent(content);
-        } catch (error) {
-            // If we can't read the file, consider it locked
-            centralizedLogger.debug('Could not read encrypted file, considering it locked:', error);
-            return true;
-        }
-    }
-
-    /**
-     * Check if Meld plugin is available
-     */
-    private isMeldPluginAvailable(): boolean {
-        return this.meldDetectionService?.isMeldPluginAvailable() || false;
-    }
-
-    private async updateCalendarGrid(grid: HTMLElement) {
-        const endTiming = performanceMonitor.startTiming('calendar-grid-update');
-        
-        try {
-            if (grid.children.length > 0) {
-                await this.updateGridContent(grid);
+            const isCalendarToggle = !!(this.todayButton && (this.todayButton.contains(target) || this.todayButton === target));
+            const isDropdownToggle = !!(this.changeStreamSection && (this.changeStreamSection.contains(target) || this.changeStreamSection === target));
+            
+            const dropdownOpen = !!(this.streamSelector && this.streamSelector.isVisible());
+            const calendarOpen = !!this.expanded;
+            
+            const isInsideCalendar = !!(this.expandedView && this.expandedView.contains(target));
+            const isInsideDropdown = !!(this.streamsDropdown && this.streamsDropdown.contains(target));
+            
+            // Handle toggle button interactions
+            if (this.handleToggleButtonClicks(isCalendarToggle, isDropdownToggle, dropdownOpen, calendarOpen, collapsedView, expandedView)) {
                 return;
             }
             
-            // Use DocumentFragment for batch DOM operations
-            const fragment = document.createDocumentFragment();
-        
-        const state = this.dateStateManager.getState();
-        const currentDate = this.currentMonthView; // Use the month view instead of selected date
-        const daysInMonth = this.getDaysInMonth(currentDate.getFullYear(), currentDate.getMonth());
-        const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
-        
-        // Create day headers
-        for (let i = 0; i < 7; i++) {
-            const dayHeader = document.createElement('div');
-            dayHeader.className = 'streams-bar-day-header';
-            dayHeader.textContent = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'][i];
-            fragment.appendChild(dayHeader);
-        }
-        
-        // Create empty day placeholders
-        for (let i = 0; i < firstDayOfMonth; i++) {
-            const emptyDay = document.createElement('div');
-            emptyDay.className = 'streams-bar-day empty';
-            fragment.appendChild(emptyDay);
-        }
-        
-        // Batch create all day elements and prepare content indicators
-        const dayElements: HTMLElement[] = [];
-        const contentPromises: Promise<ContentIndicator>[] = [];
-        
-        for (let day = 1; day <= daysInMonth; day++) {
-            const dayEl = document.createElement('div');
-            dayEl.className = 'streams-bar-day';
-            dayEl.setAttribute('data-day', String(day));
-            
-            const dateContainer = document.createElement('div');
-            dateContainer.className = 'streams-date-container';
-            dateContainer.textContent = String(day);
-            dayEl.appendChild(dateContainer);
-            
-            const dotContainer = document.createElement('div');
-            dotContainer.className = 'streams-dot-container';
-            dayEl.appendChild(dotContainer);
-            
-            dayElements.push(dayEl);
-            fragment.appendChild(dayEl);
-            
-            // Prepare content indicator promise
-            const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-            contentPromises.push(this.getContentIndicator(dayDate));
-        }
-        
-        // Clear grid and append all elements at once
-        grid.empty();
-        grid.appendChild(fragment);
-        
-        // Process content indicators and apply styles in batch
-        const contentIndicators = await Promise.all(contentPromises);
-        
-        // Batch apply styles and content
-        this.applyDayStylesAndContent(dayElements, contentIndicators, currentDate, state);
-        
-        // Use event delegation for better performance
-        this.setupCalendarEventDelegation(grid);
-        
-        } finally {
-            endTiming();
-        }
-    }
-    
-    private async updateGridContent(grid: HTMLElement) {
-        const endTiming = performanceMonitor.startTiming('calendar-grid-content-update');
-        
-        try {
-            const dayElements = Array.from(grid.querySelectorAll('.streams-bar-day:not(.empty)')) as HTMLElement[];
-            const state = this.dateStateManager.getState();
-            const currentDate = this.currentMonthView; // Use the month view instead of selected date
-            
-            // Batch prepare all content indicators
-            const contentPromises = dayElements.map((dayEl, i) => {
-                const day = i + 1;
-                const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-                return this.getContentIndicator(dayDate);
-            });
-            
-            // Wait for all content indicators to load
-            const contentIndicators = await Promise.all(contentPromises);
-            
-            // Batch apply all updates
-            this.applyDayStylesAndContent(dayElements, contentIndicators, currentDate, state);
-        } finally {
-            endTiming();
-        }
-    }
-
-    private formatDate(date: Date): string {
-        return date.toLocaleDateString('en-US', { 
-            month: 'short', 
-            day: 'numeric' 
-        });
-    }
-
-    private formatDateString(date: Date): string {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-
-    private formatMonthYear(date: Date): string {
-        return date.toLocaleDateString('en-US', { 
-            month: 'long', 
-            year: 'numeric' 
-        });
-    }
-
-    private isToday(date: Date): boolean {
-        const today = new Date();
-        return date.getDate() === today.getDate() && 
-               date.getMonth() === today.getMonth() && 
-               date.getFullYear() === today.getFullYear();
-    }
-
-    private async selectDate(day: number) {
-        const state = this.dateStateManager.getState();
-        const selectedDate = new Date(this.currentMonthView.getFullYear(), this.currentMonthView.getMonth(), day);
-        
-        // Update the date state
-        this.dateStateManager.setCurrentDate(selectedDate);
-        
-        // Navigate to the selected date
-        const command = new OpenStreamDateCommand(this.app, this.selectedStream, selectedDate, this.reuseCurrentTab);
-        await command.execute();
-        
-        // Close the expanded calendar after selecting a date
-        if (this.expanded) {
-            const collapsedView = this.component.querySelector('.streams-bar-collapsed') as HTMLElement;
-            const expandedView = this.component.querySelector('.streams-bar-expanded') as HTMLElement;
-            if (collapsedView && expandedView) {
-                this.toggleExpanded(collapsedView, expandedView);
+            // Handle clicks inside calendar/dropdown areas
+            if (this.handleAreaClicks(isInsideCalendar, isInsideDropdown, dropdownOpen, calendarOpen, collapsedView, expandedView)) {
+                return;
             }
+            
+            // Close open menus when clicking outside
+            this.closeOpenMenus(calendarOpen, dropdownOpen, collapsedView, expandedView);
+        };
+    }
+
+    private handleToggleButtonClicks(
+        isCalendarToggle: boolean,
+        isDropdownToggle: boolean,
+        dropdownOpen: boolean,
+        calendarOpen: boolean,
+        collapsedView: HTMLElement,
+        expandedView: HTMLElement
+    ): boolean {
+        if (isCalendarToggle && dropdownOpen) {
+            this.hideStreamsDropdown();
+            return true;
+        }
+        
+        if (isDropdownToggle && calendarOpen) {
+            this.toggleExpanded(collapsedView, expandedView);
+            return true;
+        }
+        
+        if (isCalendarToggle || isDropdownToggle) {
+            return true; // Let the toggle handle its own state
+        }
+        
+        return false;
+    }
+
+    private handleAreaClicks(
+        isInsideCalendar: boolean,
+        isInsideDropdown: boolean,
+        dropdownOpen: boolean,
+        calendarOpen: boolean,
+        collapsedView: HTMLElement,
+        expandedView: HTMLElement
+    ): boolean {
+        if (isInsideCalendar && dropdownOpen) {
+            this.hideStreamsDropdown();
+            return true;
+        }
+        
+        if (isInsideDropdown && calendarOpen) {
+            this.toggleExpanded(collapsedView, expandedView);
+            return true;
+        }
+        
+        return false;
+    }
+
+    private closeOpenMenus(
+        calendarOpen: boolean,
+        dropdownOpen: boolean,
+        collapsedView: HTMLElement,
+        expandedView: HTMLElement
+    ): void {
+        if (calendarOpen) {
+            this.toggleExpanded(collapsedView, expandedView);
+        }
+        
+        if (dropdownOpen) {
+            this.hideStreamsDropdown();
         }
     }
+
+    // Content indicator methods moved to ContentIndicatorService
+    // Calendar grid methods moved to CalendarRenderer
+
+    // Date formatting methods moved to DateNavigationService
 
     /**
      * Navigate to a different month in the calendar view
      * @param direction -1 for previous month, 1 for next month
      * @param dateDisplay - The date display element to update
-     * @param grid - The calendar grid element to update
      */
-    private navigateMonth(direction: number, dateDisplay: HTMLElement, grid: HTMLElement): void {
+    private navigateMonth(direction: number, dateDisplay: HTMLElement): void {
         // Only change the month view, not the selected date
-        this.currentMonthView.setMonth(this.currentMonthView.getMonth() + direction);
-        dateDisplay.setText(this.formatMonthYear(this.currentMonthView));
+        this.dateNavigationService.navigateMonth(this.currentMonthView, direction);
+        dateDisplay.setText(this.dateNavigationService.formatMonthYear(this.currentMonthView));
         
-        if (grid.children.length > 0) {
-            this.updateGridContent(grid);
-        } else {
-            this.updateCalendarGrid(grid);
+        if (this.calendarRenderer) {
+            this.calendarRenderer.setMonthView(this.currentMonthView);
+            if (this.grid && this.grid.children.length > 0) {
+                this.calendarRenderer.updateGridContent();
+            } else {
+                this.calendarRenderer.updateCalendarGrid();
+            }
         }
     }
 
@@ -833,18 +717,15 @@ export class StreamsBarComponent extends Component {
         expandedView.toggleClass('streams-bar-expanded-active', this.expanded);
         collapsedView.toggleClass('streams-today-button-expanded', this.expanded);
         
-        if (this.expanded) {
-            const grid = this.grid;
-            if (grid) {
-                if (grid.children.length > 0) {
-                    setTimeout(() => {
-                        this.updateGridContent(grid);
-                    }, TIMING.SHORT_DELAY);
-                } else {
-                    setTimeout(() => {
-                        this.updateCalendarGrid(grid);
-                    }, TIMING.SHORT_DELAY);
-                }
+        if (this.expanded && this.calendarRenderer) {
+            if (this.grid && this.grid.children.length > 0) {
+                setTimeout(() => {
+                    this.calendarRenderer!.updateGridContent();
+                }, TIMING.SHORT_DELAY);
+            } else {
+                setTimeout(() => {
+                    this.calendarRenderer!.updateCalendarGrid();
+                }, TIMING.SHORT_DELAY);
             }
         }
     }
@@ -865,63 +746,49 @@ export class StreamsBarComponent extends Component {
         if (currentYear === todayYear && currentMonth === todayMonth && currentDay === todayDay) {
             this.todayButton.setText('TODAY');
         } else {
-            const formattedDate = this.formatDate(currentDate);
+            const formattedDate = this.dateNavigationService.formatDate(currentDate);
             this.todayButton.setText(formattedDate);
         }
     }
 
     public destroy() {
-        // Clean up date change listener
+        // Clean up event bus subscriptions
         if (this.unsubscribeDateChanged) {
             this.unsubscribeDateChanged();
             this.unsubscribeDateChanged = null;
         }
         
-        // Clean up active stream change listener
         if (this.unsubscribeActiveStreamChanged) {
             this.unsubscribeActiveStreamChanged();
             this.unsubscribeActiveStreamChanged = null;
         }
         
-        // Clean up settings change listener
         if (this.unsubscribeSettingsChanged) {
             this.unsubscribeSettingsChanged();
             this.unsubscribeSettingsChanged = null;
         }
         
-        // Clean up document click handler
-        if (this.documentClickHandler) {
-            document.removeEventListener('click', this.documentClickHandler);
-            this.documentClickHandler = null;
+        // Clean up all registered event listeners via registry
+        this.eventRegistry.cleanup();
+        
+        // Clean up calendar renderer component
+        if (this.calendarRenderer) {
+            this.calendarRenderer.onunload();
+            this.calendarRenderer = null;
         }
         
-        // Clean up calendar click handler
-        if (this.calendarClickHandler && this.grid) {
-            this.grid.removeEventListener('click', this.calendarClickHandler);
-            this.grid.removeEventListener('touchend', this.calendarClickHandler, { passive: true } as AddEventListenerOptions);
-            this.calendarClickHandler = null;
-        }
-        
-        // Clean up scroll prevention event listeners
-        if (this.grid && this.gridWheelHandler && this.gridTouchMoveHandler && this.gridTouchStartHandler) {
-            this.grid.removeEventListener('wheel', this.gridWheelHandler);
-            this.grid.removeEventListener('touchmove', this.gridTouchMoveHandler);
-            this.grid.removeEventListener('touchstart', this.gridTouchStartHandler);
-        }
-        
-        // Clean up navigation button event listeners
-        if (this.prevButton && this.prevButtonWheelHandler && this.prevButtonTouchHandler) {
-            this.prevButton.removeEventListener('wheel', this.prevButtonWheelHandler);
-            this.prevButton.removeEventListener('touchstart', this.prevButtonTouchHandler);
-        }
-        if (this.nextButton && this.nextButtonWheelHandler && this.nextButtonTouchHandler) {
-            this.nextButton.removeEventListener('wheel', this.nextButtonWheelHandler);
-            this.nextButton.removeEventListener('touchstart', this.nextButtonTouchHandler);
+        // Clean up stream selector component
+        if (this.streamSelector) {
+            this.streamSelector.onunload();
+            this.streamSelector = null;
         }
         
         // Clean up references
         this.prevButton = null;
         this.nextButton = null;
+        this.grid = null;
+        this.documentClickHandler = null;
+        this.calendarClickHandler = null;
         this.gridWheelHandler = null;
         this.gridTouchMoveHandler = null;
         this.gridTouchStartHandler = null;
@@ -938,109 +805,25 @@ export class StreamsBarComponent extends Component {
     }
 
     private async navigateToAdjacentDay(offset: number): Promise<void> {
-        // Update the date state first
-        this.dateStateManager.navigateToAdjacentDay(offset);
-        
-        // Then navigate to the new date
-        const state = this.dateStateManager.getState();
-        const command = new OpenStreamDateCommand(this.app, this.selectedStream, state.currentDate, this.reuseCurrentTab);
-        await command.execute();
+        await this.dateNavigationService.navigateToAdjacentDay(offset);
     }
 
+    // Stream dropdown methods moved to StreamSelector component
     private toggleStreamsDropdown() {
-        if (this.streamsDropdown) {
-            const isVisible = !this.streamsDropdown.classList.contains('streams-bar-dropdown-hidden');
-            if (isVisible) {
-                this.hideStreamsDropdown();
-            } else {
-                this.showStreamsDropdown();
-            }
+        if (this.streamSelector) {
+            this.streamSelector.toggle();
         }
     }
 
     private showStreamsDropdown() {
-        if (this.streamsDropdown) {
-            this.streamsDropdown.removeClass('streams-bar-dropdown-hidden');
-            this.streamsDropdown.addClass('streams-bar-dropdown-visible');
-            this.streamsDropdown.addClass('streams-dropdown--visible');
+        if (this.streamSelector) {
+            this.streamSelector.show();
         }
     }
 
     private hideStreamsDropdown() {
-        if (this.streamsDropdown) {
-            this.streamsDropdown.addClass('streams-bar-dropdown-hidden');
-            this.streamsDropdown.removeClass('streams-bar-dropdown-visible');
-            this.streamsDropdown.removeClass('streams-dropdown--visible');
-        }
-    }
-
-    private populateStreamsDropdown() {
-        if (!this.streamsDropdown) return;
-        
-        this.streamsDropdown.empty();
-        
-        // Filter out disabled streams
-        const enabledStreams = this.streams.filter(stream => !stream.disabled);
-        
-        enabledStreams.forEach(stream => {
-            const streamItem = this.streamsDropdown!.createDiv('streams-bar-stream-item');
-            
-            const isSelected = stream.id === this.getActiveStreamId();
-            if (isSelected) {
-                streamItem.addClass('streams-bar-stream-item-selected');
-            }
-            
-            const streamIcon = streamItem.createDiv('streams-bar-stream-item-icon');
-            setIcon(streamIcon, stream.icon);
-            const streamName = streamItem.createDiv('streams-bar-stream-item-name');
-            streamName.setText(stream.name);
-            
-            // Add encryption icon if stream is encrypted
-            if (stream.encryptThisStream) {
-                const encryptionIcon = streamItem.createDiv('streams-bar-stream-item-encryption');
-                setIcon(encryptionIcon, 'lock');
-                encryptionIcon.setAttribute('title', 'Encrypted stream');
-                encryptionIcon.setAttribute('aria-label', 'Encrypted stream');
-            }
-            
-            if (isSelected) {
-                const checkmark = streamItem.createDiv('streams-bar-stream-item-checkmark');
-                setIcon(checkmark, 'check');
-            }
-            
-            streamItem.addEventListener('click', (e) => {
-                e.stopPropagation();
-                this.selectStream(stream);
-            });
-        });
-        
-        // Force a reflow on mobile devices to ensure the dropdown updates immediately
-        if (this.streamsDropdown) {
-            // Trigger a reflow to ensure the changes are visible
-            this.streamsDropdown.offsetHeight;
-        }
-    }
-
-    private selectStream(stream: Stream) {
-        // Update the plugin's active stream - this will trigger the event listener
-        if (this.plugin) {
-            this.plugin.setActiveStream(stream.id, true);
-        }
-        
-        this.hideStreamsDropdown();
-        
-        this.navigateToStreamDailyNote(stream);
-    }
-
-    private async navigateToStreamDailyNote(stream: Stream) {
-        try {
-            const state = this.dateStateManager.getState();
-            const targetDate = state.currentDate;
-            
-            const command = new OpenStreamDateCommand(this.app, stream, targetDate, this.reuseCurrentTab);
-            await command.execute();
-        } catch (error) {
-            centralizedLogger.error('Error navigating to stream daily note:', error);
+        if (this.streamSelector) {
+            this.streamSelector.hide();
         }
     }
 
@@ -1050,138 +833,19 @@ export class StreamsBarComponent extends Component {
 
     public updateStreamsList(streams: Stream[]) {
         this.streams = streams;
-        if (this.streamsDropdown) {
-            this.populateStreamsDropdown();
-            
-            // Force immediate DOM update for mobile devices
-            // Use requestAnimationFrame to ensure the DOM is updated
-            requestAnimationFrame(() => {
-                // Trigger a reflow to ensure the changes are visible
-                this.streamsDropdown?.offsetHeight;
-            });
+        if (this.streamSelector) {
+            this.streamSelector.updateStreams(streams);
         }
     }
 
     public refreshStreamsDropdown() {
-        if (this.streamsDropdown) {
-            this.populateStreamsDropdown();
+        if (this.streamSelector) {
+            this.streamSelector.populateStreamsDropdown();
         }
     }
 
-    private parseViewedDate(dateString: string): Date {
-        const [year, month, day] = dateString.split('-').map(n => parseInt(n, 10));
-        return new Date(year, month - 1, day);
-    }
-
-    private getDaysInMonth(year: number, month: number): number {
-        return new Date(year, month, 0).getDate();
-    }
-
-    /**
-     * Batch apply styles and content to day elements for optimal performance
-     */
-    private applyDayStylesAndContent(
-        dayElements: HTMLElement[], 
-        contentIndicators: ContentIndicator[], 
-        currentDate: Date, 
-        state: any
-    ): void {
-        // Use requestAnimationFrame to batch DOM updates
-        requestAnimationFrame(() => {
-            dayElements.forEach((dayEl, i) => {
-                const day = i + 1;
-                const content = contentIndicators[i];
-                const dayDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-                const dateString = this.formatDateString(dayDate);
-                
-                // Get dot container once
-                const dotContainer = dayEl.querySelector('.streams-dot-container') as HTMLElement;
-                
-                // Clear existing dots
-                if (dotContainer) {
-                    while (dotContainer.firstChild) {
-                        dotContainer.removeChild(dotContainer.firstChild);
-                    }
-                }
-                
-                // Apply classes efficiently
-                const classList = dayEl.classList;
-                classList.remove('viewed', 'today');
-                
-                if (dateString === state.currentViewedDate) {
-                    classList.add('viewed');
-                }
-                
-                if (this.isToday(dayDate)) {
-                    classList.add('today');
-                }
-                
-                // Add content dots if needed
-                if (content.exists && dotContainer) {
-                    const dots = content.size === 'small' ? 1 : content.size === 'medium' ? 2 : 3;
-                    for (let j = 0; j < dots; j++) {
-                        const dot = document.createElement('div');
-                        dot.className = 'streams-content-dot';
-                        dotContainer.appendChild(dot);
-                    }
-
-                    // Add encryption status icon if file is encrypted
-                    if (content.isEncrypted) {
-                        const encryptionIcon = document.createElement('div');
-                        encryptionIcon.className = 'streams-encryption-icon';
-                        
-                        // Set the appropriate icon based on lock status
-                        if (content.isLocked) {
-                            setIcon(encryptionIcon, 'lock');
-                            encryptionIcon.setAttribute('title', 'Encrypted file (locked)');
-                        } else {
-                            setIcon(encryptionIcon, 'unlock');
-                            encryptionIcon.setAttribute('title', 'Encrypted file (unlocked)');
-                        }
-                        
-                        dotContainer.appendChild(encryptionIcon);
-                    }
-                }
-            });
-        });
-    }
-
-    /**
-     * Setup event delegation for calendar day clicks for better performance
-     */
-    private setupCalendarEventDelegation(grid: HTMLElement): void {
-        // Remove existing event listeners to prevent duplicates
-        if (this.calendarClickHandler) {
-            grid.removeEventListener('click', this.calendarClickHandler);
-            grid.removeEventListener('touchend', this.calendarClickHandler, { passive: true } as AddEventListenerOptions);
-        }
-        
-        // Create single event handler for all day clicks
-        this.calendarClickHandler = (e: Event) => {
-            const target = e.target as HTMLElement;
-            
-            // Close dropdown if it's open when clicking anywhere in calendar
-            if (this.streamsDropdown && !this.streamsDropdown.classList.contains('streams-bar-dropdown-hidden')) {
-                this.hideStreamsDropdown();
-            }
-            
-            const dayEl = target.closest('.streams-bar-day:not(.empty)') as HTMLElement;
-            
-            if (dayEl) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const day = parseInt(dayEl.getAttribute('data-day') || '0', 10);
-                if (day > 0) {
-                    this.selectDate(day);
-                }
-            }
-        };
-        
-        // Add event listeners to grid container
-        grid.addEventListener('click', this.calendarClickHandler);
-        grid.addEventListener('touchend', this.calendarClickHandler, { passive: true } as AddEventListenerOptions);
-    }
+    // Date utility methods moved to DateNavigationService
+    // Calendar rendering methods moved to CalendarRenderer
 
     private initializeDateState(leaf: WorkspaceLeaf): void {
         const viewType = leaf.view.getViewType();
@@ -1213,11 +877,12 @@ export class StreamsBarComponent extends Component {
         this.currentMonthView = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), 1);
         
         // Update calendar grid if it exists
-        if (this.grid) {
-            if (this.grid.children.length > 0) {
-                this.updateGridContent(this.grid);
+        if (this.calendarRenderer) {
+            this.calendarRenderer.setMonthView(this.currentMonthView);
+            if (this.grid && this.grid.children.length > 0) {
+                this.calendarRenderer.updateGridContent();
             } else {
-                this.updateCalendarGrid(this.grid);
+                this.calendarRenderer.updateCalendarGrid();
             }
         }
     }
@@ -1240,25 +905,30 @@ export class StreamsBarComponent extends Component {
         this.selectedStream = newActiveStream;
         
         // Update the display stream name
-        const changeStreamText = this.component.querySelector('.streams-bar-change-stream-text');
-        if (changeStreamText) {
-            changeStreamText.setText(newActiveStream.name);
+        if (this.changeStreamText) {
+            this.changeStreamText.setText(newActiveStream.name);
         }
         
         // Update the encryption icon
-        const changeStreamSection = this.component.querySelector('.streams-bar-change-stream');
-        if (changeStreamSection) {
-            this.updateStreamEncryptionIcon(changeStreamSection as HTMLElement);
+        if (this.changeStreamSection) {
+            this.updateStreamEncryptionIcon(this.changeStreamSection);
         }
         
         
+        // Update content indicator service with new stream
+        this.contentIndicatorService = new ContentIndicatorService(this.app, newActiveStream, this.meldDetectionService);
+        
         // Update the calendar grid to reflect the new stream's content
-        if (this.grid) {
-            this.updateGridContent(this.grid);
+        if (this.calendarRenderer) {
+            // Update the renderer's content service reference
+            this.calendarRenderer.setContentIndicatorService(this.contentIndicatorService);
+            this.calendarRenderer.updateGridContent();
         }
         
         // Refresh the streams dropdown to show the correct selection
-        this.refreshStreamsDropdown();
+        if (this.streamSelector) {
+            this.streamSelector.updateActiveStreamId(streamId);
+        }
     }
     
     private handleSettingsChange(settings: any): void {

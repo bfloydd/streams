@@ -19,16 +19,21 @@ export interface ObsidianPlugins {
 }
 
 /**
+ * Command object type
+ */
+export type ObsidianCommand = {
+    id: string;
+    name: string;
+    callback?: () => void | Promise<void>;
+    checkCallback?: (checking: boolean) => boolean | void;
+};
+
+/**
  * Interface for Obsidian's command registry
  */
 export interface ObsidianCommands {
     commands?: {
-        [commandId: string]: {
-            id: string;
-            name: string;
-            callback?: () => void | Promise<void>;
-            checkCallback?: (checking: boolean) => boolean | void;
-        } | undefined;
+        [commandId: string]: ObsidianCommand | undefined;
     };
     executeCommandById?: (commandId: string) => Promise<void>;
     listCommands?: () => Array<{ id: string; name: string }>;
@@ -112,7 +117,7 @@ export function getPluginById(app: App, pluginId: string): Plugin | undefined {
 /**
  * Get a specific command by ID
  */
-export function getCommandById(app: App, commandId: string): ObsidianCommands['commands'][string] | undefined {
+export function getCommandById(app: App, commandId: string): ObsidianCommand | undefined {
     const commands = getCommands(app);
     return commands?.[commandId];
 }

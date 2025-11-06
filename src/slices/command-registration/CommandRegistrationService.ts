@@ -1,6 +1,7 @@
 import { PluginAwareSliceService } from '../../shared/base-slice';
 import { CommandService, StreamsPluginInterface } from '../../shared/interfaces';
 import { StreamManagementService } from '../stream-management/StreamManagementService';
+import { StreamsAPI } from '../api/StreamsAPI';
 
 export class CommandRegistrationService extends PluginAwareSliceService implements CommandService {
     private registeredCommands: string[] = [];
@@ -22,7 +23,7 @@ export class CommandRegistrationService extends PluginAwareSliceService implemen
         const plugin = this.getPlugin();
         
         // Register stream management commands
-        this.registerStreamCommands(plugin);
+        this.registerStreamCommands(plugin as StreamsPluginInterface);
     }
 
     unregisterCommands(): void {
@@ -58,7 +59,7 @@ export class CommandRegistrationService extends PluginAwareSliceService implemen
 
     private async testUpdateStreamBarFromFile(): Promise<void> {
         const plugin = this.getPlugin() as StreamsPluginInterface;
-        const apiService = this.getService('api');
+        const apiService = this.getService('api') as StreamsAPI | undefined;
         
         if (!apiService) {
             plugin.log?.error('API service not available for testing');

@@ -4,17 +4,13 @@ import { centralizedLogger } from '../../shared/centralized-logger';
 import { DateStateManager } from '../../shared/date-state-manager';
 import { TIMING } from '../../shared/timing-constants';
 import { getPluginById, getCommands, executeCommandById, getSetting } from '../../shared/obsidian-types';
-
-// Interface for the streams plugin
-interface StreamsPlugin {
-    	setActiveStream(streamId: string, force?: boolean): void;
-}
+import { StreamsPluginInterface } from '../../shared/interfaces';
 
 // Interface for accessing app.plugins
 interface AppWithPlugins extends App {
     plugins: {
         plugins: {
-            'streams': StreamsPlugin;
+            'streams': StreamsPluginInterface;
         };
     };
 }
@@ -404,7 +400,7 @@ export class CreateFileView extends ItemView {
             }
             
             // Get the file operations service
-            const plugin = getPluginById(this.app, 'streams');
+            const plugin = getPluginById(this.app, 'streams') as StreamsPluginInterface | undefined;
             if (!plugin) {
                 centralizedLogger.error('Streams plugin not found');
                 return null;

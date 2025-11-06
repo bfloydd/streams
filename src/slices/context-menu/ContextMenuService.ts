@@ -4,6 +4,7 @@ import { centralizedLogger } from '../../shared/centralized-logger';
 import { MoveTextToStreamModal, MoveTextOptions } from './MoveTextToStreamModal';
 import { MarkdownView, Notice, Menu, Editor, TFile, TAbstractFile } from 'obsidian';
 import { Stream } from '../../shared/types';
+import { StreamsPluginInterface } from '../../shared/interfaces';
 
 export class ContextMenuService extends PluginAwareSliceService {
     private registeredEvents: Array<() => void> = [];

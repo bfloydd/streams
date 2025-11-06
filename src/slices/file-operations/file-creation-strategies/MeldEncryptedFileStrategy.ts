@@ -1,8 +1,16 @@
-import { App, TFile } from 'obsidian';
+import { App, TFile, Plugin } from 'obsidian';
 import { FileCreationInterface } from './FileCreationStrategy';
 import { centralizedLogger } from '../../../shared/centralized-logger';
 import { TIMING } from '../../../shared/timing-constants';
 import { getPlugins, getCommands, executeCommandById } from '../../../shared/obsidian-types';
+
+/**
+ * Interface for Meld plugin with encryption methods
+ */
+interface MeldPlugin extends Plugin {
+    encryptFile?(file: TFile): Promise<void>;
+    encryptFileByPath?(filePath: string): Promise<void>;
+}
 
 /**
  * Strategy for creating encrypted files using Meld plugin
@@ -45,7 +53,7 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
             
             // Get the Meld plugin instance
             const plugins = getPlugins(app);
-            const meldPlugin = plugins?.['meld-encrypt'];
+            const meldPlugin = plugins?.['meld-encrypt'] as MeldPlugin | undefined;
             if (!meldPlugin) {
                 throw new Error('Meld plugin instance not found');
             }
@@ -65,12 +73,16 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
             // Fallback: Use command execution
             const commands = getCommands(app);
             const command = commands?.[this.meldCommandId];
-            if (command) {
-                if (command.callback.length > 0) {
-                    // Command accepts parameters
-                    await command.callback(file.path);
+            if (command && command.callback) {
+                const callbackFn = command.callback;
+                // Check if callback accepts parameters by checking its length
+                // Note: Function.length gives the number of required parameters
+                if (callbackFn.length > 0) {
+                    // Command accepts parameters - try calling with file path
+                    // TypeScript thinks callback takes 0 args, but we know it might accept a path
+                    await (callbackFn as (path?: string) => Promise<void> | void)(file.path);
                 } else {
-                    // Command needs active file context
+                    // Command doesn't accept parameters - needs active file context
                     const activeLeaf = app.workspace.activeLeaf;
                     let fileLeaf = null;
                     
@@ -96,7 +108,7 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
                         // Set as active leaf and execute command
                         app.workspace.setActiveLeaf(fileLeaf, { focus: true });
                         await new Promise(resolve => setTimeout(resolve, TIMING.FILE_OPERATION_DELAY));
-                        await command.callback();
+                        await callbackFn();
                         
                     } finally {
                         // Restore original active leaf
