@@ -51,12 +51,12 @@ export class FileCreationService {
             return false;
         }
 
-        const plugin = getPluginById(this.app, 'streams');
+        const plugin = getPluginById(this.app, 'streams') as StreamsPluginInterface | undefined;
         if (!plugin) {
             return false;
         }
 
-        const fileOpsService = (plugin as any).getFileOperationsService?.();
+        const fileOpsService = plugin.getFileOperationsService?.();
         return fileOpsService?.isMeldPluginAvailable() || false;
     }
 
@@ -64,12 +64,12 @@ export class FileCreationService {
      * Get Meld unavailable message
      */
     getMeldUnavailableMessage(): string {
-        const plugin = getPluginById(this.app, 'streams');
+        const plugin = getPluginById(this.app, 'streams') as StreamsPluginInterface | undefined;
         if (!plugin) {
             return 'Meld plugin is required for encryption but is not available.';
         }
 
-        const fileOpsService = (plugin as any).getFileOperationsService?.();
+        const fileOpsService = plugin.getFileOperationsService?.();
         return fileOpsService?.getMeldUnavailableMessage() || 'Meld plugin is required for encryption but is not available.';
     }
 

@@ -1,6 +1,6 @@
 import { App } from 'obsidian';
 import { SettingsAwareSliceService } from '../../shared/base-slice';
-import { Stream } from '../../shared/types';
+import { Stream, StreamsSettings } from '../../shared/types';
 import { eventBus, EVENTS } from '../../shared/event-bus';
 import { OpenTodayStreamCommand } from '../file-operations/OpenTodayStreamCommand';
 import { OpenTodayCurrentStreamCommand } from '../file-operations/OpenTodayCurrentStreamCommand';
@@ -80,7 +80,7 @@ export class RibbonService extends SettingsAwareSliceService {
                     this.getPlugin().app, 
                     this.getStreams(), 
                     this.getPluginSettings().reuseCurrentTab, 
-                    this.getPlugin() as any
+                    this.getPlugin()
                 );
                 command.execute();
             }
@@ -178,12 +178,12 @@ export class RibbonService extends SettingsAwareSliceService {
     }
 
     private getStreams(): Stream[] {
-        const plugin = this.getPlugin() as any;
+        const plugin = this.getPlugin();
         return plugin.settings?.streams || [];
     }
 
-    private getPluginSettings(): any {
-        const plugin = this.getPlugin() as any;
-        return plugin.settings || {};
+    private getPluginSettings(): StreamsSettings {
+        const plugin = this.getPlugin();
+        return plugin.settings;
     }
 }

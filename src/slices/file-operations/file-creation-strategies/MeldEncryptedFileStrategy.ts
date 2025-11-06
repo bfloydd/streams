@@ -1,4 +1,4 @@
-import { App, TFile, Plugin } from 'obsidian';
+import { App, TFile, Plugin, WorkspaceLeaf, MarkdownView } from 'obsidian';
 import { FileCreationInterface } from './FileCreationStrategy';
 import { centralizedLogger } from '../../../shared/centralized-logger';
 import { TIMING } from '../../../shared/timing-constants';
@@ -91,7 +91,7 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
                         const existingLeaf = app.workspace.getLeavesOfType('markdown')
                             .find(leaf => {
                                 try {
-                                    const view = leaf.view as any;
+                                    const view = leaf.view as MarkdownView;
                                     return view?.file?.path === file.path;
                                 } catch (e) {
                                     return false;

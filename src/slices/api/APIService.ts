@@ -22,7 +22,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      * @returns Array of all configured streams
      */
     public getStreams(): Stream[] {
-        const plugin = this.getPlugin() as any;
+        const plugin = this.getPlugin();
         return [...(plugin.settings?.streams || [])];
     }
 
@@ -41,7 +41,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      * @returns The active stream if set, null otherwise
      */
     public getActiveStream(): Stream | null {
-        const plugin = this.getPlugin() as any;
+        const plugin = this.getPlugin();
         const activeStreamId = plugin.settings?.activeStreamId;
         
         if (!activeStreamId) {
@@ -191,7 +191,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      */
     public async updateStreamBarFromFile(filePath: string): Promise<boolean> {
         try {
-            const plugin = this.getPlugin() as any;
+            const plugin = this.getPlugin();
             
             // Detect stream from file path
             const stream = this.getStreamForFile(filePath);

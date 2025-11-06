@@ -1,4 +1,4 @@
-import { App, Plugin } from 'obsidian';
+import { App, Plugin, View } from 'obsidian';
 
 /**
  * Type definitions for Obsidian's internal APIs
@@ -120,5 +120,13 @@ export function getPluginById(app: App, pluginId: string): Plugin | undefined {
 export function getCommandById(app: App, commandId: string): ObsidianCommand | undefined {
     const commands = getCommands(app);
     return commands?.[commandId];
+}
+
+/**
+ * Interface for views with empty state observer
+ * Used for views that need to hide empty state elements
+ */
+export interface ViewWithEmptyStateObserver extends View {
+    emptyStateObserver?: MutationObserver;
 }
 

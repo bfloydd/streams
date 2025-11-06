@@ -47,13 +47,13 @@ export class MobileIntegrationService extends PluginAwareSliceService {
     }
 
     private hasStreams(): boolean {
-        const plugin = this.getPlugin() as any;
-        return plugin.settings?.streams?.length > 0;
+        const plugin = this.getPlugin();
+        return (plugin.settings?.streams?.length ?? 0) > 0;
     }
 
     private getStreamManagementService(): StreamManagementService | undefined {
         // Get the stream management service from the container
-        const container = (this.getPlugin() as any).sliceContainer;
+        const container = this.getPlugin().sliceContainer;
         if (container) {
             return container.get('stream-management') as StreamManagementService;
         }

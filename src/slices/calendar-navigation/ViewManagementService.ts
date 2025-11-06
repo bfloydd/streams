@@ -2,6 +2,7 @@ import { App, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { CreateFileView, CREATE_FILE_VIEW_TYPE } from '../file-operations/CreateFileView';
 import { centralizedLogger } from '../../shared/centralized-logger';
+import { createMinimalView } from '../../shared/view-interfaces';
 
 /**
  * Service for managing view registration and view-related operations
@@ -42,14 +43,7 @@ export class ViewManagementService {
                 } catch (error) {
                     centralizedLogger.error(`[ViewManagementService] Error creating CreateFileView:`, error);
                     // Return a minimal view that won't cause errors
-                    return {
-                        getViewType: () => CREATE_FILE_VIEW_TYPE,
-                        getDisplayText: () => 'Create File',
-                        getState: () => ({}),
-                        setState: () => Promise.resolve(),
-                        onOpen: () => Promise.resolve(),
-                        onClose: () => Promise.resolve()
-                    } as any;
+                    return createMinimalView(CREATE_FILE_VIEW_TYPE, 'Create File');
                 }
             }
         );

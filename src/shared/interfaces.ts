@@ -1,5 +1,6 @@
 import { App, Plugin } from 'obsidian';
 import { Stream, StreamsSettings } from './types';
+import { SliceContainer } from './container';
 
 /**
  * Base interface for all slice services
@@ -64,6 +65,7 @@ export interface StreamsPluginInterface extends Plugin {
     settings: StreamsSettings;
     app: App;
     log: any; // Logger type will be defined in debug-logging slice
+    sliceContainer?: SliceContainer;
     
     // Core methods that slices need
     saveSettings(): Promise<void>;

@@ -1,6 +1,6 @@
 import { App, Notice } from 'obsidian';
 import { StreamAwareSliceService, SettingsAwareSliceService } from '../../shared/base-slice';
-import { Stream } from '../../shared/types';
+import { Stream, StreamsSettings } from '../../shared/types';
 import { StreamSelectionModal } from './StreamSelectionModal';
 import { eventBus, EVENTS } from '../../shared/event-bus';
 import { withErrorHandling, withAsyncErrorHandling, handleError } from '../../shared/error-handler';
@@ -61,11 +61,11 @@ export class StreamManagementService extends SettingsAwareSliceService {
         }
 
         // Update the settings
-        const plugin = this.getPlugin() as any;
+        const plugin = this.getPlugin();
         plugin.settings.activeStreamId = streamId;
         
         // Save settings
-        plugin.saveSettings();
+        await plugin.saveSettings();
 
         // Log the change
         if (streamId) {
@@ -153,13 +153,13 @@ export class StreamManagementService extends SettingsAwareSliceService {
     }
 
     private getStreams(): Stream[] {
-        const plugin = this.getPlugin() as any;
+        const plugin = this.getPlugin();
         return plugin.settings?.streams || [];
     }
 
-    private getPluginSettings(): any {
-        const plugin = this.getPlugin() as any;
-        return plugin.settings || {};
+    private getPluginSettings(): StreamsSettings {
+        const plugin = this.getPlugin();
+        return plugin.settings;
     }
 
 }
