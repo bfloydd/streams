@@ -8,3 +8,7 @@ export { TouchGestureHandler } from './TouchGestureHandler';
 export { DocumentEventHandler } from './DocumentEventHandler';
 export { ViewManagementService } from './ViewManagementService';
 export { ComponentLifecycleManager } from './ComponentLifecycleManager';
+export { ViewContainerService } from './ViewContainerService';
+export { ComponentEventSubscriptionManager } from './ComponentEventSubscriptionManager';
+export { ComponentStateManager } from './ComponentStateManager';
+export { ComponentUIBuilder } from './ComponentUIBuilder';
