@@ -36,7 +36,7 @@ export class StreamManagementService extends SettingsAwareSliceService {
 
     onStreamRemoved(streamId: string): void {
         // If the removed stream was active, clear the active stream
-        if (this.getPluginSettings().activeStreamId === streamId) {
+        if (this.getSettings().activeStreamId === streamId) {
             void this.setActiveStream(undefined);
         }
         this.globalIndicator.update(this.getActiveStream());
@@ -56,7 +56,7 @@ export class StreamManagementService extends SettingsAwareSliceService {
      * Set the active stream
      */
     public setActiveStream = withAsyncErrorHandling(async (streamId: string | undefined, force: boolean = false): Promise<void> => {
-        const currentActiveStreamId = this.getPluginSettings().activeStreamId;
+        const currentActiveStreamId = this.getSettings().activeStreamId;
         
         if (currentActiveStreamId === streamId && !force) {
             return; // No change needed
@@ -87,10 +87,8 @@ export class StreamManagementService extends SettingsAwareSliceService {
     /**
      * Get the currently active stream
      */
-    public getActiveStream(): Stream | undefined {
-        const activeStreamId = this.getPluginSettings().activeStreamId;
-        if (!activeStreamId) return undefined;
-        return this.getStreams().find(s => s.id === activeStreamId);
+    public getActiveStream(): Stream | null {
+        return super.getActiveStream();
     }
 
     /**
@@ -115,14 +113,5 @@ export class StreamManagementService extends SettingsAwareSliceService {
         // No commands currently registered
     }
 
-    private getStreams(): Stream[] {
-        const plugin = this.getPlugin();
-        return plugin.settings?.streams || [];
-    }
-
-    private getPluginSettings(): StreamsSettings {
-        const plugin = this.getPlugin();
-        return plugin.settings;
-    }
 
 }

@@ -49,3 +49,11 @@ export * from './event-handler-registry';
 
 // Obsidian type extensions
 export * from './obsidian-types';
+
+// Utilities
+export * from './utils/DateUtils';
+export * from './utils/FileUtils';
+
+// Configurations
+export * from './service-config';
+export * from './view-config';

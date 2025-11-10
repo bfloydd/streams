@@ -77,9 +77,9 @@ export class RibbonService extends SettingsAwareSliceService {
             'Streams: Open today for current stream',
             () => {
                 const command = new OpenTodayCurrentStreamCommand(
-                    this.getPlugin().app, 
-                    this.getStreams(), 
-                    this.getPluginSettings().reuseCurrentTab, 
+                    this.getPlugin().app,
+                    this.getStreams(),
+                    this.getSettings().reuseCurrentTab,
                     this.getPlugin()
                 );
                 command.execute();
@@ -106,7 +106,7 @@ export class RibbonService extends SettingsAwareSliceService {
                     const command = new OpenTodayStreamCommand(
                         this.getPlugin().app,
                         stream,
-                        this.getPluginSettings().reuseCurrentTab
+                        this.getSettings().reuseCurrentTab
                     );
                     command.execute();
                 }
@@ -160,7 +160,7 @@ export class RibbonService extends SettingsAwareSliceService {
                 const command = new OpenTodayStreamCommand(
                     this.getPlugin().app,
                     stream,
-                    this.getPluginSettings().reuseCurrentTab
+                    this.getSettings().reuseCurrentTab
                 );
                 command.execute();
             }
@@ -177,13 +177,4 @@ export class RibbonService extends SettingsAwareSliceService {
         }
     }
 
-    private getStreams(): Stream[] {
-        const plugin = this.getPlugin();
-        return plugin.settings?.streams || [];
-    }
-
-    private getPluginSettings(): StreamsSettings {
-        const plugin = this.getPlugin();
-        return plugin.settings;
-    }
 }

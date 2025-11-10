@@ -52,29 +52,12 @@ export abstract class PluginAwareSliceService extends BaseSliceService implement
     protected getLogProvider(): LogProvider {
         return this.getPlugin() as LogProvider;
     }
-}
 
-export abstract class StreamAwareSliceService extends PluginAwareSliceService implements StreamAwareService {
-    abstract onStreamAdded(stream: Stream): void;
-    abstract onStreamUpdated(stream: Stream): void;
-    abstract onStreamRemoved(streamId: string): void;
-    abstract onActiveStreamChanged(streamId: string | undefined): void;
-
+    // Common accessor methods to eliminate duplication across services
     protected getStreams(): Stream[] {
         const settingsManager = this.getSettingsManager();
         return settingsManager.settings?.streams || [];
     }
-
-    protected getActiveStream(): Stream | undefined {
-        const settingsManager = this.getSettingsManager();
-        const activeStreamId = settingsManager.settings?.activeStreamId;
-        if (!activeStreamId) return undefined;
-        return this.getStreams().find(s => s.id === activeStreamId);
-    }
-}
-
-export abstract class SettingsAwareSliceService extends PluginAwareSliceService implements SettingsAwareService {
-    abstract onSettingsChanged(settings: StreamsSettings): void;
 
     protected getSettings(): StreamsSettings {
         const settingsManager = this.getSettingsManager();
@@ -85,4 +68,22 @@ export abstract class SettingsAwareSliceService extends PluginAwareSliceService 
         const settingsManager = this.getSettingsManager();
         await settingsManager.saveSettings();
     }
+
+    protected getActiveStream(): Stream | null {
+        const settingsManager = this.getSettingsManager();
+        const activeStreamId = settingsManager.settings?.activeStreamId;
+        if (!activeStreamId) return null;
+        return this.getStreams().find(s => s.id === activeStreamId) || null;
+    }
+}
+
+export abstract class StreamAwareSliceService extends PluginAwareSliceService implements StreamAwareService {
+    abstract onStreamAdded(stream: Stream): void;
+    abstract onStreamUpdated(stream: Stream): void;
+    abstract onStreamRemoved(streamId: string): void;
+    abstract onActiveStreamChanged(streamId: string | undefined): void;
+}
+
+export abstract class SettingsAwareSliceService extends PluginAwareSliceService implements SettingsAwareService {
+    abstract onSettingsChanged(settings: StreamsSettings): void;
 }

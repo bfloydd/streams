@@ -164,10 +164,6 @@ export class ContextMenuService extends PluginAwareSliceService {
         return textToAdd + content;
     }
 
-    private getStreams(): Stream[] {
-        const settingsManager = this.getSettingsManager();
-        return settingsManager.settings?.streams || [];
-    }
 
     private getStreamService(): StreamManagementService | null {
         return this.getService('stream-management') as StreamManagementService | null;

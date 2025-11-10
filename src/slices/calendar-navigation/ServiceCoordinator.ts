@@ -12,6 +12,9 @@ import { EventHandlerService } from './EventHandlerService';
 import { StreamDataService } from './StreamDataService';
 import { StreamProviderService } from './StreamProviderService';
 import { FilePathProviderService } from './FilePathProviderService';
+import { ViewCoordinator } from './ViewCoordinator';
+import { ComponentCoordinator } from './ComponentCoordinator';
+import { EventCoordinator } from './EventCoordinator';
 
 /**
  * Service coordinator for calendar navigation functionality
@@ -22,6 +25,11 @@ import { FilePathProviderService } from './FilePathProviderService';
  * coordination and orchestration, delegating specific responsibilities to focused services.
  */
 export class ServiceCoordinator extends SettingsAwareSliceService {
+    private viewCoordinator: ViewCoordinator | null = null;
+    private componentCoordinator: ComponentCoordinator | null = null;
+    private eventCoordinator: EventCoordinator | null = null;
+
+    // Keep the underlying services for initialization
     private viewRegistrationService: ViewRegistrationService | null = null;
     private calendarViewService: CalendarViewService | null = null;
     private leafInspectionService: LeafInspectionService | null = null;
@@ -38,13 +46,17 @@ export class ServiceCoordinator extends SettingsAwareSliceService {
         // Initialize services
         this.initializeServices();
 
-        this.registerPluginViews();
-        this.eventHandlerService?.registerEvents(this.getPlugin());
+        // Use coordinators for specific responsibilities
+        this.viewCoordinator?.registerPluginViews((viewType: string, viewCreator: (leaf: WorkspaceLeaf) => any) => {
+            this.getPlugin().registerView(viewType, viewCreator);
+        });
+        this.eventCoordinator?.registerEvents(this.getPlugin());
         this.registerCleanupTasks();
-        
+
         // Initialize calendar components for existing views
         setTimeout(() => {
-            this.componentLifecycleManager?.refreshAllStreamsBarComponents();
+            this.componentCoordinator?.refreshAllStreamsBarComponents();
+            this.componentCoordinator?.setInitializing(false);
             this.isInitializing = false;
         }, configurationService.getTimingConfig().INITIALIZATION_DELAY);
 
@@ -85,58 +97,58 @@ export class ServiceCoordinator extends SettingsAwareSliceService {
         // Set dependencies
         this.componentLifecycleManager.setStreamDataService(this.streamDataService);
         this.eventHandlerService.setDependencies(this.componentLifecycleManager, this.leafInspectionService);
+
+        // Initialize coordinators
+        this.initializeCoordinators();
+    }
+
+    private initializeCoordinators(): void {
+        // Create coordinators
+        this.viewCoordinator = new ViewCoordinator();
+        this.componentCoordinator = new ComponentCoordinator();
+        this.eventCoordinator = new EventCoordinator();
+
+        // Set up coordinator dependencies
+        this.viewCoordinator.setViewRegistrationService(this.viewRegistrationService!);
+        this.componentCoordinator.setComponentLifecycleManager(this.componentLifecycleManager!);
+        this.eventCoordinator.setEventHandlerService(this.eventHandlerService!);
+        this.eventCoordinator.setDependencies(this.componentLifecycleManager!, this.leafInspectionService!);
     }
 
     cleanup(): void {
-        if (this.componentLifecycleManager) {
-            this.componentLifecycleManager.removeAllComponents();
-        }
+        this.componentCoordinator?.removeAllComponents();
         this.initialized = false;
     }
 
 
     onSettingsChanged(settings: StreamsSettings): void {
         // Update existing components with new settings
-        this.componentLifecycleManager?.updateExistingComponentsSettings(settings);
+        this.componentCoordinator?.updateExistingComponentsSettings(settings);
 
         // Also refresh components for new views
-        this.componentLifecycleManager?.updateAllStreamsBarComponents();
+        this.componentCoordinator?.updateAllStreamsBarComponents();
     }
 
     private registerCleanupTasks(): void {
         // Register cleanup task for memory management
         registerCleanupTask(() => {
-            if (this.componentLifecycleManager) {
-                this.componentLifecycleManager.removeAllComponents();
-            }
+            this.componentCoordinator?.removeAllComponents();
         });
     }
 
 
 
-    private registerPluginViews(): void {
-        const plugin = this.getPlugin();
-
-        if (this.viewRegistrationService) {
-            this.viewRegistrationService.registerPluginViews({
-                registerView: (viewType: string, viewCreator: (leaf: WorkspaceLeaf) => any) => {
-                    plugin.registerView(viewType, viewCreator);
-                }
-            });
-        }
-    }
 
     public updateStreamsBarComponent(leaf: WorkspaceLeaf): void {
-        this.componentLifecycleManager?.updateStreamsBarComponent(leaf);
+        this.componentCoordinator?.updateStreamsBarComponent(leaf);
     }
 
     public updateAllStreamsBarComponents(): void {
-        if (this.isInitializing) return;
-        this.componentLifecycleManager?.updateAllStreamsBarComponents();
+        this.componentCoordinator?.updateAllStreamsBarComponents();
     }
 
     public refreshAllStreamsBarComponents(): void {
-        this.componentLifecycleManager?.refreshAllStreamsBarComponents();
+        this.componentCoordinator?.refreshAllStreamsBarComponents();
     }
 
 

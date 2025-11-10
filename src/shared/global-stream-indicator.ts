@@ -20,7 +20,7 @@ export class GlobalStreamIndicator {
         // Create the global indicator
         this.element = document.body.createDiv({
             cls: 'streams-global-indicator',
-            text: this.getIndicatorText(undefined)
+            text: this.getIndicatorText(null)
         });
 
         // Add click handler if provided
@@ -32,7 +32,7 @@ export class GlobalStreamIndicator {
     /**
      * Update the indicator with the current active stream
      */
-    update(activeStream: Stream | undefined): void {
+    update(activeStream: Stream | null): void {
         if (!this.element) return;
 
         this.element.textContent = this.getIndicatorText(activeStream);
@@ -59,7 +59,7 @@ export class GlobalStreamIndicator {
     /**
      * Get the text to display based on the active stream
      */
-    private getIndicatorText(activeStream: Stream | undefined): string {
+    private getIndicatorText(activeStream: Stream | null): string {
         if (activeStream) {
             return `📅 ${activeStream.name}`;
         }

@@ -2,58 +2,15 @@ import { Plugin } from 'obsidian';
 import { Stream, StreamsSettings } from './src/shared/types';
 import { sliceContainer, serviceRegistry, DEFAULT_SETTINGS, ServiceLoader } from './src/shared';
 import { StreamsAPI, StreamInfo, PluginVersion } from './src/slices/api';
-import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './src/slices/file-operations/CreateFileView';
-import { InstallMeldView, INSTALL_MELD_VIEW_TYPE } from './src/slices/file-operations/InstallMeldView';
-import { CreateFileViewEncrypted, CREATE_FILE_VIEW_ENCRYPTED_TYPE } from './src/slices/file-operations/CreateFileViewEncrypted';
 import { Logger } from './src/slices/debug-logging';
 import { FileOperationsService } from './src/slices/file-operations';
-
-// View configuration interface for eliminating code duplication
-interface ViewConfig {
-	viewType: string;
-	ViewClass: new (leaf: any, app: any, ...args: any[]) => any;
-	defaultSettings: any;
-	extraArgs?: any[];
-}
+import { getAllViewConfigs } from './src/shared/view-config';
 
 
 export default class StreamsPlugin extends Plugin implements StreamsAPI {
 	settings: StreamsSettings;
 	public log: Logger | undefined;
 
-	// View configurations to eliminate code duplication
-	// Note: These views are registered after services to avoid conflicts with CalendarNavigationService
-	private readonly viewConfigs: ViewConfig[] = [
-		{
-			viewType: INSTALL_MELD_VIEW_TYPE,
-			ViewClass: InstallMeldView,
-			defaultSettings: {
-				id: '',
-				name: '',
-				folder: '',
-				icon: 'book',
-				showTodayInRibbon: false,
-				addCommand: false,
-				encryptThisStream: false,
-				disabled: false
-			},
-			extraArgs: [new Date()]
-		},
-		{
-			viewType: CREATE_FILE_VIEW_ENCRYPTED_TYPE,
-			ViewClass: CreateFileViewEncrypted,
-			defaultSettings: {
-				id: '',
-				name: '',
-				folder: '',
-				icon: 'book',
-				showTodayInRibbon: false,
-				addCommand: false,
-				encryptThisStream: true,
-				disabled: false
-			}
-		}
-	];
 
 	async onload() {
 		sliceContainer.setPlugin(this);
@@ -111,17 +68,18 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 	}
 
 	/**
-	 * Registers all views defined in viewConfigs to eliminate code duplication.
+	 * Registers all views using configuration-driven approach
 	 * This method centralizes view registration logic and makes it easier to add new views.
 	 */
 	private registerViews(): void {
-		for (const config of this.viewConfigs) {
+		const viewConfigs = getAllViewConfigs();
+		for (const config of viewConfigs) {
 			this.registerView(
 				config.viewType,
 				(leaf) => {
 					// Create the view instance with proper arguments
-					if (config.viewType === INSTALL_MELD_VIEW_TYPE) {
-						return new config.ViewClass(leaf, this.app, '', config.defaultSettings, ...(config.extraArgs || []));
+					if (config.extraArgs) {
+						return new config.ViewClass(leaf, this.app, '', config.defaultSettings, ...config.extraArgs);
 					} else {
 						return new config.ViewClass(leaf, this.app, '', config.defaultSettings);
 					}

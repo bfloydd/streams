@@ -3,6 +3,8 @@ import { Stream, StreamsSettings } from '../../shared/types';
 import { StreamsAPI, StreamInfo, PluginVersion } from './StreamsAPI';
 import { eventBus, EVENTS } from '../../shared/event-bus';
 import { withErrorHandling } from '../../shared/error-handler';
+import { DateUtils } from '../../shared/utils/DateUtils';
+import { FileUtils } from '../../shared/utils/FileUtils';
 
 export class APIService extends PluginAwareSliceService implements StreamsAPI {
     async initialize(): Promise<void> {
@@ -23,8 +25,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      * @returns Array of all configured streams
      */
     public getStreams(): Stream[] {
-        const plugin = this.getPlugin();
-        return [...(plugin.settings?.streams || [])];
+        return [...super.getStreams()];
     }
 
     /**
@@ -62,19 +63,27 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
     }
 
     /**
+     * Generic stream filtering function
+     * @param predicate Function to test each stream
+     * @returns Array of streams that pass the predicate
+     */
+    private filterStreams(predicate: (stream: Stream) => boolean): Stream[] {
+        return this.getStreams().filter(predicate);
+    }
+
+    /**
      * Get streams that match a specific folder path
      * @param folderPath The folder path to search for
      * @returns Array of streams that match the folder path
      */
     public getStreamsByFolder(folderPath: string): Stream[] {
         if (!folderPath) return [];
-        
-        return this.getStreams().filter(stream => {
-            // Normalize both paths for comparison
-            const streamFolder = this.normalizePath(stream.folder);
-            const searchFolder = this.normalizePath(folderPath);
-            
-            return streamFolder === searchFolder || 
+
+        return this.filterStreams(stream => {
+            const streamFolder = FileUtils.normalizePath(stream.folder);
+            const searchFolder = FileUtils.normalizePath(folderPath);
+
+            return streamFolder === searchFolder ||
                    streamFolder.startsWith(searchFolder + '/') ||
                    searchFolder.startsWith(streamFolder + '/');
         });
@@ -87,8 +96,8 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      */
     public getStreamsByIcon(icon: string): Stream[] {
         if (!icon) return [];
-        
-        return this.getStreams().filter(stream => stream.icon === icon);
+
+        return this.filterStreams(stream => stream.icon === icon);
     }
 
     /**
@@ -96,7 +105,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      * @returns Array of streams that show in the ribbon
      */
     public getRibbonStreams(): Stream[] {
-        return this.getStreams().filter(stream => stream.showTodayInRibbon && !stream.disabled);
+        return this.filterStreams(stream => stream.showTodayInRibbon && !stream.disabled);
     }
 
     /**
@@ -104,7 +113,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      * @returns Array of streams with commands enabled
      */
     public getCommandStreams(): Stream[] {
-        return this.getStreams().filter(stream => stream.addCommand && !stream.disabled);
+        return this.filterStreams(stream => stream.addCommand && !stream.disabled);
     }
 
     /**
@@ -114,17 +123,12 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      */
     public getStreamForFile(filePath: string): Stream | null {
         if (!filePath) return null;
-        
-        // Normalize the file path
-        const normalizedFilePath = this.normalizePath(filePath);
-        
+
         // Find streams that match this file path
-        const matchingStreams = this.getStreams().filter(stream => {
-            const streamFolder = this.normalizePath(stream.folder);
-            return normalizedFilePath.startsWith(streamFolder + '/') || 
-                   (streamFolder === '' && !normalizedFilePath.includes('/'));
-        });
-        
+        const matchingStreams = this.getStreams().filter(stream =>
+            FileUtils.fileBelongsToStream(filePath, stream.folder)
+        );
+
         // Return the first match, or null if none found
         return matchingStreams.length > 0 ? matchingStreams[0] : null;
     }
@@ -192,8 +196,6 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      */
     public async updateStreamBarFromFile(filePath: string): Promise<boolean> {
         try {
-            const plugin = this.getPlugin();
-
             // Detect stream from file path
             const stream = this.getStreamForFile(filePath);
             if (!stream) {
@@ -201,32 +203,13 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
                 return false;
             }
 
-            // Extract date from file path (e.g., "2025-10-08.md" -> Date)
-            const fileName = filePath.split('/').pop() || '';
-            const dateMatch = fileName.match(/(\d{4}-\d{2}-\d{2})/);
-            let targetDate = new Date(); // Default to current date
+            // Extract date from file path
+            const targetDate = DateUtils.extractDateFromFilePath(filePath);
 
-            if (dateMatch) {
-                const dateString = dateMatch[1];
-                // Parse date as local date to avoid timezone issues
-                const [year, month, day] = dateString.split('-').map(Number);
-                targetDate = new Date(year, month - 1, day); // month is 0-indexed
+            // Update stream context and settings
+            await this.updateStreamContext(stream.id, targetDate);
 
-                if (isNaN(targetDate.getTime())) {
-                    targetDate = new Date(); // Fallback to current date
-                }
-            }
-
-            // Set the stream context
-            plugin.settings.activeStreamId = stream.id;
-            await plugin.saveSettings();
-
-            // Update the date state manager to reflect the file's date
-            const { DateStateManager } = await import('../../shared/date-state-manager');
-            const dateStateManager = DateStateManager.getInstance();
-            dateStateManager.setCurrentDate(targetDate);
-
-            // Emit ACTIVE_STREAM_CHANGED event to trigger UI refresh
+            // Emit event to trigger UI refresh
             eventBus.emit(EVENTS.ACTIVE_STREAM_CHANGED, { streamId: stream.id }, 'api');
 
             this.log(`Updated stream bar to "${stream.name}" for file: ${filePath} with date: ${targetDate.toISOString()}`);
@@ -239,17 +222,21 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
     }
 
     /**
-     * Normalize a path for comparison
-     * @param path The path to normalize
-     * @returns Normalized path
+     * Update the active stream and date context
+     * @param streamId The stream ID to set as active
+     * @param targetDate The date to set in the date state manager
      */
-    private normalizePath(path: string): string {
-        if (!path) return '';
-        
-        return path
-            .split(/[/\\]/)
-            .filter(Boolean)
-            .join('/')
-            .toLowerCase();
+    private async updateStreamContext(streamId: string, targetDate: Date): Promise<void> {
+        const plugin = this.getPlugin();
+
+        // Set the stream context
+        plugin.settings.activeStreamId = streamId;
+        await plugin.saveSettings();
+
+        // Update the date state manager to reflect the file's date
+        const { DateStateManager } = await import('../../shared/date-state-manager');
+        const dateStateManager = DateStateManager.getInstance();
+        dateStateManager.setCurrentDate(targetDate);
     }
+
 }

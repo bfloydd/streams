@@ -4,41 +4,22 @@
 
 import { sliceContainer } from './container';
 import { configurationService } from './configuration-service';
-import { DebugLoggingService } from '../slices/debug-logging';
-import { ServiceCoordinator, StreamProviderService, FilePathProviderService } from '../slices/calendar-navigation';
-import { SettingsService } from '../slices/settings-management';
-import { FileOperationsService } from '../slices/file-operations';
-import { RibbonService } from '../slices/ribbon-integration';
-import { StreamManagementService } from '../slices/stream-management';
-import { MobileIntegrationService } from '../slices/mobile-integration';
-import { APIService } from '../slices/api';
-import { CommandRegistrationService } from '../slices/command-registration';
-import { ContextMenuService } from '../slices/context-menu';
+import { getAllServiceConfigs } from './service-config';
 
 export class ServiceLoader {
     /**
-     * Register all services in the correct order
+     * Register all services using configuration-driven approach
      */
     static registerAllServices(): void {
         // Initialize configuration service first (foundational service)
         sliceContainer.register('configuration', configurationService);
 
-        // Register services in dependency order
-        sliceContainer.register('debug-logging', new DebugLoggingService());
-        sliceContainer.register('settings-management', new SettingsService());
-        sliceContainer.register('api', new APIService());
-        sliceContainer.register('stream-management', new StreamManagementService());
-
-        // Register provider services first (dependencies for ServiceCoordinator)
-        // Note: These are utility services, not slice services, so they don't need initialize/cleanup
-        // We'll handle their registration differently or make them available through service registry
-
-        sliceContainer.register('calendar-navigation', new ServiceCoordinator());
-        sliceContainer.register('file-operations', new FileOperationsService());
-        sliceContainer.register('ribbon-integration', new RibbonService());
-        sliceContainer.register('mobile-integration', new MobileIntegrationService());
-        sliceContainer.register('command-registration', new CommandRegistrationService());
-        sliceContainer.register('context-menu', new ContextMenuService());
+        // Register all services from configuration
+        const serviceConfigs = getAllServiceConfigs();
+        for (const config of serviceConfigs) {
+            const service = config.factory();
+            sliceContainer.register(config.name, service);
+        }
     }
 
     /**
