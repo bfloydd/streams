@@ -8,64 +8,67 @@ import { CreateFileViewEncrypted, CREATE_FILE_VIEW_ENCRYPTED_TYPE } from './src/
 import { Logger } from './src/slices/debug-logging';
 import { FileOperationsService } from './src/slices/file-operations';
 
+// View configuration interface for eliminating code duplication
+interface ViewConfig {
+	viewType: string;
+	ViewClass: new (leaf: any, app: any, ...args: any[]) => any;
+	defaultSettings: any;
+	extraArgs?: any[];
+}
+
 
 export default class StreamsPlugin extends Plugin implements StreamsAPI {
 	settings: StreamsSettings;
 	public log: Logger | undefined;
 
-	async onload() {
-		sliceContainer.setPlugin(this);
-		
-		await this.loadSettings();
-		
-		// Register views directly in the main plugin
-		this.registerView(
-			CREATE_FILE_VIEW_TYPE,
-			(leaf) => new CreateFileView(leaf, this.app, '', { 
-				id: '', 
-				name: '', 
-				folder: '', 
+	// View configurations to eliminate code duplication
+	// Note: These views are registered after services to avoid conflicts with CalendarNavigationService
+	private readonly viewConfigs: ViewConfig[] = [
+		{
+			viewType: INSTALL_MELD_VIEW_TYPE,
+			ViewClass: InstallMeldView,
+			defaultSettings: {
+				id: '',
+				name: '',
+				folder: '',
 				icon: 'book',
 				showTodayInRibbon: false,
 				addCommand: false,
 				encryptThisStream: false,
 				disabled: false
-			})
-		);
-		
-		this.registerView(
-			INSTALL_MELD_VIEW_TYPE,
-			(leaf) => new InstallMeldView(leaf, this.app, '', { 
-				id: '', 
-				name: '', 
-				folder: '', 
-				icon: 'book',
-				showTodayInRibbon: false,
-				addCommand: false,
-				encryptThisStream: false,
-				disabled: false
-			}, new Date())
-		);
-		
-		this.registerView(
-			CREATE_FILE_VIEW_ENCRYPTED_TYPE,
-			(leaf) => new CreateFileViewEncrypted(leaf, this.app, '', { 
-				id: '', 
-				name: '', 
-				folder: '', 
+			},
+			extraArgs: [new Date()]
+		},
+		{
+			viewType: CREATE_FILE_VIEW_ENCRYPTED_TYPE,
+			ViewClass: CreateFileViewEncrypted,
+			defaultSettings: {
+				id: '',
+				name: '',
+				folder: '',
 				icon: 'book',
 				showTodayInRibbon: false,
 				addCommand: false,
 				encryptThisStream: true,
 				disabled: false
-			})
-		);
+			}
+		}
+	];
+
+	async onload() {
+		sliceContainer.setPlugin(this);
 		
+		await this.loadSettings();
+
 		ServiceLoader.registerAllServices();
-		
+
 		this.log = serviceRegistry.debugLogging?.getLogger();
-		
+
 		await ServiceLoader.initializeAllServices();
+
+		// Register all views using the centralized configuration
+		// Note: Views are registered after services to avoid conflicts with CalendarNavigationService
+		this.registerViews();
 		
 		this.log?.info('Streams plugin loaded with vertical slice architecture');
 	}
@@ -105,6 +108,26 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 
 	async saveSettings() {
 		await this.saveData(this.settings);
+	}
+
+	/**
+	 * Registers all views defined in viewConfigs to eliminate code duplication.
+	 * This method centralizes view registration logic and makes it easier to add new views.
+	 */
+	private registerViews(): void {
+		for (const config of this.viewConfigs) {
+			this.registerView(
+				config.viewType,
+				(leaf) => {
+					// Create the view instance with proper arguments
+					if (config.viewType === INSTALL_MELD_VIEW_TYPE) {
+						return new config.ViewClass(leaf, this.app, '', config.defaultSettings, ...(config.extraArgs || []));
+					} else {
+						return new config.ViewClass(leaf, this.app, '', config.defaultSettings);
+					}
+				}
+			);
+		}
 	}
 
 	// ============================================================================
