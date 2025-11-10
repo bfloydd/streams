@@ -1,4 +1,5 @@
 import { CalendarViewChecker } from '../../shared/interfaces';
+import { CALENDAR_ENABLED_VIEW_TYPES } from '../../shared/constants';
 
 /**
  * Service for determining which view types should have calendar components
@@ -9,12 +10,6 @@ export class CalendarViewService implements CalendarViewChecker {
      * Check if a view type should have a calendar component
      */
     shouldCreateCalendarForViewType(viewType: string): boolean {
-        return viewType === 'empty' ||
-               viewType === 'file-explorer' ||
-               viewType === 'search' ||
-               viewType === 'graph' ||
-               viewType === 'markdown' ||
-               viewType === 'streams-install-meld-view' ||
-               viewType === 'streams-create-file-view-encrypted';
+        return CALENDAR_ENABLED_VIEW_TYPES.includes(viewType as typeof CALENDAR_ENABLED_VIEW_TYPES[number]);
     }
 }
