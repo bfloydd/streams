@@ -1,3 +1,5 @@
+import { LogMessage, LogParams } from '../../shared/types';
+
 export enum LogLevel {
     ERROR = 0,
     WARN = 1,
@@ -66,28 +68,28 @@ export class Logger {
     }
 
 
-    debug(message?: any, ...optionalParams: any[]): void {
+    debug(message?: LogMessage, ...optionalParams: LogParams): void {
         if (!this.enabled || this.level > LogLevel.DEBUG) {
             return;
         }
         console.debug(this.prefix + message, ...optionalParams);
     }
 
-    info(message?: any, ...optionalParams: any[]): void {
+    info(message?: LogMessage, ...optionalParams: LogParams): void {
         if (!this.enabled || this.level > LogLevel.INFO) {
             return;
         }
         console.log(this.prefix + message, ...optionalParams);
     }
 
-    warn(message?: any, ...optionalParams: any[]): void {
+    warn(message?: LogMessage, ...optionalParams: LogParams): void {
         if (!this.enabled || this.level > LogLevel.WARN) {
             return;
         }
         console.warn(this.prefix + message, ...optionalParams);
     }
 
-    error(message?: any, ...optionalParams: any[]): void {
+    error(message?: LogMessage, ...optionalParams: LogParams): void {
         if (!this.enabled || this.level > LogLevel.ERROR) {
             return;
         }
@@ -95,7 +97,7 @@ export class Logger {
     }
 
 
-    trace(message?: any, ...optionalParams: any[]): void {
+    trace(message?: LogMessage, ...optionalParams: LogParams): void {
         if (this.enabled) {
             console.trace(this.prefix + message, ...optionalParams);
         }
@@ -113,7 +115,7 @@ export class Logger {
         }
     }
 
-    table(tabularData: any, properties?: string[]): void {
+    table(tabularData: unknown, properties?: string[]): void {
         if (this.enabled) {
             console.table(tabularData, properties);
         }

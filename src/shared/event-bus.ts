@@ -4,10 +4,11 @@
  */
 
 import { centralizedLogger } from './centralized-logger';
+import { EventData } from './types';
 
 export interface EventBusEvent {
     type: string;
-    data?: any;
+    data?: EventData;
     timestamp: number;
     source: string;
 }
@@ -44,7 +45,7 @@ export class EventBus {
     /**
      * Emit an event
      */
-    emit(eventType: string, data?: any, source: string = 'unknown'): void {
+    emit(eventType: string, data?: EventData, source: string = 'unknown'): void {
         const event: EventBusEvent = {
             type: eventType,
             data,

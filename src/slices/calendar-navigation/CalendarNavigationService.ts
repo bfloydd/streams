@@ -204,9 +204,9 @@ export class CalendarNavigationService extends SettingsAwareSliceService impleme
 
     public updateAllStreamsBarComponents = measurePerformance((): void => {
         if (this.isInitializing) return;
-        
+
         this.refreshStreamsBarComponentsForNewViews();
-    }, 'calendar-navigation', 'updateAllStreamsBarComponents');
+    }, 'calendar-navigation', { operation: 'updateAllStreamsBarComponents' });
 
     public refreshAllStreamsBarComponents(): void {
         this.refreshStreamsBarComponentsForNewViews();

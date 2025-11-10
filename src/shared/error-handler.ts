@@ -4,11 +4,12 @@
 
 import { eventBus, EVENTS } from './event-bus';
 import { centralizedLogger } from './centralized-logger';
+import { ErrorData } from './types';
 
 export interface ErrorContext {
     service: string;
     method: string;
-    data?: any;
+    data?: ErrorData;
     timestamp: number;
 }
 
@@ -74,7 +75,7 @@ export class ErrorHandler {
                         this.handleError(error, {
                             service,
                             method,
-                            data: args,
+                            data: { args },
                             timestamp: Date.now()
                         });
                         throw error;
@@ -86,7 +87,7 @@ export class ErrorHandler {
                 this.handleError(error as Error, {
                     service,
                     method,
-                    data: args,
+                    data: { args },
                     timestamp: Date.now()
                 });
                 throw error;
@@ -107,7 +108,7 @@ export class ErrorHandler {
                 this.handleError(error, {
                     service,
                     method,
-                    data: args,
+                    data: { args },
                     timestamp: Date.now()
                 });
                 throw error;
@@ -138,7 +139,7 @@ export class ErrorHandler {
 export const errorHandler = ErrorHandler.getInstance();
 
 // Utility function for easy error handling
-export function handleError(error: Error, service: string, method: string, data?: any): void {
+export function handleError(error: Error, service: string, method: string, data?: ErrorData): void {
     errorHandler.handleError(error, {
         service,
         method,

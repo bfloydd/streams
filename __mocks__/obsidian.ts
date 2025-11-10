@@ -1,11 +1,27 @@
 // Mock implementation of Obsidian API for Jest tests
 // This provides minimal implementations of the classes and types used in tests
 
+export interface MockPlugins {
+  plugins: Record<string, unknown>;
+}
+
+export interface MockCommands {
+  commands: Record<string, unknown>;
+}
+
+export interface MockVault {
+  [key: string]: unknown;
+}
+
+export interface MockWorkspace {
+  [key: string]: unknown;
+}
+
 export class App {
-  plugins: any;
-  commands: any;
-  vault: any;
-  workspace: any;
+  plugins: MockPlugins;
+  commands: MockCommands;
+  vault: MockVault;
+  workspace: MockWorkspace;
   
   constructor() {
     this.plugins = {
@@ -19,9 +35,13 @@ export class App {
   }
 }
 
+export interface MockSettings {
+  [key: string]: unknown;
+}
+
 export class Plugin {
   app: App;
-  settings: any;
+  settings: MockSettings;
   
   constructor(app: App) {
     this.app = app;
@@ -51,9 +71,18 @@ export class TFolder {
   }
 }
 
+export interface MockView {
+  getViewType: () => string;
+  [key: string]: unknown;
+}
+
+export interface MockViewState {
+  [key: string]: unknown;
+}
+
 export class WorkspaceLeaf {
-  view: any;
-  viewState: any;
+  view: MockView;
+  viewState: MockViewState;
   
   constructor() {
     this.view = {
@@ -62,7 +91,7 @@ export class WorkspaceLeaf {
     this.viewState = {};
   }
   
-  async setViewState(state: any): Promise<void> {
+  async setViewState(state: MockViewState): Promise<void> {
     this.viewState = state;
   }
   

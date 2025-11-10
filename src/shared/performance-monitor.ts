@@ -2,11 +2,17 @@
  * Performance Monitoring System
  */
 
+import { ErrorData } from './types';
+
+export interface PerformanceMetadata {
+    [key: string]: unknown;
+}
+
 export interface PerformanceMetric {
     name: string;
     duration: number;
     timestamp: number;
-    metadata?: any;
+    metadata?: PerformanceMetadata;
 }
 
 export class PerformanceMonitor {
@@ -41,7 +47,7 @@ export class PerformanceMonitor {
     /**
      * Record a performance metric
      */
-    recordMetric(name: string, duration: number, metadata?: any): void {
+    recordMetric(name: string, duration: number, metadata?: PerformanceMetadata): void {
         if (!this.isEnabled) return;
 
         this.metrics.push({
@@ -63,7 +69,7 @@ export class PerformanceMonitor {
     measure<T extends (...args: any[]) => any>(
         fn: T,
         name: string,
-        metadata?: any
+        metadata?: PerformanceMetadata
     ): T {
         return ((...args: any[]) => {
             const endTiming = this.startTiming(name);
@@ -92,7 +98,7 @@ export class PerformanceMonitor {
     measureAsync<T extends (...args: any[]) => Promise<any>>(
         fn: T,
         name: string,
-        metadata?: any
+        metadata?: PerformanceMetadata
     ): T {
         return ((...args: any[]) => {
             const endTiming = this.startTiming(name);
@@ -177,7 +183,7 @@ export const performanceMonitor = PerformanceMonitor.getInstance();
 export function measurePerformance<T extends (...args: any[]) => any>(
     fn: T,
     name: string,
-    metadata?: any
+    metadata?: PerformanceMetadata
 ): T {
     return performanceMonitor.measure(fn, name, metadata);
 }
@@ -185,7 +191,7 @@ export function measurePerformance<T extends (...args: any[]) => any>(
 export function measureAsyncPerformance<T extends (...args: any[]) => Promise<any>>(
     fn: T,
     name: string,
-    metadata?: any
+    metadata?: PerformanceMetadata
 ): T {
     return performanceMonitor.measureAsync(fn, name, metadata);
 }

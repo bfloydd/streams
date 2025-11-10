@@ -35,3 +35,41 @@ export interface StreamsSettings {
     debugLoggingEnabled: boolean; // Whether debug logging is enabled by default
     barStyle: 'default' | 'modern'; // Style variant for the streams bar
 }
+
+// Event Data Types for type-safe event payloads
+export type EventData =
+    // Stream events
+    | { stream: Stream } // STREAM_ADDED, STREAM_UPDATED
+    | { streamId: string } // STREAM_REMOVED
+    | { streamId: string; previousStreamId?: string } // ACTIVE_STREAM_CHANGED
+    | { streamId: string; disabled: boolean } // STREAM_UPDATED (disabled state)
+
+    // Settings events
+    | StreamsSettings // SETTINGS_CHANGED
+
+    // UI events
+    | { component: string } // CALENDAR_COMPONENT_UPDATED, RIBBON_ICONS_UPDATED
+
+    // File events
+    | { filePath: string } // FILE_OPENED, FILE_CREATED
+
+    // Plugin events
+    | { plugin: any } // PLUGIN_LOADED, PLUGIN_UNLOADED (using any for Obsidian plugin type)
+
+    // Error events
+    | { error: Error; service: string; method: string; data?: ErrorData } // ERROR_OCCURRED
+
+    // Date events
+    | { date: Date; monthView?: Date } // date-changed
+
+    // View events
+    | any; // Fallback for custom view events
+
+// Error Data Types for type-safe error context
+export interface ErrorData {
+    [key: string]: unknown;
+}
+
+// Log Types for type-safe logging
+export type LogMessage = string | number | boolean | null | undefined;
+export type LogParams = (LogMessage | object | Error)[];
