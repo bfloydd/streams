@@ -4,31 +4,33 @@ import { Stream, StreamsSettings } from '../../shared/types';
 import { StreamSelectionModal } from './StreamSelectionModal';
 import { eventBus, EVENTS } from '../../shared/event-bus';
 import { withErrorHandling, withAsyncErrorHandling, handleError } from '../../shared/error-handler';
+import { GlobalStreamIndicator } from '../../shared/global-stream-indicator';
 
 export class StreamManagementService extends SettingsAwareSliceService {
-    private globalIndicator: HTMLElement | null = null;
+    private globalIndicator: GlobalStreamIndicator;
 
     async initialize(): Promise<void> {
         if (this.initialized) return;
 
-        this.createGlobalStreamIndicator();
+        this.globalIndicator = new GlobalStreamIndicator();
+        this.globalIndicator.create(() => this.showStreamSelection());
         this.registerCommands();
 
         this.initialized = true;
     }
 
     cleanup(): void {
-        this.removeGlobalStreamIndicator();
+        this.globalIndicator?.destroy();
         this.initialized = false;
     }
 
     onStreamAdded(stream: Stream): void {
-        this.updateGlobalStreamIndicator();
+        this.globalIndicator.update(this.getActiveStream());
         eventBus.emit(EVENTS.STREAM_ADDED, stream, 'stream-management');
     }
 
     onStreamUpdated(stream: Stream): void {
-        this.updateGlobalStreamIndicator();
+        this.globalIndicator.update(this.getActiveStream());
         eventBus.emit(EVENTS.STREAM_UPDATED, stream, 'stream-management');
     }
 
@@ -37,16 +39,16 @@ export class StreamManagementService extends SettingsAwareSliceService {
         if (this.getPluginSettings().activeStreamId === streamId) {
             void this.setActiveStream(undefined);
         }
-        this.updateGlobalStreamIndicator();
+        this.globalIndicator.update(this.getActiveStream());
         eventBus.emit(EVENTS.STREAM_REMOVED, { streamId }, 'stream-management');
     }
 
     onActiveStreamChanged(streamId: string | undefined): void {
-        this.updateGlobalStreamIndicator();
+        this.globalIndicator.update(this.getActiveStream());
     }
 
     onSettingsChanged(settings: StreamsSettings): void {
-        this.updateGlobalStreamIndicator();
+        this.globalIndicator.update(this.getActiveStream());
         eventBus.emit(EVENTS.SETTINGS_CHANGED, settings, 'stream-management');
     }
 
@@ -76,7 +78,7 @@ export class StreamManagementService extends SettingsAwareSliceService {
         }
 
         // Update the global indicator
-        this.updateGlobalStreamIndicator();
+        this.globalIndicator.update(this.getActiveStream());
 
         // Emit event for other services
         eventBus.emit(EVENTS.ACTIVE_STREAM_CHANGED, { streamId, previousStreamId: currentActiveStreamId }, 'stream-management');
@@ -109,47 +111,8 @@ export class StreamManagementService extends SettingsAwareSliceService {
 
     private registerCommands(): void {
         const plugin = this.getPlugin();
-        
+
         // No commands currently registered
-    }
-
-    private createGlobalStreamIndicator(): void {
-        // Remove existing indicator if it exists
-        this.removeGlobalStreamIndicator();
-
-        // Create the global indicator
-        this.globalIndicator = document.body.createDiv({
-            cls: 'streams-global-indicator',
-            text: this.getGlobalStreamIndicatorText()
-        });
-
-        // Add click handler to show stream selection
-        this.globalIndicator.addEventListener('click', () => {
-            this.showStreamSelection();
-        });
-
-        this.log('Global stream indicator created');
-    }
-
-    private removeGlobalStreamIndicator(): void {
-        if (this.globalIndicator) {
-            this.globalIndicator.remove();
-            this.globalIndicator = null;
-        }
-    }
-
-    private updateGlobalStreamIndicator(): void {
-        if (!this.globalIndicator) return;
-
-        this.globalIndicator.textContent = this.getGlobalStreamIndicatorText();
-    }
-
-    private getGlobalStreamIndicatorText(): string {
-        const activeStream = this.getActiveStream();
-        if (activeStream) {
-            return `📅 ${activeStream.name}`;
-        }
-        return '📅 No Stream';
     }
 
     private getStreams(): Stream[] {
