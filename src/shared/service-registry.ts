@@ -11,7 +11,7 @@ import { StreamManagementService } from '../slices/stream-management';
 import { APIService } from '../slices/api';
 import { FileOperationsService } from '../slices/file-operations';
 import { SettingsService } from '../slices/settings-management';
-import { CalendarNavigationService } from '../slices/calendar-navigation';
+import { ServiceCoordinator, StreamProviderService, FilePathProviderService } from '../slices/calendar-navigation';
 import { RibbonService } from '../slices/ribbon-integration';
 import { MobileIntegrationService } from '../slices/mobile-integration';
 import { CommandRegistrationService } from '../slices/command-registration';
@@ -50,8 +50,8 @@ export class ServiceRegistry {
         return sliceContainer.get('settings-management') as SettingsService;
     }
 
-    get calendarNavigation(): CalendarNavigationService | undefined {
-        return sliceContainer.get('calendar-navigation') as CalendarNavigationService;
+    get calendarNavigation(): ServiceCoordinator | undefined {
+        return sliceContainer.get('calendar-navigation') as ServiceCoordinator;
     }
 
     get ribbon(): RibbonService | undefined {
@@ -68,6 +68,14 @@ export class ServiceRegistry {
 
     get contextMenu(): ContextMenuService | undefined {
         return sliceContainer.get('context-menu') as ContextMenuService;
+    }
+
+    get streamProvider(): StreamProviderService | undefined {
+        return sliceContainer.get('stream-provider') as unknown as StreamProviderService;
+    }
+
+    get filePathProvider(): FilePathProviderService | undefined {
+        return sliceContainer.get('file-path-provider') as unknown as FilePathProviderService;
     }
 }
 

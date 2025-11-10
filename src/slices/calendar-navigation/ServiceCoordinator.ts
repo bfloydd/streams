@@ -1,24 +1,35 @@
 import { App, MarkdownView, WorkspaceLeaf } from 'obsidian';
 import { SettingsAwareSliceService } from '../../shared/base-slice';
 import { configurationService } from '../../shared/configuration-service';
-import { Stream, StreamsSettings } from '../../shared/types';
+import { StreamsSettings } from '../../shared/types';
 import { eventBus, EVENTS } from '../../shared/event-bus';
 import { registerCleanupTask } from '../../shared';
-import { StreamProvider, FilePathProvider } from '../../shared/interfaces';
 import { ViewRegistrationService } from './ViewRegistrationService';
 import { CalendarViewService } from './CalendarViewService';
 import { LeafInspectionService } from './LeafInspectionService';
 import { ComponentLifecycleManager } from './ComponentLifecycleManager';
 import { EventHandlerService } from './EventHandlerService';
 import { StreamDataService } from './StreamDataService';
+import { StreamProviderService } from './StreamProviderService';
+import { FilePathProviderService } from './FilePathProviderService';
 
-export class CalendarNavigationService extends SettingsAwareSliceService implements StreamProvider, FilePathProvider {
+/**
+ * Service coordinator for calendar navigation functionality
+ * Orchestrates the initialization and lifecycle of calendar navigation services.
+ * No longer implements StreamProvider/FilePathProvider - delegates to specialized services.
+ *
+ * This follows the Single Responsibility Principle by focusing solely on
+ * coordination and orchestration, delegating specific responsibilities to focused services.
+ */
+export class ServiceCoordinator extends SettingsAwareSliceService {
     private viewRegistrationService: ViewRegistrationService | null = null;
     private calendarViewService: CalendarViewService | null = null;
     private leafInspectionService: LeafInspectionService | null = null;
     private componentLifecycleManager: ComponentLifecycleManager | null = null;
     private eventHandlerService: EventHandlerService | null = null;
     private streamDataService: StreamDataService | null = null;
+    private streamProviderService: StreamProviderService | null = null;
+    private filePathProviderService: FilePathProviderService | null = null;
     private isInitializing = true;
 
     async initialize(): Promise<void> {
@@ -43,18 +54,24 @@ export class CalendarNavigationService extends SettingsAwareSliceService impleme
     private initializeServices(): void {
         const plugin = this.getPlugin();
 
-        // Initialize focused services
+        // Initialize data services first
+        this.streamDataService = new StreamDataService(() => this.getSettingsManager());
+
+        // Initialize provider services
+        this.streamProviderService = new StreamProviderService(this.streamDataService);
+        this.filePathProviderService = new FilePathProviderService(this.streamDataService);
+
+        // Initialize focused services with injected providers
         this.viewRegistrationService = new ViewRegistrationService(
             plugin.app,
-            this, // implements StreamProvider
-            this  // implements FilePathProvider
+            this.streamProviderService, // inject StreamProvider
+            this.filePathProviderService  // inject FilePathProvider
         );
 
         this.calendarViewService = new CalendarViewService();
         this.leafInspectionService = new LeafInspectionService();
 
-        // Initialize new services
-        this.streamDataService = new StreamDataService(() => this.getSettingsManager());
+        // Initialize remaining services
         this.eventHandlerService = new EventHandlerService(plugin.app);
 
         this.componentLifecycleManager = new ComponentLifecycleManager(
@@ -123,30 +140,5 @@ export class CalendarNavigationService extends SettingsAwareSliceService impleme
     }
 
 
-
-    getStreams(): Stream[] {
-        return this.streamDataService?.getStreams() || [];
-    }
-
-    getDefaultStream(): Stream {
-        return this.streamDataService?.getDefaultStream() || {
-            id: 'default',
-            name: 'Default Stream',
-            icon: 'book',
-            folder: 'Streams',
-            showTodayInRibbon: true,
-            addCommand: true,
-            encryptThisStream: false,
-            disabled: false
-        };
-    }
-
-    getDefaultFilePath(stream: Stream): string {
-        return this.streamDataService?.getDefaultFilePath(stream) || `${stream.folder}/default.md`;
-    }
-
-    getActiveStream(): Stream | undefined {
-        return this.streamDataService?.getActiveStream();
-    }
 
 }

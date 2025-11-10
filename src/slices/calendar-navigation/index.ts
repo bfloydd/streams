@@ -1,4 +1,6 @@
-export { CalendarNavigationService } from './CalendarNavigationService';
+export { ServiceCoordinator } from './ServiceCoordinator';
+export { StreamProviderService } from './StreamProviderService';
+export { FilePathProviderService } from './FilePathProviderService';
 export { CalendarRenderer } from './CalendarRenderer';
 export { ContentIndicatorService } from './ContentIndicatorService';
 export { DateNavigationService } from './DateNavigationService';
