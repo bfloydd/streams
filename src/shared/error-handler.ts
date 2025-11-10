@@ -4,7 +4,7 @@
 
 import { eventBus, EVENTS } from './event-bus';
 import { centralizedLogger } from './centralized-logger';
-import { ErrorData } from './types';
+import { ErrorData, FunctionCallErrorData } from './types';
 import { configurationService } from './configuration-service';
 
 export interface ErrorContext {
@@ -78,7 +78,7 @@ export class ErrorHandler {
                         this.handleError(error, {
                             service,
                             method,
-                            data: { args },
+                            data: { args, functionName: method } as FunctionCallErrorData,
                             timestamp: Date.now()
                         });
                         throw error;
@@ -90,7 +90,7 @@ export class ErrorHandler {
                 this.handleError(error as Error, {
                     service,
                     method,
-                    data: { args },
+                    data: { args, functionName: method } as FunctionCallErrorData,
                     timestamp: Date.now()
                 });
                 throw error;
@@ -111,7 +111,7 @@ export class ErrorHandler {
                 this.handleError(error, {
                     service,
                     method,
-                    data: { args },
+                    data: { args, functionName: method } as FunctionCallErrorData,
                     timestamp: Date.now()
                 });
                 throw error;

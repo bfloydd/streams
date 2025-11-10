@@ -1,3 +1,5 @@
+import { Plugin } from 'obsidian';
+
 export type LucideIcon =
     // Files & Documents
     | 'file-text' | 'file' | 'files' | 'folder' | 'book' | 'notebook' | 'diary'
@@ -36,6 +38,18 @@ export interface StreamsSettings {
     barStyle: 'default' | 'modern'; // Style variant for the streams bar
 }
 
+// Specific error data types for better type safety
+export interface FunctionCallErrorData {
+    args: unknown[];
+    functionName?: string;
+}
+
+// Union type for error data - more specific than generic key-value pairs
+// Additional specific error types can be added here as needed
+export type ErrorData =
+    | FunctionCallErrorData
+    | Record<string, unknown>; // Fallback for custom error data
+
 // Event Data Types for type-safe event payloads
 export type EventData =
     // Stream events
@@ -54,7 +68,7 @@ export type EventData =
     | { filePath: string } // FILE_OPENED, FILE_CREATED
 
     // Plugin events
-    | { plugin: any } // PLUGIN_LOADED, PLUGIN_UNLOADED (using any for Obsidian plugin type)
+    | { plugin: Plugin } // PLUGIN_LOADED, PLUGIN_UNLOADED
 
     // Error events
     | { error: Error; service: string; method: string; data?: ErrorData } // ERROR_OCCURRED
@@ -63,12 +77,8 @@ export type EventData =
     | { date: Date; monthView?: Date } // date-changed
 
     // View events
-    | any; // Fallback for custom view events
+    | any; // Fallback for custom view events (kept for extensibility)
 
-// Error Data Types for type-safe error context
-export interface ErrorData {
-    [key: string]: unknown;
-}
 
 // Log Types for type-safe logging
 export type LogMessage = string | number | boolean | null | undefined;
