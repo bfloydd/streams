@@ -6,11 +6,16 @@ import { CREATE_FILE_VIEW_ENCRYPTED_TYPE } from '../file-operations/CreateFileVi
 import { Stream, StreamsSettings } from '../../shared/types';
 import { eventBus, EVENTS } from '../../shared/event-bus';
 import { measurePerformance, registerCleanupTask, TIMING } from '../../shared';
-import { ViewManagementService } from './ViewManagementService';
+import { StreamProvider, FilePathProvider, ViewRegistrar, CalendarViewChecker, LeafInspector } from '../../shared/interfaces';
+import { ViewRegistrationService } from './ViewRegistrationService';
+import { CalendarViewService } from './CalendarViewService';
+import { LeafInspectionService } from './LeafInspectionService';
 import { ComponentLifecycleManager } from './ComponentLifecycleManager';
 
-export class CalendarNavigationService extends SettingsAwareSliceService {
-    private viewManagementService: ViewManagementService | null = null;
+export class CalendarNavigationService extends SettingsAwareSliceService implements StreamProvider, FilePathProvider {
+    private viewRegistrationService: ViewRegistrationService | null = null;
+    private calendarViewService: CalendarViewService | null = null;
+    private leafInspectionService: LeafInspectionService | null = null;
     private componentLifecycleManager: ComponentLifecycleManager | null = null;
     private isInitializing = true;
 
@@ -37,14 +42,15 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
     private initializeServices(): void {
         const plugin = this.getPlugin();
 
-        // Note: ViewManagementService and ComponentLifecycleManager are utility classes,
-        // not slice services, so they are instantiated directly rather than accessed via service registry
-        this.viewManagementService = new ViewManagementService(
+        // Initialize focused services
+        this.viewRegistrationService = new ViewRegistrationService(
             plugin.app,
-            () => this.getStreams(),
-            () => this.getDefaultStream(),
-            (stream) => this.getDefaultFilePath(stream)
+            this, // implements StreamProvider
+            this  // implements FilePathProvider
         );
+
+        this.calendarViewService = new CalendarViewService();
+        this.leafInspectionService = new LeafInspectionService();
 
         this.componentLifecycleManager = new ComponentLifecycleManager(
             plugin.app,
@@ -97,7 +103,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         // Handle active leaf changes - only ensure component exists, don't recreate unnecessarily
         plugin.registerEvent(
             plugin.app.workspace.on('active-leaf-change', (leaf) => {
-                if (leaf && this.viewManagementService?.isMainEditorLeaf(leaf)) {
+                if (leaf && this.leafInspectionService?.isMainEditorLeaf(leaf)) {
                     this.ensureStreamsBarComponentForLeaf(leaf);
                 }
             })
@@ -152,17 +158,19 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
 
     private registerPluginViews(): void {
         const plugin = this.getPlugin();
-        
-        if (this.viewManagementService) {
-            this.viewManagementService.registerPluginViews((viewType, viewCreator) => {
-                plugin.registerView(viewType, viewCreator);
+
+        if (this.viewRegistrationService) {
+            this.viewRegistrationService.registerPluginViews({
+                registerView: (viewType: string, viewCreator: (leaf: WorkspaceLeaf) => any) => {
+                    plugin.registerView(viewType, viewCreator);
+                }
             });
         }
     }
 
     public updateStreamsBarComponent(leaf: WorkspaceLeaf): void {
         // Only create calendar components for leaves in the main editor area
-        if (!this.viewManagementService?.isMainEditorLeaf(leaf)) {
+        if (!this.leafInspectionService?.isMainEditorLeaf(leaf)) {
             return;
         }
 
@@ -175,9 +183,9 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         }
 
         const viewType = leaf.view.getViewType();
-        
+
         // Handle all editor view types that should have calendar components
-        if (!this.viewManagementService?.shouldCreateCalendarForViewType(viewType)) {
+        if (!this.calendarViewService?.shouldCreateCalendarForViewType(viewType)) {
             return;
         }
 
@@ -211,7 +219,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
     }
 
     private refreshStreamsBarComponentsForNewViews(): void {
-        if (!this.viewManagementService || !this.componentLifecycleManager) {
+        if (!this.leafInspectionService || !this.componentLifecycleManager) {
             return;
         }
 
@@ -219,19 +227,19 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         const allLeaves = this.getPlugin().app.workspace.getLeavesOfType('empty');
         const markdownLeaves = this.getPlugin().app.workspace.getLeavesOfType('markdown');
         const createFileLeaves = this.getPlugin().app.workspace.getLeavesOfType(CREATE_FILE_VIEW_TYPE);
-        
+
         // Combine all editor leaves
         const allEditorLeaves = [...allLeaves, ...markdownLeaves, ...createFileLeaves];
 
         // Also check the active leaf specifically
         const activeLeaf = this.getPlugin().app.workspace.activeLeaf;
-        if (activeLeaf && this.viewManagementService.isMainEditorLeaf(activeLeaf)) {
+        if (activeLeaf && this.leafInspectionService.isMainEditorLeaf(activeLeaf)) {
             this.ensureStreamsBarComponentForLeaf(activeLeaf);
         }
-        
+
         // Process all editor leaves, but only if they're in the main editor area
         allEditorLeaves.forEach(leaf => {
-            if (this.viewManagementService?.isMainEditorLeaf(leaf)) {
+            if (this.leafInspectionService?.isMainEditorLeaf(leaf)) {
                 this.ensureStreamsBarComponentForLeaf(leaf);
             }
         });
@@ -246,7 +254,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
     }
 
     private ensureStreamsBarComponentForLeaf(leaf: WorkspaceLeaf): void {
-        if (!this.componentLifecycleManager || !this.viewManagementService) {
+        if (!this.componentLifecycleManager || !this.leafInspectionService) {
             return;
         }
 
@@ -271,27 +279,19 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         this.componentLifecycleManager.createComponentForLeaf(leaf, streamToUse);
     }
 
-    private getStreams(): Stream[] {
+    getStreams(): Stream[] {
         const plugin = this.getPlugin();
         return plugin.settings?.streams || [];
     }
 
-    private getActiveStream(): Stream | undefined {
-        const plugin = this.getPlugin();
-        const activeStreamId = plugin.settings?.activeStreamId;
-        if (!activeStreamId) return undefined;
-        const streams = this.getStreams();
-        return streams.find(s => s.id === activeStreamId);
-    }
-
-    private getDefaultStream(): Stream {
+    getDefaultStream(): Stream {
         // Get the first available stream or create a default one
         const streams = this.getStreams();
-        
+
         if (streams.length > 0) {
             return streams[0];
         }
-        
+
         // Return a default stream if none exist
         return {
             id: 'default',
@@ -305,14 +305,22 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
         };
     }
 
-    private getDefaultFilePath(stream: Stream): string {
+    getDefaultFilePath(stream: Stream): string {
         const today = new Date();
         const year = today.getFullYear();
         const month = String(today.getMonth() + 1).padStart(2, '0');
         const day = String(today.getDate()).padStart(2, '0');
         const fileName = `${year}-${month}-${day}.md`;
-        
+
         return `${stream.folder}/${fileName}`;
+    }
+
+    private getActiveStream(): Stream | undefined {
+        const plugin = this.getPlugin();
+        const activeStreamId = plugin.settings?.activeStreamId;
+        if (!activeStreamId) return undefined;
+        const streams = this.getStreams();
+        return streams.find(s => s.id === activeStreamId);
     }
 
 }

@@ -1,4 +1,4 @@
-import { App, Plugin } from 'obsidian';
+import { App, Plugin, WorkspaceLeaf } from 'obsidian';
 import { Stream, StreamsSettings } from './types';
 import { SliceContainer } from './container';
 import { Logger } from '../slices/debug-logging';
@@ -57,6 +57,42 @@ export interface CommandService {
 export interface ViewService {
     registerViews(): void;
     unregisterViews(): void;
+}
+
+/**
+ * Interface for stream data access
+ */
+export interface StreamProvider {
+    getStreams(): Stream[];
+    getDefaultStream(): Stream;
+}
+
+/**
+ * Interface for file path generation
+ */
+export interface FilePathProvider {
+    getDefaultFilePath(stream: Stream): string;
+}
+
+/**
+ * Interface for view registration
+ */
+export interface ViewRegistrar {
+    registerView(viewType: string, viewCreator: (leaf: WorkspaceLeaf) => any): void;
+}
+
+/**
+ * Interface for calendar view type checking
+ */
+export interface CalendarViewChecker {
+    shouldCreateCalendarForViewType(viewType: string): boolean;
+}
+
+/**
+ * Interface for leaf inspection
+ */
+export interface LeafInspector {
+    isMainEditorLeaf(leaf: WorkspaceLeaf): boolean;
 }
 
 
