@@ -5,6 +5,7 @@ import { DateStateManager, DateState } from '../../shared/date-state-manager';
 import { FileCreationService } from './FileCreationService';
 import { EmptyStateObserver } from './EmptyStateObserver';
 import { StreamManager } from '../../shared/interfaces';
+import { MeldDetectionService } from '../../slices/meld-integration';
 
 // Interface for accessing app.plugins
 interface AppWithPlugins extends App {
@@ -28,8 +29,8 @@ export class CreateFileView extends ItemView {
     private fileCreationService: FileCreationService;
     
     constructor(
-        leaf: WorkspaceLeaf, 
-        app: App, 
+        leaf: WorkspaceLeaf,
+        app: App,
         filePath: string,
         stream: Stream
     ) {
@@ -38,7 +39,12 @@ export class CreateFileView extends ItemView {
         this.filePath = filePath;
         this.stream = stream;
         this.dateStateManager = DateStateManager.getInstance();
-        this.fileCreationService = new FileCreationService(app);
+
+        // Initialize MeldDetectionService with plugin context
+        const meldDetectionService = new MeldDetectionService();
+        meldDetectionService.setPlugin((app as any).plugins.plugins['streams']);
+
+        this.fileCreationService = new FileCreationService(app, meldDetectionService);
     }
 
     getViewType(): string {

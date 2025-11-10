@@ -2,19 +2,28 @@ import { App, TFile, WorkspaceLeaf, MarkdownView, Notice } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { configurationService } from '../../shared/configuration-service';
-import { getPluginById, getCommands, executeCommandById } from '../../shared/obsidian-types';
-import { ServiceContainer } from '../../shared/interfaces';
+import { getCommands, executeCommandById } from '../../shared/obsidian-types';
 import { MeldDetectionService } from '../../slices/meld-integration';
 
 /**
  * Service for handling file creation and encryption operations
  * Extracted from CreateFileView to follow Single Responsibility Principle
+ *
+ * Uses dependency injection for MeldDetectionService to maintain loose coupling
+ * and improve testability, following the Dependency Inversion Principle.
  */
 export class FileCreationService {
     private app: App;
+    private meldDetectionService: MeldDetectionService;
 
-    constructor(app: App) {
+    /**
+     * Creates a new FileCreationService with injected dependencies
+     * @param app - The Obsidian App instance
+     * @param meldDetectionService - Service for detecting Meld plugin availability
+     */
+    constructor(app: App, meldDetectionService: MeldDetectionService) {
         this.app = app;
+        this.meldDetectionService = meldDetectionService;
     }
 
     /**
@@ -46,15 +55,14 @@ export class FileCreationService {
 
     /**
      * Check if Meld is available for encryption
+     * Uses the injected MeldDetectionService to maintain loose coupling
      */
     isMeldAvailable(stream: Stream): boolean {
         if (!stream.encryptThisStream) {
             return false;
         }
 
-        const meldDetectionService = new MeldDetectionService();
-        meldDetectionService.setPlugin(getPluginById(this.app, 'streams') as any);
-        return meldDetectionService.isMeldPluginAvailable();
+        return this.meldDetectionService.isMeldPluginAvailable();
     }
 
     /**
