@@ -5,6 +5,7 @@ import { MoveTextToStreamModal, MoveTextOptions } from './MoveTextToStreamModal'
 import { MarkdownView, Notice, Menu, Editor, TFile, TAbstractFile } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { SettingsManager, ServiceContainer } from '../../shared/interfaces';
+import { withErrorHandling } from '../../shared/error-handler';
 
 export class ContextMenuService extends PluginAwareSliceService {
     private registeredEvents: Array<() => void> = [];
@@ -100,39 +101,39 @@ export class ContextMenuService extends PluginAwareSliceService {
     }): Promise<void> {
         try {
             const { stream, date, prepend, addDivider, text, sourceEditor } = options;
-            
+
             const fileName = `${date}.md`;
             const filePath = `${stream.folder}/${fileName}`;
-            
+
             let targetFile = this.getPlugin().app.vault.getAbstractFileByPath(filePath);
-            
+
             // If file not found, check for encrypted version (.mdenc)
             if (!targetFile) {
                 const encryptedFilePath = filePath.replace(/\.md$/, '.mdenc');
                 targetFile = this.getPlugin().app.vault.getAbstractFileByPath(encryptedFilePath);
             }
-            
+
             let targetContent = '';
-            
+
             if (targetFile) {
                 targetContent = await this.getPlugin().app.vault.cachedRead(targetFile as TFile);
             } else {
                 targetContent = '';
                 targetFile = await this.getPlugin().app.vault.create(filePath, targetContent);
             }
-            
+
             const textToAdd = this.prepareTextToAdd(text, addDivider, prepend);
-            
+
             await this.getPlugin().app.vault.process(targetFile as TFile, (content) => {
                 return this.insertTextIntoContent(content, textToAdd, prepend);
             });
-            
+
             if (sourceEditor.getSelection() === text) {
                 sourceEditor.replaceSelection('');
             }
-            
+
             new Notice(`Text moved to ${stream.name} (${date})`);
-            
+
         } catch (error) {
             centralizedLogger.error('Error moving text to stream:', error);
             throw error;

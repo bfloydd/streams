@@ -2,6 +2,7 @@ import { App } from 'obsidian';
 import { PluginAwareSliceService } from '../../shared/base-slice';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { getPlugins, getCommands } from '../../shared/obsidian-types';
+import { withErrorHandling, withAsyncErrorHandling } from '../../shared/error-handler';
 
 /**
  * Service for detecting and validating Meld plugin availability
@@ -22,13 +23,8 @@ export class MeldDetectionService extends PluginAwareSliceService {
      * Check if Meld plugin is installed and enabled
      */
     isMeldPluginAvailable(): boolean {
-        try {
-            const app = this.getPlugin().app;
-            return MeldDetectionService.checkMeldAvailability(app);
-        } catch (error) {
-            centralizedLogger.error('Error checking Meld plugin availability:', error);
-            return false;
-        }
+        const app = this.getPlugin().app;
+        return MeldDetectionService.checkMeldAvailability(app);
     }
     
     /**
@@ -68,24 +64,19 @@ export class MeldDetectionService extends PluginAwareSliceService {
      * Execute the Meld encryption command
      */
     async executeMeldEncryption(): Promise<boolean> {
-        try {
-            if (!this.isMeldPluginAvailable()) {
-                throw new Error('Meld plugin is not available or not enabled');
-            }
-            
-            const app = this.getPlugin().app;
-            const commands = getCommands(app);
-            const command = commands?.[this.meldCommandId];
-            
-            if (command?.callback) {
-                await command.callback();
-                return true;
-            } else {
-                throw new Error(`Meld encryption command not found: ${this.meldCommandId}`);
-            }
-        } catch (error) {
-            centralizedLogger.error('Error executing Meld encryption command:', error);
-            return false;
+        if (!this.isMeldPluginAvailable()) {
+            throw new Error('Meld plugin is not available or not enabled');
+        }
+
+        const app = this.getPlugin().app;
+        const commands = getCommands(app);
+        const command = commands?.[this.meldCommandId];
+
+        if (command?.callback) {
+            await command.callback();
+            return true;
+        } else {
+            throw new Error(`Meld encryption command not found: ${this.meldCommandId}`);
         }
     }
     
