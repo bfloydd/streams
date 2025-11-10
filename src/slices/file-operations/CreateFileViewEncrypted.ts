@@ -5,6 +5,7 @@ import { DateStateManager, DateState } from '../../shared/date-state-manager';
 import { TIMING } from '../../shared/timing-constants';
 import { getPluginById, getCommands, executeCommandById } from '../../shared/obsidian-types';
 import { StreamsPluginInterface } from '../../shared/interfaces';
+import { MeldDetectionService } from '../../slices/meld-integration';
 
 // Interface for the streams plugin
 interface StreamsPlugin {
@@ -284,10 +285,11 @@ export class CreateFileViewEncrypted extends ItemView {
             }
             
             // Check if Meld is available for encryption
-            const fileOpsService = (plugin as StreamsPluginInterface).getFileOperationsService?.();
-            if (fileOpsService && !fileOpsService.isMeldPluginAvailable()) {
+            const meldDetectionService = new MeldDetectionService();
+            meldDetectionService.setPlugin(plugin as StreamsPluginInterface);
+            if (!meldDetectionService.isMeldPluginAvailable()) {
                 // Show error and don't create file
-                new Notice(fileOpsService.getMeldUnavailableMessage());
+                new Notice('Meld plugin is required for encryption but is not available.');
                 return;
             }
             

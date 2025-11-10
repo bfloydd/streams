@@ -36,13 +36,16 @@ export class CalendarNavigationService extends SettingsAwareSliceService {
 
     private initializeServices(): void {
         const plugin = this.getPlugin();
+
+        // Note: ViewManagementService and ComponentLifecycleManager are utility classes,
+        // not slice services, so they are instantiated directly rather than accessed via service registry
         this.viewManagementService = new ViewManagementService(
             plugin.app,
             () => this.getStreams(),
             () => this.getDefaultStream(),
             (stream) => this.getDefaultFilePath(stream)
         );
-        
+
         this.componentLifecycleManager = new ComponentLifecycleManager(
             plugin.app,
             () => this.getStreams(),

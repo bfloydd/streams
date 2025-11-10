@@ -4,6 +4,7 @@ import { Stream, StreamsSettings, LucideIcon } from '../../shared/types';
 import { StreamsPluginInterface } from '../../shared/interfaces';
 import { eventBus, EVENTS } from '../../shared/event-bus';
 import { centralizedLogger } from '../../shared/centralized-logger';
+import { MeldDetectionService } from '../../slices/meld-integration';
 
 export class SettingsService extends SettingsAwareSliceService {
     private settingsTab: StreamsSettingTab | null = null;
@@ -321,8 +322,9 @@ export class StreamsSettingTab extends PluginSettingTab {
 
     private addEncryptionToggle(container: HTMLElement, stream: Stream): void {
         // Check if Meld plugin is available
-        const fileOpsService = this.plugin.getFileOperationsService?.();
-        const isMeldAvailable = fileOpsService?.isMeldPluginAvailable() || false;
+        const meldDetectionService = new MeldDetectionService();
+        meldDetectionService.setPlugin(this.plugin);
+        const isMeldAvailable = meldDetectionService.isMeldPluginAvailable();
         
         const encryptionSetting = new Setting(container)
             .setName('Encrypt this stream')

@@ -4,6 +4,7 @@ import { centralizedLogger } from '../../shared/centralized-logger';
 import { TIMING } from '../../shared/timing-constants';
 import { getPluginById, getCommands, executeCommandById } from '../../shared/obsidian-types';
 import { StreamsPluginInterface } from '../../shared/interfaces';
+import { MeldDetectionService } from '../../slices/meld-integration';
 
 /**
  * Service for handling file creation and encryption operations
@@ -51,26 +52,16 @@ export class FileCreationService {
             return false;
         }
 
-        const plugin = getPluginById(this.app, 'streams') as StreamsPluginInterface | undefined;
-        if (!plugin) {
-            return false;
-        }
-
-        const fileOpsService = plugin.getFileOperationsService?.();
-        return fileOpsService?.isMeldPluginAvailable() || false;
+        const meldDetectionService = new MeldDetectionService();
+        meldDetectionService.setPlugin(getPluginById(this.app, 'streams') as StreamsPluginInterface);
+        return meldDetectionService.isMeldPluginAvailable();
     }
 
     /**
      * Get Meld unavailable message
      */
     getMeldUnavailableMessage(): string {
-        const plugin = getPluginById(this.app, 'streams') as StreamsPluginInterface | undefined;
-        if (!plugin) {
-            return 'Meld plugin is required for encryption but is not available.';
-        }
-
-        const fileOpsService = plugin.getFileOperationsService?.();
-        return fileOpsService?.getMeldUnavailableMessage() || 'Meld plugin is required for encryption but is not available.';
+        return 'Meld plugin is required for encryption but is not available.';
     }
 
     /**

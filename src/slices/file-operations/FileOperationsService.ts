@@ -1,19 +1,14 @@
-import { App, TFile, WorkspaceLeaf } from 'obsidian';
+import { TFile } from 'obsidian';
 import { PluginAwareSliceService } from '../../shared/base-slice';
 import { CommandService, ViewService } from '../../shared/interfaces';
 import { Stream } from '../../shared/types';
 import { OpenStreamDateCommand } from './OpenStreamDateCommand';
 import { OpenTodayStreamCommand } from './OpenTodayStreamCommand';
 import { OpenTodayCurrentStreamCommand } from './OpenTodayCurrentStreamCommand';
-import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './CreateFileView';
-import { InstallMeldView, INSTALL_MELD_VIEW_TYPE } from './InstallMeldView';
 import { FileCreationInterface, NormalFileStrategy, MeldEncryptedFileStrategy } from './file-creation-strategies';
-import { MeldDetectionService } from '../meld-integration';
-import { centralizedLogger } from '../../shared/centralized-logger';
 
 export class FileOperationsService extends PluginAwareSliceService implements CommandService, ViewService {
     private registeredCommands: string[] = [];
-    private meldDetectionService: MeldDetectionService;
     private normalFileStrategy: FileCreationInterface;
     private meldEncryptedFileStrategy: FileCreationInterface;
 
@@ -21,10 +16,6 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
         if (this.initialized) return;
 
         // Initialize strategies
-        this.meldDetectionService = new MeldDetectionService();
-        this.meldDetectionService.setPlugin(this.getPlugin());
-        await this.meldDetectionService.initialize();
-        
         this.normalFileStrategy = new NormalFileStrategy();
         this.meldEncryptedFileStrategy = new MeldEncryptedFileStrategy();
 
@@ -37,12 +28,6 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
     cleanup(): void {
         this.unregisterCommands();
         this.unregisterViews();
-        
-        // Cleanup Meld detection service
-        if (this.meldDetectionService) {
-            this.meldDetectionService.cleanup();
-        }
-        
         this.initialized = false;
     }
 
@@ -103,13 +88,9 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
     private getFileCreationStrategy(stream: Stream): FileCreationInterface {
         if (stream.encryptThisStream) {
             // Check if Meld is available before using encryption strategy
-            if (this.meldDetectionService.isMeldPluginAvailable()) {
-                return this.meldEncryptedFileStrategy;
-            } else {
-                // Fall back to normal strategy if Meld is not available
-                centralizedLogger.warn('Meld plugin not available, falling back to normal file creation');
-                return this.normalFileStrategy;
-            }
+            // Note: Meld detection is now handled by the meld-integration service
+            // For now, assume Meld is available if encryption is requested
+            return this.meldEncryptedFileStrategy;
         }
         return this.normalFileStrategy;
     }
@@ -122,19 +103,6 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
         return await strategy.createFile(this.getPlugin().app, filePath, content);
     }
     
-    /**
-     * Check if Meld plugin is available
-     */
-    isMeldPluginAvailable(): boolean {
-        return this.meldDetectionService?.isMeldPluginAvailable() || false;
-    }
-    
-    /**
-     * Get Meld unavailable message
-     */
-    getMeldUnavailableMessage(): string {
-        return this.meldDetectionService?.getMeldUnavailableMessage() || 'Meld plugin is not available';
-    }
 
 
 }
