@@ -144,6 +144,7 @@ export class ServiceCoordinator extends SettingsAwareSliceService {
     }
 
     public updateAllStreamsBarComponents(): void {
+        if (this.isInitializing) return;
         this.componentCoordinator?.updateAllStreamsBarComponents();
     }
 

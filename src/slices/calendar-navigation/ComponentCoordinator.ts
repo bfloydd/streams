@@ -24,7 +24,6 @@ export class ComponentCoordinator extends BaseSliceService {
     }
 
     updateAllStreamsBarComponents(): void {
-        if (this.isInitializing) return;
         this.componentLifecycleManager?.updateAllStreamsBarComponents();
     }
 
