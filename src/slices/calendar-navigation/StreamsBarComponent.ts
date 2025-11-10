@@ -6,7 +6,7 @@ import { StreamsPluginInterface } from '../../shared/interfaces';
 import { CREATE_FILE_VIEW_TYPE } from '../file-operations/CreateFileView';
 import { DateStateManager } from '../../shared/date-state-manager';
 import { MeldDetectionService } from '../meld-integration';
-import { TIMING } from '../../shared/timing-constants';
+import { configurationService } from '../../shared/configuration-service';
 import { CalendarRenderer } from './CalendarRenderer';
 import { StreamSelector } from './StreamSelector';
 import { ContentIndicatorService } from './ContentIndicatorService';
@@ -230,12 +230,12 @@ export class StreamsBarComponent extends Component {
             if (this.grid && this.grid.children.length > 0) {
                 const timeoutId = window.setTimeout(() => {
                     this.calendarRenderer!.updateGridContent();
-                }, TIMING.SHORT_DELAY);
+                }, configurationService.getTimingConfig().SHORT_DELAY);
                 this.timeoutIds.push(timeoutId);
             } else {
                 const timeoutId = window.setTimeout(() => {
                     this.calendarRenderer!.updateCalendarGrid();
-                }, TIMING.SHORT_DELAY);
+                }, configurationService.getTimingConfig().SHORT_DELAY);
                 this.timeoutIds.push(timeoutId);
             }
         }

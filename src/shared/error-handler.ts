@@ -5,6 +5,7 @@
 import { eventBus, EVENTS } from './event-bus';
 import { centralizedLogger } from './centralized-logger';
 import { ErrorData } from './types';
+import { configurationService } from './configuration-service';
 
 export interface ErrorContext {
     service: string;
@@ -16,10 +17,12 @@ export interface ErrorContext {
 export class ErrorHandler {
     private static instance: ErrorHandler;
     private errorCount = 0;
-    private maxErrors = 100;
+    private readonly maxErrors: number;
     private errors: Array<{ error: Error; context: ErrorContext }> = [];
 
-    private constructor() {}
+    private constructor() {
+        this.maxErrors = configurationService.getSystemLimitsConfig().MAX_ERRORS;
+    }
 
     static getInstance(): ErrorHandler {
         if (!ErrorHandler.instance) {

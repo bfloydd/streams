@@ -3,6 +3,7 @@
  */
 
 import { sliceContainer } from './container';
+import { configurationService } from './configuration-service';
 import { DebugLoggingService } from '../slices/debug-logging';
 import { CalendarNavigationService } from '../slices/calendar-navigation';
 import { SettingsService } from '../slices/settings-management';
@@ -19,6 +20,9 @@ export class ServiceLoader {
      * Register all services in the correct order
      */
     static registerAllServices(): void {
+        // Initialize configuration service first (foundational service)
+        sliceContainer.register('configuration', configurationService);
+
         // Register services in dependency order
         sliceContainer.register('debug-logging', new DebugLoggingService());
         sliceContainer.register('settings-management', new SettingsService());

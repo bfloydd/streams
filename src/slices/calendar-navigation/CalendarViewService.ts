@@ -1,5 +1,5 @@
 import { CalendarViewChecker } from '../../shared/interfaces';
-import { CALENDAR_ENABLED_VIEW_TYPES } from '../../shared/constants';
+import { configurationService } from '../../shared/configuration-service';
 
 /**
  * Service for determining which view types should have calendar components
@@ -10,6 +10,7 @@ export class CalendarViewService implements CalendarViewChecker {
      * Check if a view type should have a calendar component
      */
     shouldCreateCalendarForViewType(viewType: string): boolean {
-        return CALENDAR_ENABLED_VIEW_TYPES.includes(viewType as typeof CALENDAR_ENABLED_VIEW_TYPES[number]);
+        const enabledTypes = configurationService.getViewConfig().CALENDAR_ENABLED_VIEW_TYPES;
+        return enabledTypes.includes(viewType as typeof enabledTypes[number]);
     }
 }

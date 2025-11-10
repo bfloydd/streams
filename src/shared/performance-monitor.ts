@@ -3,6 +3,7 @@
  */
 
 import { ErrorData } from './types';
+import { configurationService } from './configuration-service';
 
 export interface PerformanceMetadata {
     [key: string]: unknown;
@@ -18,10 +19,12 @@ export interface PerformanceMetric {
 export class PerformanceMonitor {
     private static instance: PerformanceMonitor;
     private metrics: PerformanceMetric[] = [];
-    private maxMetrics = 1000;
+    private readonly maxMetrics: number;
     private isEnabled = true;
 
-    private constructor() {}
+    private constructor() {
+        this.maxMetrics = configurationService.getSystemLimitsConfig().MAX_METRICS;
+    }
 
     static getInstance(): PerformanceMonitor {
         if (!PerformanceMonitor.instance) {

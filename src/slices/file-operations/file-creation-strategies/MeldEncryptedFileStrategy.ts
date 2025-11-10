@@ -1,7 +1,7 @@
 import { App, TFile, Plugin, WorkspaceLeaf, MarkdownView } from 'obsidian';
 import { FileCreationInterface } from './FileCreationStrategy';
 import { centralizedLogger } from '../../../shared/centralized-logger';
-import { TIMING } from '../../../shared/timing-constants';
+import { configurationService } from '../../../shared/configuration-service';
 import { getPlugins, getCommands, executeCommandById } from '../../../shared/obsidian-types';
 
 /**
@@ -107,7 +107,7 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
                         
                         // Set as active leaf and execute command
                         app.workspace.setActiveLeaf(fileLeaf, { focus: true });
-                        await new Promise(resolve => setTimeout(resolve, TIMING.FILE_OPERATION_DELAY));
+                        await new Promise(resolve => setTimeout(resolve, configurationService.getTimingConfig().FILE_OPERATION_DELAY));
                         await callbackFn();
                         
                     } finally {

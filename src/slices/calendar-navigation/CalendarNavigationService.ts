@@ -1,11 +1,11 @@
 import { App, MarkdownView, WorkspaceLeaf } from 'obsidian';
 import { SettingsAwareSliceService } from '../../shared/base-slice';
-import { CREATE_FILE_VIEW_TYPE } from '../../shared/constants';
+import { configurationService } from '../../shared/configuration-service';
 import { INSTALL_MELD_VIEW_TYPE } from '../file-operations/InstallMeldView';
 import { CREATE_FILE_VIEW_ENCRYPTED_TYPE } from '../file-operations/CreateFileViewEncrypted';
 import { Stream, StreamsSettings } from '../../shared/types';
 import { eventBus, EVENTS } from '../../shared/event-bus';
-import { measurePerformance, registerCleanupTask, TIMING } from '../../shared';
+import { measurePerformance, registerCleanupTask } from '../../shared';
 import { StreamProvider, FilePathProvider, ViewRegistrar, CalendarViewChecker, LeafInspector } from '../../shared/interfaces';
 import { ViewRegistrationService } from './ViewRegistrationService';
 import { CalendarViewService } from './CalendarViewService';
@@ -34,7 +34,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService impleme
         setTimeout(() => {
             this.refreshStreamsBarComponentsForNewViews();
             this.isInitializing = false;
-        }, TIMING.INITIALIZATION_DELAY);
+        }, configurationService.getTimingConfig().INITIALIZATION_DELAY);
 
         this.initialized = true;
     }
@@ -129,7 +129,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService impleme
                 if (file) {
                     setTimeout(async () => {
                         await this.ensureStreamsBarComponentForFile(file.path);
-                    }, TIMING.STANDARD_DELAY);
+                    }, configurationService.getTimingConfig().STANDARD_DELAY);
                 }
             })
         );
@@ -227,7 +227,7 @@ export class CalendarNavigationService extends SettingsAwareSliceService impleme
         const plugin = this.getPlugin();
         const allLeaves = plugin.app.workspace.getLeavesOfType('empty');
         const markdownLeaves = plugin.app.workspace.getLeavesOfType('markdown');
-        const createFileLeaves = plugin.app.workspace.getLeavesOfType(CREATE_FILE_VIEW_TYPE);
+        const createFileLeaves = plugin.app.workspace.getLeavesOfType(configurationService.getViewConfig().CREATE_FILE_VIEW_TYPE);
 
         // Combine all editor leaves
         const allEditorLeaves = [...allLeaves, ...markdownLeaves, ...createFileLeaves];

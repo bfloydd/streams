@@ -1,7 +1,7 @@
 import { App, TFile } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { encryptionDetectionService } from '../../shared/encryption-detection-service';
-import { getContentIndicatorSize } from '../../shared/file-size-constants';
+import { configurationService } from '../../shared/configuration-service';
 import { MeldDetectionService } from '../meld-integration';
 import { centralizedLogger } from '../../shared/centralized-logger';
 
@@ -68,7 +68,9 @@ export class ContentIndicatorService {
         }
 
         const fileSize = file.stat.size;
-        const size = getContentIndicatorSize(fileSize);
+        const fileSizeConfig = configurationService.getFileSizeConfig();
+        const size = fileSize < fileSizeConfig.SMALL_THRESHOLD ? 'small' :
+                    fileSize < fileSizeConfig.MEDIUM_THRESHOLD ? 'medium' : 'large';
 
         // Determine if encrypted file is locked or unlocked
         let isLocked = false;

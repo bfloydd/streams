@@ -1,7 +1,7 @@
 import { App, TFile, WorkspaceLeaf, MarkdownView, Notice } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
-import { TIMING } from '../../shared/timing-constants';
+import { configurationService } from '../../shared/configuration-service';
 import { getPluginById, getCommands, executeCommandById } from '../../shared/obsidian-types';
 import { ServiceContainer } from '../../shared/interfaces';
 import { MeldDetectionService } from '../../slices/meld-integration';
@@ -93,7 +93,7 @@ export class FileCreationService {
             }
             
             // Small delay to ensure the file is properly active
-            await new Promise(resolve => setTimeout(resolve, TIMING.FILE_OPERATION_DELAY));
+            await new Promise(resolve => setTimeout(resolve, configurationService.getTimingConfig().FILE_OPERATION_DELAY));
             
             // Try to execute the Meld encryption command
             const commands = getCommands(this.app);

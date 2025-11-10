@@ -1,5 +1,5 @@
 import { EventHandlerRegistry } from '../../shared/event-handler-registry';
-import { TIMING } from '../../shared/timing-constants';
+import { configurationService } from '../../shared/configuration-service';
 
 /**
  * Handles touch and wheel gestures for calendar navigation
@@ -39,7 +39,7 @@ export class TouchGestureHandler {
                 const deltaX = Math.abs(touch.clientX - (this.lastTouchX || touch.clientX));
                 const deltaY = Math.abs(touch.clientY - (this.lastTouchY || touch.clientY));
                 
-                if (deltaX > deltaY && deltaX > TIMING.TOUCH_DELTA_THRESHOLD) {
+                if (deltaX > deltaY && deltaX > configurationService.getTimingConfig().TOUCH_DELTA_THRESHOLD) {
                     e.preventDefault();
                     e.stopPropagation();
                 }

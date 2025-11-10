@@ -5,6 +5,7 @@
 
 import { centralizedLogger } from './centralized-logger';
 import { EventData } from './types';
+import { configurationService } from './configuration-service';
 
 export interface EventBusEvent {
     type: string;
@@ -18,7 +19,11 @@ export type EventHandler = (event: EventBusEvent) => void;
 export class EventBus {
     private handlers = new Map<string, Set<EventHandler>>();
     private eventHistory: EventBusEvent[] = [];
-    private maxHistorySize = 100;
+    private readonly maxHistorySize: number;
+
+    constructor() {
+        this.maxHistorySize = configurationService.getSystemLimitsConfig().MAX_HISTORY_SIZE;
+    }
 
     /**
      * Subscribe to an event type
