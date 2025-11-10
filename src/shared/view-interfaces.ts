@@ -1,5 +1,3 @@
-import { WorkspaceLeaf } from 'obsidian';
-
 /**
  * Minimal view interface for error fallback views
  * Used when view creation fails and we need a safe fallback

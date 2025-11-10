@@ -50,7 +50,7 @@ export class EventBus {
     /**
      * Emit an event
      */
-    emit(eventType: string, data?: EventData, source: string = 'unknown'): void {
+    emit(eventType: string, data?: EventData, source = 'unknown'): void {
         const event: EventBusEvent = {
             type: eventType,
             data,

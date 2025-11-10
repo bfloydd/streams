@@ -3,7 +3,6 @@ import { DateStateManager, DateState } from '../../shared/DateStateManager';
 import { performanceMonitor } from '../../shared/PerformanceMonitor';
 import { ContentIndicator, ContentIndicatorService } from './ContentIndicatorService';
 import { DateNavigationService } from './DateNavigationService';
-import { configurationService } from '../../shared/ConfigurationService';
 import { EventHandlerRegistry } from '../../shared/EventHandlerRegistry';
 
 /**

@@ -1,4 +1,4 @@
-import { Stream, StreamsSettings } from '../../shared/types';
+import { Stream } from '../../shared/types';
 import { setIcon } from 'obsidian';
 import { DateNavigationService } from './DateNavigationService';
 

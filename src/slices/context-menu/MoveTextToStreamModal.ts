@@ -12,11 +12,11 @@ export interface MoveTextOptions {
 export class MoveTextToStreamModal extends Modal {
     private streams: Stream[];
     private selectedStream: Stream | null = null;
-    private useSourceDate: boolean = true; // true = source date, false = today
+    private useSourceDate = true; // true = source date, false = today
     private selectedDate: string = new Date().toISOString().split('T')[0];
     private sourceDate: string = new Date().toISOString().split('T')[0];
-    private prependMode: boolean = false; // true = prepend, false = append
-    private addDivider: boolean = true; // true = add --- divider, false = no divider
+    private prependMode = false; // true = prepend, false = append
+    private addDivider = true; // true = add --- divider, false = no divider
     private selectedText: string;
     private sourceEditor: Editor;
     private sourceView: MarkdownView;

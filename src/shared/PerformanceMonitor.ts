@@ -2,7 +2,6 @@
  * Performance Monitoring System
  */
 
-import { ErrorData } from './types';
 import { configurationService } from './ConfigurationService';
 
 export interface PerformanceMetadata {

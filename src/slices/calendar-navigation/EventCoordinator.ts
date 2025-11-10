@@ -1,4 +1,3 @@
-import { App } from 'obsidian';
 import { BaseSliceService } from '../../shared/BaseSlice';
 import { EventHandlerService } from './EventHandlerService';
 import { ComponentLifecycleManager } from './ComponentLifecycleManager';

@@ -30,7 +30,7 @@ interface PluginInterface {
 
 export class StreamsBarComponent extends Component {
     private component: HTMLElement;
-    private expanded: boolean = false;
+    private expanded = false;
     public leaf: WorkspaceLeaf;
     private selectedStream: Stream;
     private app: App;
@@ -67,7 +67,7 @@ export class StreamsBarComponent extends Component {
         this.reuseCurrentTab = reuseCurrentTab;
     }
 
-    constructor(leaf: WorkspaceLeaf, stream: Stream, app: App, reuseCurrentTab: boolean = false, streams: Stream[] = [], plugin: PluginInterface | null = null) {
+    constructor(leaf: WorkspaceLeaf, stream: Stream, app: App, reuseCurrentTab = false, streams: Stream[] = [], plugin: PluginInterface | null = null) {
         super();
         
         this.leaf = leaf;

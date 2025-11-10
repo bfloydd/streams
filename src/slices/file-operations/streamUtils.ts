@@ -111,7 +111,7 @@ export function formatDateToYYYYMMDD(date: Date): string {
 export function getFolderSuggestions(app: App): string[] {
     const folders: string[] = [];
     
-    function recurseFolder(folder: TFolder, path: string = '') {
+    function recurseFolder(folder: TFolder, path = '') {
         const folderPath = path ? `${path}/${folder.name}` : folder.name;
         folders.push(folderPath);
         
@@ -155,7 +155,7 @@ export async function createDailyNote(app: App, folder: string): Promise<TFile |
     return file instanceof TFile ? file : null;
 }
 
-export async function openStreamDate(app: App, stream: Stream, date: Date = new Date(), reuseCurrentTab: boolean = false): Promise<void> {
+export async function openStreamDate(app: App, stream: Stream, date: Date = new Date(), reuseCurrentTab = false): Promise<void> {
 	// Opening stream date
     
     if (!(date instanceof Date) || isNaN(date.getTime())) {

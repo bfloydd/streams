@@ -1,8 +1,7 @@
 import { PluginAwareSliceService } from '../../shared/BaseSlice';
-import { Stream, StreamsSettings } from '../../shared/types';
+import { Stream } from '../../shared/types';
 import { StreamsAPI, StreamInfo, PluginVersion } from './StreamsAPI';
 import { eventBus, EVENTS } from '../../shared/EventBus';
-import { withErrorHandling } from '../../shared/ErrorHandler';
 import { DateUtils } from '../../shared/utils/DateUtils';
 import { FileUtils } from '../../shared/utils/FileUtils';
 

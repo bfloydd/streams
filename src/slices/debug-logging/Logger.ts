@@ -10,7 +10,7 @@ export enum LogLevel {
 
 // Usage: app.plugins.plugins.streams.log.on() or .off()
 export class Logger {
-    private enabled: boolean = false;
+    private enabled = false;
     private level: LogLevel = LogLevel.INFO;
     private prefix: string;
 

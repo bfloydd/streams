@@ -1,4 +1,4 @@
-import { App, WorkspaceLeaf } from 'obsidian';
+import { WorkspaceLeaf } from 'obsidian';
 import { BaseSliceService } from '../../shared/BaseSlice';
 import { StreamsSettings } from '../../shared/types';
 import { ComponentLifecycleManager } from './ComponentLifecycleManager';

@@ -55,7 +55,7 @@ export class StreamManagementService extends SettingsAwareSliceService {
     /**
      * Set the active stream
      */
-    public setActiveStream = withAsyncErrorHandling(async (streamId: string | undefined, force: boolean = false): Promise<void> => {
+    public setActiveStream = withAsyncErrorHandling(async (streamId: string | undefined, force = false): Promise<void> => {
         const currentActiveStreamId = this.getSettings().activeStreamId;
         
         if (currentActiveStreamId === streamId && !force) {

@@ -1,6 +1,6 @@
 import { App, setIcon } from 'obsidian';
-import { Stream, StreamsSettings } from '../../shared/types';
-import { StreamsPluginInterface, SettingsManager, UIController } from '../../shared/interfaces';
+import { Stream } from '../../shared/types';
+import { SettingsManager, UIController } from '../../shared/interfaces';
 import { OpenTodayCurrentStreamCommand } from '../file-operations/OpenTodayCurrentStreamCommand';
 import { getSetting } from '../../shared/obsidian-types';
 import { CalendarRenderer } from './CalendarRenderer';
@@ -281,8 +281,6 @@ export class ComponentUIBuilder {
         calendarRenderer: CalendarRenderer;
         currentMonthView: Date;
     } {
-        const topNav = expandedView.createDiv('streams-bar-top-nav');
-
         const header = expandedView.createDiv('streams-bar-header');
         const prevButton = header.createDiv('streams-bar-nav');
         prevButton.setText('←');

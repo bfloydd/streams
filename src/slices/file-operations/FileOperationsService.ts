@@ -62,7 +62,7 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
         this.registeredCommands = [];
     }
 
-    async openStreamDate(stream: Stream, date: Date, reuseCurrentTab: boolean = false): Promise<void> {
+    async openStreamDate(stream: Stream, date: Date, reuseCurrentTab = false): Promise<void> {
         const command = new OpenStreamDateCommand(
             this.getPlugin().app,
             stream,
@@ -72,7 +72,7 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
         await command.execute();
     }
 
-    async openTodayStream(stream: Stream, reuseCurrentTab: boolean = false): Promise<void> {
+    async openTodayStream(stream: Stream, reuseCurrentTab = false): Promise<void> {
         const command = new OpenTodayStreamCommand(
             this.getPlugin().app,
             stream,
