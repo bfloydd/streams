@@ -65,7 +65,7 @@ export class MeldDetectionService extends PluginAwareSliceService {
      */
     async executeMeldEncryption(): Promise<boolean> {
         if (!this.isMeldPluginAvailable()) {
-            throw new Error('Meld plugin is not available or not enabled');
+            return false;
         }
 
         const app = this.getPlugin().app;
@@ -76,7 +76,7 @@ export class MeldDetectionService extends PluginAwareSliceService {
             await command.callback();
             return true;
         } else {
-            throw new Error(`Meld encryption command not found: ${this.meldCommandId}`);
+            return false;
         }
     }
     

@@ -129,7 +129,7 @@ describe('MeldDetectionService', () => {
   });
 
   describe('executeMeldEncryption', () => {
-    it('should throw error when Meld is not available', async () => {
+    it('should return false when Meld is not available', async () => {
       await service.initialize();
       const app = {
         plugins: {
@@ -137,7 +137,7 @@ describe('MeldDetectionService', () => {
         },
       } as any as App;
       (mockPlugin as any).app = app;
-      
+
       const result = await service.executeMeldEncryption();
       expect(result).toBe(false);
     });
