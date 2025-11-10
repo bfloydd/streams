@@ -1,5 +1,5 @@
 import { CalendarViewChecker } from '../../shared/interfaces';
-import { configurationService } from '../../shared/configuration-service';
+import { configurationService } from '../../shared/ConfigurationService';
 
 /**
  * Service for determining which view types should have calendar components

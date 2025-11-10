@@ -1,7 +1,7 @@
 import { App, TFile, Plugin, WorkspaceLeaf, MarkdownView } from 'obsidian';
 import { FileCreationInterface } from './FileCreationStrategy';
-import { centralizedLogger } from '../../../shared/centralized-logger';
-import { configurationService } from '../../../shared/configuration-service';
+import { centralizedLogger } from '../../../shared/CentralizedLogger';
+import { configurationService } from '../../../shared/ConfigurationService';
 import { getPlugins, getCommands, executeCommandById } from '../../../shared/obsidian-types';
 
 /**

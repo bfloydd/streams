@@ -1,6 +1,6 @@
 import { App, TFile } from 'obsidian';
 import { FileCreationInterface } from './FileCreationStrategy';
-import { centralizedLogger } from '../../../shared/centralized-logger';
+import { centralizedLogger } from '../../../shared/CentralizedLogger';
 
 /**
  * Strategy for creating normal (unencrypted) files

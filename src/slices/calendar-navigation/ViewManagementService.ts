@@ -1,7 +1,7 @@
 import { App, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { CreateFileView, CREATE_FILE_VIEW_TYPE } from '../file-operations/CreateFileView';
-import { centralizedLogger } from '../../shared/centralized-logger';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
 import { createMinimalView } from '../../shared/view-interfaces';
 
 /**

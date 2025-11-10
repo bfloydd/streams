@@ -1,7 +1,7 @@
 import { Plugin } from 'obsidian';
 import { SliceService, PluginAwareService, StreamAwareService, SettingsAwareService, StreamsPluginInterface, SettingsManager, StreamManager, UIController, ServiceContainer, LogProvider } from './interfaces';
 import { Stream, StreamsSettings } from './types';
-import { centralizedLogger } from './centralized-logger';
+import { centralizedLogger } from './CentralizedLogger';
 
 export abstract class BaseSliceService implements SliceService {
     protected initialized = false;

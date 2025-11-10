@@ -1,5 +1,5 @@
 import { App, Platform } from 'obsidian';
-import { PluginAwareSliceService } from '../../shared/base-slice';
+import { PluginAwareSliceService } from '../../shared/BaseSlice';
 import { StreamManagementService } from '../stream-management/StreamManagementService';
 
 export class MobileIntegrationService extends PluginAwareSliceService {

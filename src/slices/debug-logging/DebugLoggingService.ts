@@ -1,9 +1,9 @@
 import { Plugin } from 'obsidian';
-import { PluginAwareSliceService, SettingsAwareSliceService } from '../../shared/base-slice';
+import { PluginAwareSliceService, SettingsAwareSliceService } from '../../shared/BaseSlice';
 import { Logger, LogLevel } from './Logger';
 import { ToggleDebugLoggingCommand } from './ToggleDebugLoggingCommand';
 import { Command } from '../../shared/interfaces';
-import { centralizedLogger } from '../../shared/centralized-logger';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
 import { StreamsSettings } from '../../shared/types';
 
 export class DebugLoggingService extends SettingsAwareSliceService {

@@ -1,7 +1,7 @@
 import { App, Modal, Setting, TFile, MarkdownView, Notice, Editor } from 'obsidian';
 import { Stream } from '../../shared/types';
-import { centralizedLogger } from '../../shared/centralized-logger';
-import { ModalStateManager } from '../../shared/modal-state-manager';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
+import { ModalStateManager } from '../../shared/ModalStateManager';
 
 export interface MoveTextOptions {
     selectedText: string;

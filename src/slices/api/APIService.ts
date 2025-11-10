@@ -1,8 +1,8 @@
-import { PluginAwareSliceService } from '../../shared/base-slice';
+import { PluginAwareSliceService } from '../../shared/BaseSlice';
 import { Stream, StreamsSettings } from '../../shared/types';
 import { StreamsAPI, StreamInfo, PluginVersion } from './StreamsAPI';
-import { eventBus, EVENTS } from '../../shared/event-bus';
-import { withErrorHandling } from '../../shared/error-handler';
+import { eventBus, EVENTS } from '../../shared/EventBus';
+import { withErrorHandling } from '../../shared/ErrorHandler';
 import { DateUtils } from '../../shared/utils/DateUtils';
 import { FileUtils } from '../../shared/utils/FileUtils';
 
@@ -234,7 +234,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
         await plugin.saveSettings();
 
         // Update the date state manager to reflect the file's date
-        const { DateStateManager } = await import('../../shared/date-state-manager');
+        const { DateStateManager } = await import('../../shared/DateStateManager');
         const dateStateManager = DateStateManager.getInstance();
         dateStateManager.setCurrentDate(targetDate);
     }

@@ -1,5 +1,5 @@
 import { WorkspaceLeaf } from 'obsidian';
-import { BaseSliceService } from '../../shared/base-slice';
+import { BaseSliceService } from '../../shared/BaseSlice';
 import { ViewRegistrationService } from './ViewRegistrationService';
 
 /**

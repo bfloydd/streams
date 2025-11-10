@@ -1,5 +1,5 @@
 import { WorkspaceLeaf, MarkdownView, View } from 'obsidian';
-import { centralizedLogger } from '../../shared/centralized-logger';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
 import { CREATE_FILE_VIEW_TYPE } from '../file-operations/CreateFileView';
 import { INSTALL_MELD_VIEW_TYPE } from '../file-operations/InstallMeldView';
 import { CREATE_FILE_VIEW_ENCRYPTED_TYPE } from '../file-operations/CreateFileViewEncrypted';

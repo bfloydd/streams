@@ -1,5 +1,5 @@
 
-import { centralizedLogger } from './centralized-logger';
+import { centralizedLogger } from './CentralizedLogger';
 
 export interface MemoryStats {
     used: number;

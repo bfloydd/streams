@@ -1,11 +1,11 @@
-import { PluginAwareSliceService } from '../../shared/base-slice';
+import { PluginAwareSliceService } from '../../shared/BaseSlice';
 import { StreamManagementService } from '../stream-management/StreamManagementService';
-import { centralizedLogger } from '../../shared/centralized-logger';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
 import { MoveTextToStreamModal, MoveTextOptions } from './MoveTextToStreamModal';
 import { MarkdownView, Notice, Menu, Editor, TFile, TAbstractFile } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { SettingsManager, ServiceContainer } from '../../shared/interfaces';
-import { withErrorHandling } from '../../shared/error-handler';
+import { withErrorHandling } from '../../shared/ErrorHandler';
 
 export class ContextMenuService extends PluginAwareSliceService {
     private registeredEvents: Array<() => void> = [];

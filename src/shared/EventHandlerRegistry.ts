@@ -3,7 +3,7 @@
  * Reduces manual cleanup code and prevents memory leaks
  */
 
-import { centralizedLogger } from './centralized-logger';
+import { centralizedLogger } from './CentralizedLogger';
 
 /**
  * Registry for managing event listeners with automatic cleanup

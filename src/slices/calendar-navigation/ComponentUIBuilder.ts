@@ -7,11 +7,11 @@ import { CalendarRenderer } from './CalendarRenderer';
 import { StreamSelector } from './StreamSelector';
 import { ContentIndicatorService } from './ContentIndicatorService';
 import { DateNavigationService } from './DateNavigationService';
-import { EventHandlerRegistry } from '../../shared/event-handler-registry';
+import { EventHandlerRegistry } from '../../shared/EventHandlerRegistry';
 import { TouchGestureHandler } from './TouchGestureHandler';
 import { DocumentEventHandler } from './DocumentEventHandler';
 import { ComponentStateManager } from './ComponentStateManager';
-import { DateStateManager } from '../../shared/date-state-manager';
+import { DateStateManager } from '../../shared/DateStateManager';
 
 /**
  * Interface for UI element references that will be set by the builder

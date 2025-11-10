@@ -1,4 +1,4 @@
-import { EventHandlerRegistry } from '../../shared/event-handler-registry';
+import { EventHandlerRegistry } from '../../shared/EventHandlerRegistry';
 
 /**
  * Handles document-level click events for calendar and dropdown interactions

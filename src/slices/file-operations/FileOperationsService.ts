@@ -1,5 +1,5 @@
 import { TFile } from 'obsidian';
-import { PluginAwareSliceService } from '../../shared/base-slice';
+import { PluginAwareSliceService } from '../../shared/BaseSlice';
 import { CommandService, ViewService } from '../../shared/interfaces';
 import { Stream } from '../../shared/types';
 import { OpenStreamDateCommand } from './OpenStreamDateCommand';

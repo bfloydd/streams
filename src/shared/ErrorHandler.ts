@@ -2,10 +2,10 @@
  * Centralized Error Handling System
  */
 
-import { eventBus, EVENTS } from './event-bus';
-import { centralizedLogger } from './centralized-logger';
+import { eventBus, EVENTS } from './EventBus';
+import { centralizedLogger } from './CentralizedLogger';
 import { ErrorData, FunctionCallErrorData } from './types';
-import { configurationService } from './configuration-service';
+import { configurationService } from './ConfigurationService';
 
 export interface ErrorContext {
     service: string;

@@ -1,8 +1,8 @@
 import { App, MarkdownView, WorkspaceLeaf } from 'obsidian';
-import { SettingsAwareSliceService } from '../../shared/base-slice';
-import { configurationService } from '../../shared/configuration-service';
+import { SettingsAwareSliceService } from '../../shared/BaseSlice';
+import { configurationService } from '../../shared/ConfigurationService';
 import { StreamsSettings } from '../../shared/types';
-import { eventBus, EVENTS } from '../../shared/event-bus';
+import { eventBus, EVENTS } from '../../shared/EventBus';
 import { registerCleanupTask } from '../../shared';
 import { ViewRegistrationService } from './ViewRegistrationService';
 import { CalendarViewService } from './CalendarViewService';

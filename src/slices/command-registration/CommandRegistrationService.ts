@@ -1,4 +1,4 @@
-import { PluginAwareSliceService } from '../../shared/base-slice';
+import { PluginAwareSliceService } from '../../shared/BaseSlice';
 import { CommandService, ServiceContainer, LogProvider } from '../../shared/interfaces';
 import { StreamManagementService } from '../stream-management/StreamManagementService';
 import { StreamsAPI } from '../api/StreamsAPI';

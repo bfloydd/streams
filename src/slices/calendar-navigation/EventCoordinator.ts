@@ -1,5 +1,5 @@
 import { App } from 'obsidian';
-import { BaseSliceService } from '../../shared/base-slice';
+import { BaseSliceService } from '../../shared/BaseSlice';
 import { EventHandlerService } from './EventHandlerService';
 import { ComponentLifecycleManager } from './ComponentLifecycleManager';
 import { LeafInspectionService } from './LeafInspectionService';

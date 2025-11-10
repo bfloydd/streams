@@ -3,7 +3,7 @@
  */
 
 import { ErrorData } from './types';
-import { configurationService } from './configuration-service';
+import { configurationService } from './ConfigurationService';
 
 export interface PerformanceMetadata {
     [key: string]: unknown;

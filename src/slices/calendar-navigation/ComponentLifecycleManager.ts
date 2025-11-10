@@ -1,12 +1,12 @@
 import { App, WorkspaceLeaf } from 'obsidian';
 import { Stream, StreamsSettings } from '../../shared/types';
 import { StreamsBarComponent } from './StreamsBarComponent';
-import { centralizedLogger } from '../../shared/centralized-logger';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
 import { serviceRegistry } from '../../shared';
 import { CalendarViewService } from './CalendarViewService';
 import { LeafInspectionService } from './LeafInspectionService';
 import { measurePerformance } from '../../shared';
-import { configurationService } from '../../shared/configuration-service';
+import { configurationService } from '../../shared/ConfigurationService';
 
 /**
  * Manages the lifecycle of StreamsBarComponent instances

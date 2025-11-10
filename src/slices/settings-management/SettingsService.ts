@@ -1,10 +1,10 @@
 import { App, PluginSettingTab, Setting, Notice } from 'obsidian';
-import { SettingsAwareSliceService } from '../../shared/base-slice';
+import { SettingsAwareSliceService } from '../../shared/BaseSlice';
 import { Stream, StreamsSettings, LucideIcon } from '../../shared/types';
 import { StreamsPluginInterface, SettingsManager, UIController, LogProvider } from '../../shared/interfaces';
-import { eventBus, EVENTS } from '../../shared/event-bus';
-import { centralizedLogger } from '../../shared/centralized-logger';
-import { configurationService } from '../../shared/configuration-service';
+import { eventBus, EVENTS } from '../../shared/EventBus';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
+import { configurationService } from '../../shared/ConfigurationService';
 import { MeldDetectionService } from '../../slices/meld-integration';
 
 export class SettingsService extends SettingsAwareSliceService {

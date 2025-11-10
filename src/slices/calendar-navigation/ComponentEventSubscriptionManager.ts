@@ -1,6 +1,6 @@
-import { DateStateManager } from '../../shared/date-state-manager';
-import { eventBus, EVENTS } from '../../shared/event-bus';
-import { DateState } from '../../shared/date-state-manager';
+import { DateStateManager } from '../../shared/DateStateManager';
+import { eventBus, EVENTS } from '../../shared/EventBus';
+import { DateState } from '../../shared/DateStateManager';
 import { StreamsSettings } from '../../shared/types';
 
 /**

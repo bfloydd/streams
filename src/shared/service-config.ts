@@ -1,4 +1,4 @@
-import { configurationService } from './configuration-service';
+import { configurationService } from './ConfigurationService';
 import { DebugLoggingService } from '../slices/debug-logging';
 import { StreamManagementService } from '../slices/stream-management';
 import { APIService } from '../slices/api';

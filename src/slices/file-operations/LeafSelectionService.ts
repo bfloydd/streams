@@ -1,5 +1,5 @@
 import { App, WorkspaceLeaf, MarkdownView, normalizePath, TFile } from 'obsidian';
-import { centralizedLogger } from '../../shared/centralized-logger';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
 
 /**
  * Service for selecting appropriate workspace leaves based on settings

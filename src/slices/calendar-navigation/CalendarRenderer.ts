@@ -1,10 +1,10 @@
 import { Component, setIcon } from 'obsidian';
-import { DateStateManager, DateState } from '../../shared/date-state-manager';
-import { performanceMonitor } from '../../shared/performance-monitor';
+import { DateStateManager, DateState } from '../../shared/DateStateManager';
+import { performanceMonitor } from '../../shared/PerformanceMonitor';
 import { ContentIndicator, ContentIndicatorService } from './ContentIndicatorService';
 import { DateNavigationService } from './DateNavigationService';
-import { configurationService } from '../../shared/configuration-service';
-import { EventHandlerRegistry } from '../../shared/event-handler-registry';
+import { configurationService } from '../../shared/ConfigurationService';
+import { EventHandlerRegistry } from '../../shared/EventHandlerRegistry';
 
 /**
  * Component responsible for rendering the calendar grid

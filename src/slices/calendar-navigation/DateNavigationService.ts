@@ -1,7 +1,7 @@
 import { App } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { OpenStreamDateCommand } from '../file-operations/OpenStreamDateCommand';
-import { DateStateManager } from '../../shared/date-state-manager';
+import { DateStateManager } from '../../shared/DateStateManager';
 
 /**
  * Service for date formatting and navigation logic

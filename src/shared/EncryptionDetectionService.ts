@@ -1,5 +1,5 @@
 import { App, TFile } from 'obsidian';
-import { centralizedLogger } from './centralized-logger';
+import { centralizedLogger } from './CentralizedLogger';
 
 /**
  * Service for detecting encrypted file content

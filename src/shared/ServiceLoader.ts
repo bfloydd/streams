@@ -2,8 +2,8 @@
  * Service Loader for automatic service registration
  */
 
-import { sliceContainer } from './container';
-import { configurationService } from './configuration-service';
+import { sliceContainer } from './SliceContainer';
+import { configurationService } from './ConfigurationService';
 import { getAllServiceConfigs } from './service-config';
 
 export class ServiceLoader {

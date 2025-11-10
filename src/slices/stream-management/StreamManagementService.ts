@@ -1,10 +1,10 @@
 import { App, Notice } from 'obsidian';
-import { StreamAwareSliceService, SettingsAwareSliceService } from '../../shared/base-slice';
+import { StreamAwareSliceService, SettingsAwareSliceService } from '../../shared/BaseSlice';
 import { Stream, StreamsSettings } from '../../shared/types';
 import { StreamSelectionModal } from './StreamSelectionModal';
-import { eventBus, EVENTS } from '../../shared/event-bus';
-import { withErrorHandling, withAsyncErrorHandling, handleError } from '../../shared/error-handler';
-import { GlobalStreamIndicator } from '../../shared/global-stream-indicator';
+import { eventBus, EVENTS } from '../../shared/EventBus';
+import { withErrorHandling, withAsyncErrorHandling, handleError } from '../../shared/ErrorHandler';
+import { GlobalStreamIndicator } from '../../shared/GlobalStreamIndicator';
 
 export class StreamManagementService extends SettingsAwareSliceService {
     private globalIndicator: GlobalStreamIndicator;

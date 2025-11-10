@@ -1,9 +1,9 @@
 import { App, TFile } from 'obsidian';
 import { Stream } from '../../shared/types';
-import { encryptionDetectionService } from '../../shared/encryption-detection-service';
-import { configurationService } from '../../shared/configuration-service';
+import { encryptionDetectionService } from '../../shared/EncryptionDetectionService';
+import { configurationService } from '../../shared/ConfigurationService';
 import { MeldDetectionService } from '../meld-integration';
-import { centralizedLogger } from '../../shared/centralized-logger';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
 
 /**
  * Content indicator for calendar day display

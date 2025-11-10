@@ -1,7 +1,7 @@
 import { App } from 'obsidian';
-import { SettingsAwareSliceService } from '../../shared/base-slice';
+import { SettingsAwareSliceService } from '../../shared/BaseSlice';
 import { Stream, StreamsSettings } from '../../shared/types';
-import { eventBus, EVENTS } from '../../shared/event-bus';
+import { eventBus, EVENTS } from '../../shared/EventBus';
 import { OpenTodayStreamCommand } from '../file-operations/OpenTodayStreamCommand';
 import { OpenTodayCurrentStreamCommand } from '../file-operations/OpenTodayCurrentStreamCommand';
 

@@ -1,8 +1,8 @@
 import { App } from 'obsidian';
-import { PluginAwareSliceService } from '../../shared/base-slice';
-import { centralizedLogger } from '../../shared/centralized-logger';
+import { PluginAwareSliceService } from '../../shared/BaseSlice';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
 import { getPlugins, getCommands } from '../../shared/obsidian-types';
-import { withErrorHandling, withAsyncErrorHandling } from '../../shared/error-handler';
+import { withErrorHandling, withAsyncErrorHandling } from '../../shared/ErrorHandler';
 
 /**
  * Service for detecting and validating Meld plugin availability

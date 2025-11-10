@@ -1,8 +1,8 @@
 import { Component, setIcon, App } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { OpenStreamDateCommand } from '../file-operations/OpenStreamDateCommand';
-import { DateStateManager } from '../../shared/date-state-manager';
-import { centralizedLogger } from '../../shared/centralized-logger';
+import { DateStateManager } from '../../shared/DateStateManager';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
 
 interface PluginInterface {
     settings: {

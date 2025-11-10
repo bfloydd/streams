@@ -1,7 +1,7 @@
 import { App, TFile, WorkspaceLeaf, ItemView, setIcon } from 'obsidian';
 import { Stream } from '../../shared/types';
-import { centralizedLogger } from '../../shared/centralized-logger';
-import { DateStateManager, DateState } from '../../shared/date-state-manager';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
+import { DateStateManager, DateState } from '../../shared/DateStateManager';
 import { FileCreationService } from './FileCreationService';
 import { EmptyStateObserver } from './EmptyStateObserver';
 import { StreamManager } from '../../shared/interfaces';
@@ -225,7 +225,7 @@ export class CreateFileView extends ItemView {
     private triggerCalendarComponent(): void {
         // Trigger the streams bar component to be added to this view
         try {
-            import('../../shared/event-bus').then(({ eventBus }) => {
+            import('../../shared/EventBus').then(({ eventBus }) => {
                 eventBus.emit('create-file-view-opened', this.leaf);
             });
         } catch (error) {

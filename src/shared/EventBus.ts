@@ -3,9 +3,9 @@
  * Allows slices to communicate without tight coupling
  */
 
-import { centralizedLogger } from './centralized-logger';
+import { centralizedLogger } from './CentralizedLogger';
 import { EventData } from './types';
-import { configurationService } from './configuration-service';
+import { configurationService } from './ConfigurationService';
 
 export interface EventBusEvent {
     type: string;

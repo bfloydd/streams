@@ -1,6 +1,6 @@
 import { Plugin } from 'obsidian';
 import { SliceService, PluginAwareService } from './interfaces';
-import { centralizedLogger } from './centralized-logger';
+import { centralizedLogger } from './CentralizedLogger';
 
 /**
  * Simple dependency injection container for managing slice services

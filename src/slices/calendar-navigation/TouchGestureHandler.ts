@@ -1,5 +1,5 @@
-import { EventHandlerRegistry } from '../../shared/event-handler-registry';
-import { configurationService } from '../../shared/configuration-service';
+import { EventHandlerRegistry } from '../../shared/EventHandlerRegistry';
+import { configurationService } from '../../shared/ConfigurationService';
 
 /**
  * Handles touch and wheel gestures for calendar navigation

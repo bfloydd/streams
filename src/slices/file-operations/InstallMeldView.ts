@@ -1,7 +1,7 @@
 import { App, TFile, WorkspaceLeaf, ItemView, setIcon, Notice } from 'obsidian';
 import { Stream } from '../../shared/types';
-import { centralizedLogger } from '../../shared/centralized-logger';
-import { DateStateManager, DateState } from '../../shared/date-state-manager';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
+import { DateStateManager, DateState } from '../../shared/DateStateManager';
 import { ViewWithEmptyStateObserver, getSetting } from '../../shared/obsidian-types';
 
 export const INSTALL_MELD_VIEW_TYPE = 'streams-install-meld-view';
@@ -168,7 +168,7 @@ export class InstallMeldView extends ItemView {
     private triggerCalendarComponent(): void {
         // Trigger the streams bar component to be added to this view
         try {
-            import('../../shared/event-bus').then(({ eventBus }) => {
+            import('../../shared/EventBus').then(({ eventBus }) => {
                 eventBus.emit('install-meld-view-opened', this.leaf);
             });
         } catch (error) {

@@ -1,9 +1,9 @@
 import { App, WorkspaceLeaf } from 'obsidian';
 import { INSTALL_MELD_VIEW_TYPE } from '../file-operations/InstallMeldView';
 import { CREATE_FILE_VIEW_ENCRYPTED_TYPE } from '../file-operations/CreateFileViewEncrypted';
-import { configurationService } from '../../shared/configuration-service';
-import { eventBus, EVENTS } from '../../shared/event-bus';
-import { centralizedLogger } from '../../shared/centralized-logger';
+import { configurationService } from '../../shared/ConfigurationService';
+import { eventBus, EVENTS } from '../../shared/EventBus';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
 
 /**
  * Handles all event registrations and subscriptions for calendar navigation

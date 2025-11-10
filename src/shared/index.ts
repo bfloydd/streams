@@ -8,44 +8,44 @@ export * from './interfaces';
 export * from './constants';
 
 // Base classes
-export * from './base-slice';
+export * from './BaseSlice';
 
 // Container
-export * from './container';
+export * from './SliceContainer';
 
 // Event system
-export * from './event-bus';
+export * from './EventBus';
 
 // Service registry
-export * from './service-registry';
+export * from './ServiceRegistry';
 
 // Error handling
-export * from './error-handler';
+export * from './ErrorHandler';
 
 // Performance monitoring
-export * from './performance-monitor';
+export * from './PerformanceMonitor';
 
 // Memory management
-export * from './memory-manager';
+export * from './MemoryManager';
 
 // Service loader
-export * from './service-loader';
+export * from './ServiceLoader';
 
 // Centralized logging
-export * from './centralized-logger';
+export * from './CentralizedLogger';
 
 // Modal state management
-export * from './modal-state-manager';
+export * from './ModalStateManager';
 
 // Encryption detection
-export * from './encryption-detection-service';
+export * from './EncryptionDetectionService';
 
 // Constants
 export * from './timing-constants';
 export * from './file-size-constants';
 
 // Event handler registry
-export * from './event-handler-registry';
+export * from './EventHandlerRegistry';
 
 // Obsidian type extensions
 export * from './obsidian-types';

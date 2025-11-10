@@ -1,7 +1,7 @@
 import { App, Notice } from 'obsidian';
 import { Command } from '../../shared/interfaces';
 import { Logger, LogLevel } from './Logger';
-import { centralizedLogger } from '../../shared/centralized-logger';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
 
 export class ToggleDebugLoggingCommand implements Command {
     constructor(

@@ -1,6 +1,6 @@
 import { App, Plugin, WorkspaceLeaf } from 'obsidian';
 import { Stream, StreamsSettings } from './types';
-import { SliceContainer } from './container';
+import { SliceContainer } from './SliceContainer';
 import { Logger } from '../slices/debug-logging';
 import { FileOperationsService } from '../slices/file-operations';
 

@@ -1,7 +1,7 @@
 import { App, TFile, WorkspaceLeaf, MarkdownView, Notice } from 'obsidian';
 import { Stream } from '../../shared/types';
-import { centralizedLogger } from '../../shared/centralized-logger';
-import { configurationService } from '../../shared/configuration-service';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
+import { configurationService } from '../../shared/ConfigurationService';
 import { getCommands, executeCommandById } from '../../shared/obsidian-types';
 import { MeldDetectionService } from '../../slices/meld-integration';
 

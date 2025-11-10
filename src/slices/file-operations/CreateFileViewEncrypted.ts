@@ -1,8 +1,8 @@
 import { App, TFile, WorkspaceLeaf, ItemView, setIcon, Notice, MarkdownView } from 'obsidian';
 import { Stream } from '../../shared/types';
-import { centralizedLogger } from '../../shared/centralized-logger';
-import { DateStateManager, DateState } from '../../shared/date-state-manager';
-import { configurationService } from '../../shared/configuration-service';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
+import { DateStateManager, DateState } from '../../shared/DateStateManager';
+import { configurationService } from '../../shared/ConfigurationService';
 import { getPluginById, getCommands, executeCommandById } from '../../shared/obsidian-types';
 import { ServiceContainer } from '../../shared/interfaces';
 import { MeldDetectionService } from '../../slices/meld-integration';
@@ -243,7 +243,7 @@ export class CreateFileViewEncrypted extends ItemView {
     private triggerCalendarComponent(): void {
         // Trigger the streams bar component to be added to this view
         try {
-            import('../../shared/event-bus').then(({ eventBus }) => {
+            import('../../shared/EventBus').then(({ eventBus }) => {
                 eventBus.emit('create-file-view-encrypted-opened', this.leaf);
             });
         } catch (error) {

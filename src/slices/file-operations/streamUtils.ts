@@ -1,10 +1,10 @@
 import { App, TFile, TFolder, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../shared/types';
-import { centralizedLogger } from '../../shared/centralized-logger';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
 import { CREATE_FILE_VIEW_TYPE } from './CreateFileView';
 import { INSTALL_MELD_VIEW_TYPE } from './InstallMeldView';
 import { CREATE_FILE_VIEW_ENCRYPTED_TYPE } from './CreateFileViewEncrypted';
-import { DateStateManager } from '../../shared/date-state-manager';
+import { DateStateManager } from '../../shared/DateStateManager';
 import { MeldDetectionService } from '../meld-integration';
 import { LeafSelectionService } from './LeafSelectionService';
 

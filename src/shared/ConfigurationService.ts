@@ -4,7 +4,7 @@
  * Follows clean code principles: Single Responsibility, Open/Closed, Interface Segregation
  */
 
-import { BaseSliceService } from './base-slice';
+import { BaseSliceService } from './BaseSlice';
 import { StreamsSettings } from './types';
 
 // Configuration interfaces for different categories

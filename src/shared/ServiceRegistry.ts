@@ -5,7 +5,7 @@
  * For utility services that are singletons (not slice services), access them directly.
  */
 
-import { sliceContainer } from './container';
+import { sliceContainer } from './SliceContainer';
 import { DebugLoggingService } from '../slices/debug-logging';
 import { StreamManagementService } from '../slices/stream-management';
 import { APIService } from '../slices/api';
