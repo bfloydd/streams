@@ -1,7 +1,7 @@
 import { App, PluginSettingTab, Setting, Notice } from 'obsidian';
 import { SettingsAwareSliceService } from '../../shared/base-slice';
 import { Stream, StreamsSettings, LucideIcon } from '../../shared/types';
-import { StreamsPluginInterface } from '../../shared/interfaces';
+import { StreamsPluginInterface, SettingsManager, UIController, LogProvider } from '../../shared/interfaces';
 import { eventBus, EVENTS } from '../../shared/event-bus';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { MeldDetectionService } from '../../slices/meld-integration';
@@ -12,7 +12,12 @@ export class SettingsService extends SettingsAwareSliceService {
     async initialize(): Promise<void> {
         if (this.initialized) return;
 
-        this.settingsTab = new StreamsSettingTab(this.getPlugin().app, this.getPlugin() as StreamsPluginInterface);
+        this.settingsTab = new StreamsSettingTab(
+            this.getPlugin().app,
+            this.getSettingsManager(),
+            this.getUIController(),
+            this.getLogProvider()
+        );
         this.getPlugin().addSettingTab(this.settingsTab);
 
         this.initialized = true;
@@ -41,11 +46,15 @@ export class SettingsService extends SettingsAwareSliceService {
 }
 
 export class StreamsSettingTab extends PluginSettingTab {
-    plugin: StreamsPluginInterface;
+    private settingsManager: SettingsManager;
+    private uiController: UIController;
+    private logProvider: LogProvider;
 
-    constructor(app: App, plugin: StreamsPluginInterface) {
-        super(app, plugin);
-        this.plugin = plugin;
+    constructor(app: App, settingsManager: SettingsManager, uiController: UIController, logProvider: LogProvider) {
+        super(app, settingsManager as any);
+        this.settingsManager = settingsManager;
+        this.uiController = uiController;
+        this.logProvider = logProvider;
     }
 
     display(): void {
@@ -56,13 +65,13 @@ export class StreamsSettingTab extends PluginSettingTab {
             .setName('Show streams bar component')
             .setDesc('Show the streams bar component on all notes')
             .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.showStreamsBarComponent)
+                .setValue(this.settingsManager.settings.showStreamsBarComponent)
                 .onChange(async (value) => {
-                    this.plugin.settings.showStreamsBarComponent = value;
-                    await this.plugin.saveSettings();
-                    
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
-                    
+                    this.settingsManager.settings.showStreamsBarComponent = value;
+                    await this.settingsManager.saveSettings();
+
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+
                     new Notice(`Streams bar component ${value ? 'shown' : 'hidden'}`);
                 }));
                 
@@ -70,13 +79,13 @@ export class StreamsSettingTab extends PluginSettingTab {
             .setName('Reuse current tab for calendar navigation')
             .setDesc('When enabled, calendar navigation will reuse the current tab instead of opening new tabs')
             .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.reuseCurrentTab)
+                .setValue(this.settingsManager.settings.reuseCurrentTab)
                 .onChange(async (value) => {
-                    this.plugin.settings.reuseCurrentTab = value;
-                    await this.plugin.saveSettings();
-                    
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
-                    
+                    this.settingsManager.settings.reuseCurrentTab = value;
+                    await this.settingsManager.saveSettings();
+
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+
                     new Notice(`Calendar navigation will ${value ? 'reuse' : 'open new'} tabs`);
                 }));
                 
@@ -84,20 +93,20 @@ export class StreamsSettingTab extends PluginSettingTab {
             .setName('Enable debug logging')
             .setDesc('Enable debug logging for the Streams plugin (can also be toggled via command palette)')
             .addToggle(toggle => toggle
-                .setValue(this.plugin.settings.debugLoggingEnabled)
+                .setValue(this.settingsManager.settings.debugLoggingEnabled)
                 .onChange(async (value) => {
-                    this.plugin.settings.debugLoggingEnabled = value;
-                    
-                    if (this.plugin.log) {
+                    this.settingsManager.settings.debugLoggingEnabled = value;
+
+                    if (this.logProvider.log) {
                         if (value) {
-                            this.plugin.log.on();
+                            this.logProvider.log.on();
                         } else {
-                            this.plugin.log.off();
+                            this.logProvider.log.off();
                         }
                     }
-                    
-                    await this.plugin.saveSettings();
-                    
+
+                    await this.settingsManager.saveSettings();
+
                     new Notice(`Debug logging ${value ? 'enabled' : 'disabled'}`);
                 }));
                 
@@ -107,13 +116,13 @@ export class StreamsSettingTab extends PluginSettingTab {
             .addDropdown(dropdown => dropdown
                 .addOption('default', 'Default')
                 .addOption('modern', 'Modern')
-                .setValue(this.plugin.settings.barStyle)
+                .setValue(this.settingsManager.settings.barStyle)
                 .onChange(async (value: 'default' | 'modern') => {
-                    this.plugin.settings.barStyle = value;
-                    await this.plugin.saveSettings();
-                    
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
-                    
+                    this.settingsManager.settings.barStyle = value;
+                    await this.settingsManager.saveSettings();
+
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+
                     new Notice(`Bar style changed to ${value === 'default' ? 'Default' : 'Modern'}`);
                 }));
                 
@@ -136,15 +145,15 @@ export class StreamsSettingTab extends PluginSettingTab {
                         encryptThisStream: false,
                         disabled: false
                     };
-                    this.plugin.settings.streams.push(newStream);
-                    await this.plugin.saveSettings();
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
+                    this.settingsManager.settings.streams.push(newStream);
+                    await this.settingsManager.saveSettings();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
                     this.display();
                 }));
 
         const streamsContainer = containerEl.createDiv('streams-plugin-container');
 
-        this.plugin.settings.streams.forEach((stream, index) => {
+        this.settingsManager.settings.streams.forEach((stream: Stream, index: number) => {
             const streamCard = this.createStreamCard(streamsContainer, stream, index);
             this.addStreamSettings(streamCard, stream, index);
         });
@@ -186,7 +195,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                 'title': 'Move stream down'
             }
         });
-        if (index === this.plugin.settings.streams.length - 1) downButton.disabled = true;
+        if (index === this.settingsManager.settings.streams.length - 1) downButton.disabled = true;
         downButton.addEventListener('click', async () => {
             await this.moveStreamDown(index);
         });
@@ -203,8 +212,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setValue(stream.name)
                 .onChange(async (value) => {
                     stream.name = value;
-                    await this.plugin.saveSettings();
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
+                    await this.settingsManager.saveSettings();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
                 }));
 
         // Stream folder
@@ -215,8 +224,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setValue(stream.folder)
                 .onChange(async (value) => {
                     stream.folder = value;
-                    await this.plugin.saveSettings();
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
+                    await this.settingsManager.saveSettings();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
                 }));
 
         // Show today in ribbon
@@ -227,8 +236,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setValue(stream.showTodayInRibbon)
                 .onChange(async (value) => {
                     stream.showTodayInRibbon = value;
-                    await this.plugin.saveSettings();
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
+                    await this.settingsManager.saveSettings();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
                 }));
 
         // Add command
@@ -239,8 +248,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setValue(stream.addCommand)
                 .onChange(async (value) => {
                     stream.addCommand = value;
-                    await this.plugin.saveSettings();
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
+                    await this.settingsManager.saveSettings();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
                 }));
 
         // Encrypt this stream
@@ -254,12 +263,12 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setValue(stream.disabled || false)
                 .onChange(async (value) => {
                     stream.disabled = value;
-                    await this.plugin.saveSettings();
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
-                    
+                    await this.settingsManager.saveSettings();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+
                     // Refresh the display to update visual styling
                     this.display();
-                    
+
                     // Force immediate UI refresh for mobile devices
                     // Use requestAnimationFrame to ensure DOM updates are processed
                     requestAnimationFrame(() => {
@@ -279,51 +288,51 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setButtonText('Remove stream')
                 .setWarning()
                 .onClick(async () => {
-                    this.plugin.settings.streams.splice(index, 1);
-                    await this.plugin.saveSettings();
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
+                    this.settingsManager.settings.streams.splice(index, 1);
+                    await this.settingsManager.saveSettings();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
                     this.display();
                 }));
     }
 
     private async moveStreamUp(index: number): Promise<void> {
         if (index === 0) return;
-        
-        const streams = this.plugin.settings.streams;
+
+        const streams = this.settingsManager.settings.streams;
         const stream = streams[index];
-        
+
         // Remove stream from current position
         streams.splice(index, 1);
-        
+
         // Insert stream at new position (one position up)
         streams.splice(index - 1, 0, stream);
-        
-        await this.plugin.saveSettings();
-        eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
+
+        await this.settingsManager.saveSettings();
+        eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
         this.display();
     }
 
     private async moveStreamDown(index: number): Promise<void> {
-        const streams = this.plugin.settings.streams;
+        const streams = this.settingsManager.settings.streams;
         if (index === streams.length - 1) return;
-        
+
         const stream = streams[index];
-        
+
         // Remove stream from current position
         streams.splice(index, 1);
-        
+
         // Insert stream at new position (one position down)
         streams.splice(index + 1, 0, stream);
-        
-        await this.plugin.saveSettings();
-        eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
+
+        await this.settingsManager.saveSettings();
+        eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
         this.display();
     }
 
     private addEncryptionToggle(container: HTMLElement, stream: Stream): void {
         // Check if Meld plugin is available
         const meldDetectionService = new MeldDetectionService();
-        meldDetectionService.setPlugin(this.plugin);
+        meldDetectionService.setPlugin(this.settingsManager as any);
         const isMeldAvailable = meldDetectionService.isMeldPluginAvailable();
         
         const encryptionSetting = new Setting(container)
@@ -343,8 +352,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                         }
                         
                         stream.encryptThisStream = value;
-                        await this.plugin.saveSettings();
-                        eventBus.emit(EVENTS.SETTINGS_CHANGED, this.plugin.settings, 'settings-management');
+                        await this.settingsManager.saveSettings();
+                        eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
                         
                         new Notice(`Encryption ${value ? 'enabled' : 'disabled'} for stream "${stream.name}"`);
                     });

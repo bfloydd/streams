@@ -176,7 +176,8 @@ export class StreamsBarComponent extends Component {
         const uiBuilder = new ComponentUIBuilder(
             this.app,
             this.streams,
-            this.plugin as StreamsPluginInterface | null,
+            this.plugin as any, // settingsManager
+            null, // uiController - not needed for this component
             this.reuseCurrentTab,
             this.eventRegistry,
             this.stateManager,

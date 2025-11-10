@@ -1,5 +1,5 @@
 import { PluginAwareSliceService } from '../../shared/base-slice';
-import { CommandService, StreamsPluginInterface } from '../../shared/interfaces';
+import { CommandService, ServiceContainer, LogProvider } from '../../shared/interfaces';
 import { StreamManagementService } from '../stream-management/StreamManagementService';
 import { StreamsAPI } from '../api/StreamsAPI';
 
@@ -21,9 +21,9 @@ export class CommandRegistrationService extends PluginAwareSliceService implemen
 
     registerCommands(): void {
         const plugin = this.getPlugin();
-        
+
         // Register stream management commands
-        this.registerStreamCommands(plugin as StreamsPluginInterface);
+        this.registerStreamCommands(plugin);
     }
 
     unregisterCommands(): void {
@@ -32,7 +32,7 @@ export class CommandRegistrationService extends PluginAwareSliceService implemen
     }
 
 
-    private registerStreamCommands(plugin: StreamsPluginInterface): void {
+    private registerStreamCommands(plugin: any): void {
         // Debug command for updateStreamBarFromFile functionality
         plugin.addCommand({
             id: 'debug-update-stream-bar',
@@ -49,51 +49,47 @@ export class CommandRegistrationService extends PluginAwareSliceService implemen
     }
 
     private getService(serviceName: string): unknown {
-        const plugin = this.getPlugin() as StreamsPluginInterface;
-        const container = (plugin as unknown as { sliceContainer?: { get: (name: string) => unknown } }).sliceContainer;
-        if (container) {
-            return container.get(serviceName);
-        }
-        return undefined;
+        const serviceContainer = this.getServiceContainer();
+        return serviceContainer.sliceContainer?.get(serviceName);
     }
 
     private async testUpdateStreamBarFromFile(): Promise<void> {
-        const plugin = this.getPlugin() as StreamsPluginInterface;
+        const logProvider = this.getLogProvider();
         const apiService = this.getService('api') as StreamsAPI | undefined;
-        
+
         if (!apiService) {
-            plugin.log?.error('API service not available for testing');
+            logProvider.log?.error('API service not available for testing');
             return;
         }
 
         // Get the first available stream for testing
         const streams = apiService.getStreams();
         if (streams.length === 0) {
-            plugin.log?.warn('No streams available for testing');
+            logProvider.log?.warn('No streams available for testing');
             return;
         }
 
         const testStream = streams[0];
         const testFilePath = `${testStream.folder}/2024-01-15.md`; // Example file path
-        
-        plugin.log?.info(`Testing updateStreamBarFromFile for file: ${testFilePath}`);
-        plugin.log?.info(`Expected stream: ${testStream.name} (${testStream.id})`);
-        
+
+        logProvider.log?.info(`Testing updateStreamBarFromFile for file: ${testFilePath}`);
+        logProvider.log?.info(`Expected stream: ${testStream.name} (${testStream.id})`);
+
         // Test the updateStreamBarFromFile method
         const result = await apiService.updateStreamBarFromFile(testFilePath);
-        
+
         if (result) {
-            plugin.log?.info('✅ updateStreamBarFromFile test PASSED - Stream bar updated successfully');
-            
+            logProvider.log?.info('✅ updateStreamBarFromFile test PASSED - Stream bar updated successfully');
+
             // Verify the update by checking the active stream
             const activeStream = apiService.getActiveStream();
             if (activeStream && activeStream.id === testStream.id) {
-                plugin.log?.info(`✅ Verification PASSED - Stream bar now shows: ${activeStream.name}`);
+                logProvider.log?.info(`✅ Verification PASSED - Stream bar now shows: ${activeStream.name}`);
             } else {
-                plugin.log?.warn('⚠️ Verification FAILED - Stream bar not updated correctly');
+                logProvider.log?.warn('⚠️ Verification FAILED - Stream bar not updated correctly');
             }
         } else {
-            plugin.log?.error('❌ updateStreamBarFromFile test FAILED - Method returned false');
+            logProvider.log?.error('❌ updateStreamBarFromFile test FAILED - Method returned false');
         }
     }
 }

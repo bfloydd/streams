@@ -4,7 +4,7 @@ import { centralizedLogger } from '../../shared/centralized-logger';
 import { MoveTextToStreamModal, MoveTextOptions } from './MoveTextToStreamModal';
 import { MarkdownView, Notice, Menu, Editor, TFile, TAbstractFile } from 'obsidian';
 import { Stream } from '../../shared/types';
-import { StreamsPluginInterface } from '../../shared/interfaces';
+import { SettingsManager, ServiceContainer } from '../../shared/interfaces';
 
 export class ContextMenuService extends PluginAwareSliceService {
     private registeredEvents: Array<() => void> = [];
@@ -164,8 +164,8 @@ export class ContextMenuService extends PluginAwareSliceService {
     }
 
     private getStreams(): Stream[] {
-        const plugin = this.getPlugin() as StreamsPluginInterface;
-        return plugin.settings?.streams || [];
+        const settingsManager = this.getSettingsManager();
+        return settingsManager.settings?.streams || [];
     }
 
     private getStreamService(): StreamManagementService | null {
@@ -173,8 +173,7 @@ export class ContextMenuService extends PluginAwareSliceService {
     }
 
     private getService(serviceName: string): unknown {
-        const plugin = this.getPlugin() as StreamsPluginInterface;
-        const container = (plugin as unknown as { sliceContainer?: { get: (name: string) => unknown } }).sliceContainer;
-        return container?.get(serviceName);
+        const serviceContainer = this.getServiceContainer();
+        return serviceContainer.sliceContainer?.get(serviceName);
     }
 }

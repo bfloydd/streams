@@ -1,6 +1,6 @@
 import { App, setIcon } from 'obsidian';
 import { Stream, StreamsSettings } from '../../shared/types';
-import { StreamsPluginInterface } from '../../shared/interfaces';
+import { StreamsPluginInterface, SettingsManager, UIController } from '../../shared/interfaces';
 import { OpenTodayCurrentStreamCommand } from '../file-operations/OpenTodayCurrentStreamCommand';
 import { getSetting } from '../../shared/obsidian-types';
 import { CalendarRenderer } from './CalendarRenderer';
@@ -49,7 +49,8 @@ export interface ComponentCallbacks {
 export class ComponentUIBuilder {
     private app: App;
     private streams: Stream[];
-    private plugin: StreamsPluginInterface | null;
+    private settingsManager: SettingsManager | null;
+    private uiController: UIController | null;
     private reuseCurrentTab: boolean;
     private eventRegistry: EventHandlerRegistry;
     private stateManager: ComponentStateManager;
@@ -61,7 +62,8 @@ export class ComponentUIBuilder {
     constructor(
         app: App,
         streams: Stream[],
-        plugin: StreamsPluginInterface | null,
+        settingsManager: SettingsManager | null,
+        uiController: UIController | null,
         reuseCurrentTab: boolean,
         eventRegistry: EventHandlerRegistry,
         stateManager: ComponentStateManager,
@@ -72,7 +74,8 @@ export class ComponentUIBuilder {
     ) {
         this.app = app;
         this.streams = streams;
-        this.plugin = plugin;
+        this.settingsManager = settingsManager;
+        this.uiController = uiController;
         this.reuseCurrentTab = reuseCurrentTab;
         this.eventRegistry = eventRegistry;
         this.stateManager = stateManager;
@@ -188,7 +191,7 @@ export class ComponentUIBuilder {
             this.streams,
             this.stateManager.getActiveStreamId(),
             this.app,
-            this.plugin,
+            this.settingsManager as any,
             this.reuseCurrentTab,
             () => {}
         );
@@ -250,7 +253,7 @@ export class ComponentUIBuilder {
                 this.app,
                 this.streams,
                 this.reuseCurrentTab,
-                (this.plugin ?? undefined) as StreamsPluginInterface | undefined
+                (this.settingsManager as any) ?? undefined
             );
             await command.execute();
         });

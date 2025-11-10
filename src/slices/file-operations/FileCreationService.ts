@@ -3,7 +3,7 @@ import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/centralized-logger';
 import { TIMING } from '../../shared/timing-constants';
 import { getPluginById, getCommands, executeCommandById } from '../../shared/obsidian-types';
-import { StreamsPluginInterface } from '../../shared/interfaces';
+import { ServiceContainer } from '../../shared/interfaces';
 import { MeldDetectionService } from '../../slices/meld-integration';
 
 /**
@@ -53,7 +53,7 @@ export class FileCreationService {
         }
 
         const meldDetectionService = new MeldDetectionService();
-        meldDetectionService.setPlugin(getPluginById(this.app, 'streams') as StreamsPluginInterface);
+        meldDetectionService.setPlugin(getPluginById(this.app, 'streams') as any);
         return meldDetectionService.isMeldPluginAvailable();
     }
 

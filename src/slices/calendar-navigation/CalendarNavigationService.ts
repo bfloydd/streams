@@ -224,15 +224,16 @@ export class CalendarNavigationService extends SettingsAwareSliceService impleme
         }
 
         // Get all leaves in the main editor area
-        const allLeaves = this.getPlugin().app.workspace.getLeavesOfType('empty');
-        const markdownLeaves = this.getPlugin().app.workspace.getLeavesOfType('markdown');
-        const createFileLeaves = this.getPlugin().app.workspace.getLeavesOfType(CREATE_FILE_VIEW_TYPE);
+        const plugin = this.getPlugin();
+        const allLeaves = plugin.app.workspace.getLeavesOfType('empty');
+        const markdownLeaves = plugin.app.workspace.getLeavesOfType('markdown');
+        const createFileLeaves = plugin.app.workspace.getLeavesOfType(CREATE_FILE_VIEW_TYPE);
 
         // Combine all editor leaves
         const allEditorLeaves = [...allLeaves, ...markdownLeaves, ...createFileLeaves];
 
         // Also check the active leaf specifically
-        const activeLeaf = this.getPlugin().app.workspace.activeLeaf;
+        const activeLeaf = plugin.app.workspace.activeLeaf;
         if (activeLeaf && this.leafInspectionService.isMainEditorLeaf(activeLeaf)) {
             this.ensureStreamsBarComponentForLeaf(activeLeaf);
         }
@@ -246,7 +247,8 @@ export class CalendarNavigationService extends SettingsAwareSliceService impleme
     }
 
     private async ensureStreamsBarComponentForFile(filePath: string): Promise<void> {
-        const activeLeaf = this.getPlugin().app.workspace.activeLeaf;
+        const plugin = this.getPlugin();
+        const activeLeaf = plugin.app.workspace.activeLeaf;
         if (activeLeaf && this.componentLifecycleManager) {
             this.ensureStreamsBarComponentForLeaf(activeLeaf);
             await this.componentLifecycleManager.ensureComponentForFile(filePath, activeLeaf);
@@ -280,8 +282,8 @@ export class CalendarNavigationService extends SettingsAwareSliceService impleme
     }
 
     getStreams(): Stream[] {
-        const plugin = this.getPlugin();
-        return plugin.settings?.streams || [];
+        const settingsManager = this.getSettingsManager();
+        return settingsManager.settings?.streams || [];
     }
 
     getDefaultStream(): Stream {
@@ -316,8 +318,8 @@ export class CalendarNavigationService extends SettingsAwareSliceService impleme
     }
 
     private getActiveStream(): Stream | undefined {
-        const plugin = this.getPlugin();
-        const activeStreamId = plugin.settings?.activeStreamId;
+        const settingsManager = this.getSettingsManager();
+        const activeStreamId = settingsManager.settings?.activeStreamId;
         if (!activeStreamId) return undefined;
         const streams = this.getStreams();
         return streams.find(s => s.id === activeStreamId);

@@ -2,8 +2,7 @@ import { App, Notice } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { openStreamDate } from './streamUtils';
 import { Logger } from '../debug-logging/Logger';
-import { Command } from '../../shared/interfaces';
-import { StreamsPluginInterface } from '../../shared/interfaces';
+import { Command, StreamManager } from '../../shared/interfaces';
 
 const log = new Logger();
 
@@ -12,7 +11,7 @@ export class OpenTodayCurrentStreamCommand implements Command {
         private app: App,
         private streams: Stream[],
         private reuseCurrentTab: boolean = false,
-        private plugin?: StreamsPluginInterface
+        private plugin?: StreamManager
     ) {}
 
     async execute(): Promise<void> {

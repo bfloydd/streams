@@ -1,5 +1,5 @@
 import { Plugin } from 'obsidian';
-import { SliceService, PluginAwareService, StreamAwareService, SettingsAwareService, StreamsPluginInterface } from './interfaces';
+import { SliceService, PluginAwareService, StreamAwareService, SettingsAwareService, StreamsPluginInterface, SettingsManager, StreamManager, UIController, ServiceContainer, LogProvider } from './interfaces';
 import { Stream, StreamsSettings } from './types';
 import { centralizedLogger } from './centralized-logger';
 
@@ -20,7 +20,7 @@ export abstract class BaseSliceService implements SliceService {
 
 export abstract class PluginAwareSliceService extends BaseSliceService implements PluginAwareService {
     protected plugin: StreamsPluginInterface | null = null;
-    
+
     setPlugin(plugin: Plugin): void {
         this.plugin = plugin as StreamsPluginInterface;
     }
@@ -31,6 +31,27 @@ export abstract class PluginAwareSliceService extends BaseSliceService implement
         }
         return this.plugin;
     }
+
+    // Focused interface accessors for ISP compliance
+    protected getSettingsManager(): SettingsManager {
+        return this.getPlugin() as SettingsManager;
+    }
+
+    protected getStreamManager(): StreamManager {
+        return this.getPlugin() as StreamManager;
+    }
+
+    protected getUIController(): UIController {
+        return this.getPlugin() as UIController;
+    }
+
+    protected getServiceContainer(): ServiceContainer {
+        return this.getPlugin() as ServiceContainer;
+    }
+
+    protected getLogProvider(): LogProvider {
+        return this.getPlugin() as LogProvider;
+    }
 }
 
 export abstract class StreamAwareSliceService extends PluginAwareSliceService implements StreamAwareService {
@@ -40,13 +61,13 @@ export abstract class StreamAwareSliceService extends PluginAwareSliceService im
     abstract onActiveStreamChanged(streamId: string | undefined): void;
 
     protected getStreams(): Stream[] {
-        const plugin = this.getPlugin();
-        return plugin.settings?.streams || [];
+        const settingsManager = this.getSettingsManager();
+        return settingsManager.settings?.streams || [];
     }
 
     protected getActiveStream(): Stream | undefined {
-        const plugin = this.getPlugin();
-        const activeStreamId = plugin.settings?.activeStreamId;
+        const settingsManager = this.getSettingsManager();
+        const activeStreamId = settingsManager.settings?.activeStreamId;
         if (!activeStreamId) return undefined;
         return this.getStreams().find(s => s.id === activeStreamId);
     }
@@ -56,12 +77,12 @@ export abstract class SettingsAwareSliceService extends PluginAwareSliceService 
     abstract onSettingsChanged(settings: StreamsSettings): void;
 
     protected getSettings(): StreamsSettings {
-        const plugin = this.getPlugin();
-        return plugin.settings;
+        const settingsManager = this.getSettingsManager();
+        return settingsManager.settings;
     }
 
     protected async saveSettings(): Promise<void> {
-        const plugin = this.getPlugin();
-        await plugin.saveSettings();
+        const settingsManager = this.getSettingsManager();
+        await settingsManager.saveSettings();
     }
 }

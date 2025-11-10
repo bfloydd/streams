@@ -95,21 +95,55 @@ export interface LeafInspector {
     isMainEditorLeaf(leaf: WorkspaceLeaf): boolean;
 }
 
+/**
+ * Interface for settings management
+ */
+export interface SettingsManager {
+    settings: StreamsSettings;
+    saveSettings(): Promise<void>;
+}
+
+/**
+ * Interface for stream management operations
+ */
+export interface StreamManager {
+    setActiveStream(streamId: string, force?: boolean): Promise<void>;
+    getActiveStream(): Stream | undefined;
+}
+
+/**
+ * Interface for UI component control
+ */
+export interface UIController {
+    refreshAllStreamsBarComponents(): void;
+    updateAllStreamsBarComponents(): void;
+}
+
+/**
+ * Interface for service container access
+ */
+export interface ServiceContainer {
+    sliceContainer?: SliceContainer;
+    getFileOperationsService(): FileOperationsService | undefined;
+}
+
+/**
+ * Interface for logging access
+ */
+export interface LogProvider {
+    log: Logger | undefined;
+}
 
 /**
  * Main plugin interface that slices can depend on
+ * Now composed of focused interfaces following ISP
  */
-export interface StreamsPluginInterface extends Plugin {
-    settings: StreamsSettings;
+export interface StreamsPluginInterface extends
+    Plugin,
+    SettingsManager,
+    StreamManager,
+    UIController,
+    ServiceContainer,
+    LogProvider {
     app: App;
-    log: Logger | undefined;
-    sliceContainer?: SliceContainer;
-    
-    // Core methods that slices need
-    saveSettings(): Promise<void>;
-    refreshAllStreamsBarComponents(): void;
-    updateAllStreamsBarComponents(): void;
-    setActiveStream(streamId: string, force?: boolean): Promise<void>;
-    getActiveStream(): Stream | undefined;
-    getFileOperationsService(): FileOperationsService | undefined;
 }

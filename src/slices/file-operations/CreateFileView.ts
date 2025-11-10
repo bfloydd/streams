@@ -4,13 +4,13 @@ import { centralizedLogger } from '../../shared/centralized-logger';
 import { DateStateManager, DateState } from '../../shared/date-state-manager';
 import { FileCreationService } from './FileCreationService';
 import { EmptyStateObserver } from './EmptyStateObserver';
-import { StreamsPluginInterface } from '../../shared/interfaces';
+import { StreamManager } from '../../shared/interfaces';
 
 // Interface for accessing app.plugins
 interface AppWithPlugins extends App {
     plugins: {
         plugins: {
-            'streams': StreamsPluginInterface;
+            'streams': StreamManager;
         };
     };
 }
