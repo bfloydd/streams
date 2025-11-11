@@ -21,6 +21,14 @@ export class DateNavigationService {
     }
 
     /**
+     * Update the stream reference
+     * @param stream - The new stream to use for navigation
+     */
+    updateStream(stream: Stream): void {
+        this.stream = stream;
+    }
+
+    /**
      * Format date as "Month Day" (e.g., "Jan 15")
      */
     formatDate(date: Date): string {

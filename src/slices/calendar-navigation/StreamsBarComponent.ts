@@ -372,7 +372,8 @@ export class StreamsBarComponent extends Component {
         
         this.selectedStream = newActiveStream;
         this.stateManager.updateSelectedStream(newActiveStream);
-        
+        this.dateNavigationService.updateStream(newActiveStream);
+
         if (this.changeStreamText) {
             this.changeStreamText.setText(this.stateManager.getDisplayStreamName());
         }

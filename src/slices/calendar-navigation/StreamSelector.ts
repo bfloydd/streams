@@ -128,12 +128,15 @@ export class StreamSelector extends Component {
         if (this.plugin) {
             await this.plugin.setActiveStream(stream.id, true);
         }
-        
+
         // Notify parent component
         if (this.onStreamSelected) {
             this.onStreamSelected(stream);
         }
-        
+
+        // Hide the dropdown after selection
+        this.hide();
+
         this.navigateToStreamDailyNote(stream);
     }
 
