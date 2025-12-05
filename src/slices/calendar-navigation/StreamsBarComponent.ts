@@ -69,7 +69,7 @@ export class StreamsBarComponent extends Component {
 
     constructor(leaf: WorkspaceLeaf, stream: Stream, app: App, reuseCurrentTab = false, streams: Stream[] = [], plugin: PluginInterface | null = null) {
         super();
-        
+
         this.leaf = leaf;
 
         this.selectedStream = stream;
@@ -78,7 +78,7 @@ export class StreamsBarComponent extends Component {
         this.streams = streams;
         this.plugin = plugin;
         this.dateStateManager = DateStateManager.getInstance();
-        
+
         this.meldDetectionService = new MeldDetectionService();
         if (plugin) {
             this.meldDetectionService.setPlugin(plugin as unknown as Plugin);
@@ -86,7 +86,7 @@ export class StreamsBarComponent extends Component {
                 centralizedLogger.error('Error initializing MeldDetectionService:', error);
             });
         }
-        
+
         this.contentIndicatorService = new ContentIndicatorService(app, stream, this.meldDetectionService);
         this.dateNavigationService = new DateNavigationService(app, stream, reuseCurrentTab);
         this.eventRegistry = new EventHandlerRegistry();
@@ -94,24 +94,24 @@ export class StreamsBarComponent extends Component {
         this.eventSubscriptionManager = new ComponentEventSubscriptionManager(this.dateStateManager);
         this.stateManager = new ComponentStateManager(plugin, streams, stream, this.dateNavigationService);
         this.currentMonthView = new Date();
-        
+
         this.component = document.createElement('div');
         this.component.addClass('streams-bar-component');
         this.stateManager.applyBarStyle(this.component);
         this.initializeDateState(leaf);
-        
+
         this.eventSubscriptionManager.subscribeToDateChanges((state) => {
             this.handleDateStateChange(state);
         });
-        
+
         this.eventSubscriptionManager.subscribeToActiveStreamChanges((data) => {
             this.handleActiveStreamChange(data);
         });
-        
+
         this.eventSubscriptionManager.subscribeToSettingsChanges((settings) => {
             this.handleSettingsChange(settings);
         });
-        
+
         const contentContainer = this.viewContainerService.findContentContainer(leaf);
         if (!contentContainer) {
             centralizedLogger.error('Could not find content container');
@@ -123,11 +123,18 @@ export class StreamsBarComponent extends Component {
         if (!this.viewContainerService.attachComponent(this.component, leaf, contentContainer)) {
             return;
         }
-        
+
         this.fileModifyHandler = this.handleFileModify.bind(this);
         this.registerEvent(this.app.vault.on('modify', this.fileModifyHandler));
 
+        this.registerEvent(this.app.workspace.on('file-open', (file) => {
+            if (this.leaf.view instanceof MarkdownView && this.leaf.view.file === file) {
+                this.updateTodayButton();
+            }
+        }));
+
         this.initializeComponent();
+        this.updateTodayButton();
     }
 
     private createUIBuilderCallbacks(): ComponentCallbacks {
@@ -161,9 +168,9 @@ export class StreamsBarComponent extends Component {
     private handleFileModify(file: TFile) {
         const streamPath = this.selectedStream.folder.split(/[/\\]/).filter(Boolean);
         const filePath = file.path.split(/[/\\]/).filter(Boolean);
-        
+
         const isInStream = streamPath.every((part, index) => streamPath[index] === filePath[index]);
-        
+
         if (isInStream && this.calendarRenderer) {
             this.calendarRenderer.updateGridContent();
             this.updateTodayButton();
@@ -172,7 +179,7 @@ export class StreamsBarComponent extends Component {
 
     private initializeComponent() {
         const callbacks = this.createUIBuilderCallbacks();
-        
+
         const uiBuilder = new ComponentUIBuilder(
             this.app,
             this.streams,
@@ -210,7 +217,7 @@ export class StreamsBarComponent extends Component {
     private navigateMonth(direction: number, dateDisplay: HTMLElement): void {
         this.dateNavigationService.navigateMonth(this.currentMonthView, direction);
         dateDisplay.setText(this.dateNavigationService.formatMonthYear(this.currentMonthView));
-        
+
         if (this.calendarRenderer) {
             this.calendarRenderer.setMonthView(this.currentMonthView);
             if (this.grid && this.grid.children.length > 0) {
@@ -225,7 +232,7 @@ export class StreamsBarComponent extends Component {
         this.expanded = !this.expanded;
         expandedView.toggleClass('streams-bar-expanded-active', this.expanded);
         collapsedView.toggleClass('streams-today-button-expanded', this.expanded);
-        
+
         if (this.expanded && this.calendarRenderer) {
             if (this.grid && this.grid.children.length > 0) {
                 const timeoutId = window.setTimeout(() => {
@@ -242,43 +249,65 @@ export class StreamsBarComponent extends Component {
     }
 
     private updateTodayButton() {
+        // Check if current file is in stream
+        const view = this.leaf.view;
+        let isInStream = true;
+
+        if (view instanceof MarkdownView && view.file) {
+            const streamPath = this.selectedStream.folder.split(/[/\\]/).filter(Boolean);
+            const filePath = view.file.path.split(/[/\\]/).filter(Boolean);
+
+            if (filePath.length >= streamPath.length) {
+                isInStream = streamPath.every((part, index) => streamPath[index] === filePath[index]);
+            } else {
+                isInStream = false;
+            }
+        }
+
+        if (!isInStream) {
+            this.todayButton.setText('∞');
+            this.todayButton.addClass('streams-infinity-mode');
+            return;
+        }
+
         const state = this.dateStateManager.getState();
         const currentDate = state.currentDate;
         const buttonText = this.stateManager.formatTodayButtonText(currentDate);
         this.todayButton.setText(buttonText);
+        this.todayButton.removeClass('streams-infinity-mode');
     }
 
     public destroy() {
         this.eventSubscriptionManager.cleanup();
-        
+
         if (this.touchGestureHandler) {
             this.touchGestureHandler.cleanup();
             this.touchGestureHandler = null;
         }
-        
+
         if (this.documentEventHandler) {
             this.documentEventHandler.cleanup();
             this.documentEventHandler = null;
         }
-        
+
         this.eventRegistry.cleanup();
         this.timeoutIds.forEach(id => window.clearTimeout(id));
         this.timeoutIds = [];
-        
+
         if (this.calendarRenderer) {
             this.calendarRenderer.onunload();
             this.calendarRenderer = null;
         }
-        
+
         if (this.streamSelector) {
             this.streamSelector.onunload();
             this.streamSelector = null;
         }
-        
+
         this.prevButton = null;
         this.nextButton = null;
         this.grid = null;
-        
+
         if (this.component && this.component.parentElement) {
             this.component.remove();
         }
@@ -325,7 +354,7 @@ export class StreamsBarComponent extends Component {
 
     private initializeDateState(leaf: WorkspaceLeaf): void {
         const viewType = leaf.view.getViewType();
-        
+
         if (viewType === 'markdown') {
             const markdownView = leaf.view as MarkdownView;
             const currentFile = markdownView.file;
@@ -346,7 +375,7 @@ export class StreamsBarComponent extends Component {
     private handleDateStateChange(state: DateState): void {
         this.updateTodayButton();
         this.currentMonthView = new Date(state.currentDate.getFullYear(), state.currentDate.getMonth(), 1);
-        
+
         if (this.calendarRenderer) {
             this.calendarRenderer.setMonthView(this.currentMonthView);
             if (this.grid && this.grid.children.length > 0) {
@@ -359,17 +388,17 @@ export class StreamsBarComponent extends Component {
 
     private handleActiveStreamChange(eventData: { streamId: string }): void {
         const { streamId } = eventData;
-        
+
         if (!streamId) {
             return;
         }
-        
+
         const newActiveStream = this.streams.find(s => s.id === streamId);
         if (!newActiveStream) {
             centralizedLogger.warn(`Active stream changed to unknown stream ID: ${streamId}`);
             return;
         }
-        
+
         this.selectedStream = newActiveStream;
         this.stateManager.updateSelectedStream(newActiveStream);
         this.dateNavigationService.updateStream(newActiveStream);
@@ -377,33 +406,35 @@ export class StreamsBarComponent extends Component {
         if (this.changeStreamText) {
             this.changeStreamText.setText(this.stateManager.getDisplayStreamName());
         }
-        
+
         if (this.changeStreamSection) {
             this.stateManager.updateStreamEncryptionIcon(this.changeStreamSection);
         }
-        
+
         this.contentIndicatorService = new ContentIndicatorService(this.app, newActiveStream, this.meldDetectionService);
-        
+
         if (this.calendarRenderer) {
             this.calendarRenderer.setContentIndicatorService(this.contentIndicatorService);
             this.calendarRenderer.updateGridContent();
         }
-        
+
         if (this.streamSelector) {
             this.streamSelector.updateActiveStreamId(streamId);
         }
+
+        this.updateTodayButton();
     }
-    
+
     private handleSettingsChange(settings: StreamsSettings): void {
         this.stateManager.applyBarStyle(this.component);
-        
+
         if (settings.streams) {
             this.streams = settings.streams;
             this.stateManager.updateStreams(settings.streams);
             this.refreshStreamsDropdown();
         }
     }
-    
+
     public refreshBarStyle(): void {
         this.stateManager.applyBarStyle(this.component);
     }

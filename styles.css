@@ -5,6 +5,7 @@
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -148,6 +149,7 @@
     background: transparent;
     color: var(--text-muted);
 }
+
 .streams-plugin-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -396,21 +398,33 @@
     text-align: center;
     font-weight: 600;
     color: var(--text-normal);
-    margin: 0 8px;
+    /* margin: 0 8px; */
     font-size: 15px;
     min-width: 60px;
-    padding: 4px 8px;
+    padding: 2px 2px;
     border-radius: 4px;
     background-color: var(--interactive-normal);
     border: 1px solid var(--background-modifier-border);
     cursor: pointer;
-    transition: all 0.2s ease;
+    /* transition: all 0.2s ease; */
 }
 
 .streams-bar-today-button:hover {
     background-color: var(--interactive-hover);
     border-color: var(--text-accent);
     color: var(--text-accent);
+}
+
+.streams-bar-today-button.streams-infinity-mode {
+    font-size: 24px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    height: 28px;
+    box-sizing: border-box;
+    padding-bottom: 3px;
 }
 
 .streams-bar-change-stream {
