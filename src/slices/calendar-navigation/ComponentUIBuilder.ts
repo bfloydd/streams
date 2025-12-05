@@ -1,4 +1,4 @@
-import { App, setIcon } from 'obsidian';
+import { App, setIcon, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { SettingsManager, UIController } from '../../shared/interfaces';
 import { OpenTodayCurrentStreamCommand } from '../file-operations/OpenTodayCurrentStreamCommand';
@@ -59,6 +59,7 @@ export class ComponentUIBuilder {
     private dateStateManager: DateStateManager;
     private contentIndicatorService: ContentIndicatorService;
     private callbacks: ComponentCallbacks;
+    private leaf: WorkspaceLeaf;
 
     constructor(
         app: App,
@@ -71,7 +72,8 @@ export class ComponentUIBuilder {
         dateNavigationService: DateNavigationService,
         dateStateManager: DateStateManager,
         contentIndicatorService: ContentIndicatorService,
-        callbacks: ComponentCallbacks
+        callbacks: ComponentCallbacks,
+        leaf: WorkspaceLeaf
     ) {
         this.app = app;
         this.streams = streams;
@@ -84,6 +86,7 @@ export class ComponentUIBuilder {
         this.dateStateManager = dateStateManager;
         this.contentIndicatorService = contentIndicatorService;
         this.callbacks = callbacks;
+        this.leaf = leaf;
     }
 
     /**
@@ -194,6 +197,7 @@ export class ComponentUIBuilder {
             this.app,
             this.settingsManager as any,
             this.reuseCurrentTab,
+            this.dateStateManager,
             this.callbacks.onStreamSelected
         );
         streamSelector.populateStreamsDropdown();
@@ -254,7 +258,10 @@ export class ComponentUIBuilder {
                 this.app,
                 this.streams,
                 this.reuseCurrentTab,
-                (this.settingsManager as any) ?? undefined
+                (this.settingsManager as any) ?? undefined,
+                this.stateManager.getActiveStream(),
+                this.leaf,
+                this.dateStateManager
             );
             await command.execute();
         });

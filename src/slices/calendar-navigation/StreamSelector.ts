@@ -36,6 +36,7 @@ export class StreamSelector extends Component {
         app: App,
         plugin: PluginInterface | null,
         reuseCurrentTab: boolean,
+        dateStateManager: DateStateManager,
         onStreamSelected?: (stream: Stream) => void
     ) {
         super();
@@ -45,7 +46,7 @@ export class StreamSelector extends Component {
         this.app = app;
         this.plugin = plugin;
         this.reuseCurrentTab = reuseCurrentTab;
-        this.dateStateManager = DateStateManager.getInstance();
+        this.dateStateManager = dateStateManager;
         this.onStreamSelected = onStreamSelected;
     }
 

@@ -11,7 +11,7 @@ export class DateStateManager {
     private state: DateState;
     private eventBus: EventBus;
 
-    private constructor() {
+    public constructor() {
         this.eventBus = new EventBus();
         this.state = {
             currentDate: new Date(),
@@ -35,9 +35,9 @@ export class DateStateManager {
         this.state.currentDate = new Date(date);
         this.state.currentViewedDate = this.formatDateString(date);
         this.state.isNavigating = true;
-        
+
         this.eventBus.emit('date-changed', this.state, 'DateStateManager');
-        
+
         // Reset navigating flag after a short delay
         setTimeout(() => {
             this.state.isNavigating = false;
@@ -47,13 +47,13 @@ export class DateStateManager {
     public setCurrentViewedDate(dateString: string): void {
         const [year, month, day] = dateString.split('-').map(n => parseInt(n, 10));
         const date = new Date(year, month - 1, day);
-        
+
         this.state.currentDate = date;
         this.state.currentViewedDate = dateString;
         this.state.isNavigating = true;
-        
+
         this.eventBus.emit('date-changed', this.state, 'DateStateManager');
-        
+
         // Reset navigating flag after a short delay
         setTimeout(() => {
             this.state.isNavigating = false;

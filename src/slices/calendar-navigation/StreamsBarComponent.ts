@@ -77,7 +77,7 @@ export class StreamsBarComponent extends Component {
         this.reuseCurrentTab = reuseCurrentTab;
         this.streams = streams;
         this.plugin = plugin;
-        this.dateStateManager = DateStateManager.getInstance();
+        this.dateStateManager = new DateStateManager();
 
         this.meldDetectionService = new MeldDetectionService();
         if (plugin) {
@@ -88,7 +88,7 @@ export class StreamsBarComponent extends Component {
         }
 
         this.contentIndicatorService = new ContentIndicatorService(app, stream, this.meldDetectionService);
-        this.dateNavigationService = new DateNavigationService(app, stream, reuseCurrentTab);
+        this.dateNavigationService = new DateNavigationService(app, stream, reuseCurrentTab, this.dateStateManager, this.leaf);
         this.eventRegistry = new EventHandlerRegistry();
         this.viewContainerService = new ViewContainerService();
         this.eventSubscriptionManager = new ComponentEventSubscriptionManager(this.dateStateManager);
@@ -104,9 +104,7 @@ export class StreamsBarComponent extends Component {
             this.handleDateStateChange(state);
         });
 
-        this.eventSubscriptionManager.subscribeToActiveStreamChanges((data) => {
-            this.handleActiveStreamChange(data);
-        });
+
 
         this.eventSubscriptionManager.subscribeToSettingsChanges((settings) => {
             this.handleSettingsChange(settings);
@@ -194,7 +192,8 @@ export class StreamsBarComponent extends Component {
             this.dateNavigationService,
             this.dateStateManager,
             this.contentIndicatorService,
-            callbacks
+            callbacks,
+            this.leaf
         );
 
         const uiResult = uiBuilder.buildUI(this.component);
@@ -370,8 +369,18 @@ export class StreamsBarComponent extends Component {
                 }
             }
         } else if (viewType === CREATE_FILE_VIEW_TYPE) {
-            const state = this.dateStateManager.getState();
-            this.dateStateManager.setCurrentDate(state.currentDate);
+            // We need to cast to any or import CreateFileView to access getState
+            // Since we can't easily import CreateFileView here due to circular deps, we'll use any
+            const view = leaf.view as any;
+            if (view.getState) {
+                const state = view.getState();
+                if (state && state.date) {
+                    const date = new Date(state.date);
+                    if (!isNaN(date.getTime())) {
+                        this.dateStateManager.setCurrentDate(date);
+                    }
+                }
+            }
         }
     }
 

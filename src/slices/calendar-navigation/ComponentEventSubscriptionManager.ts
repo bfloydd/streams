@@ -31,21 +31,7 @@ export class ComponentEventSubscriptionManager {
         };
     }
 
-    /**
-     * Subscribe to active stream changes
-     * @param callback Function to call when active stream changes
-     * @returns Unsubscribe function
-     */
-    subscribeToActiveStreamChanges(callback: (data: { streamId: string }) => void): () => void {
-        this.unsubscribeActiveStreamChanged = eventBus.subscribe(EVENTS.ACTIVE_STREAM_CHANGED, (event) => {
-            callback(event.data);
-        });
-        return () => {
-            if (this.unsubscribeActiveStreamChanged) {
-                this.unsubscribeActiveStreamChanged();
-            }
-        };
-    }
+
 
     /**
      * Subscribe to settings changes
@@ -71,12 +57,12 @@ export class ComponentEventSubscriptionManager {
             this.unsubscribeDateChanged();
             this.unsubscribeDateChanged = null;
         }
-        
+
         if (this.unsubscribeActiveStreamChanged) {
             this.unsubscribeActiveStreamChanged();
             this.unsubscribeActiveStreamChanged = null;
         }
-        
+
         if (this.unsubscribeSettingsChanged) {
             this.unsubscribeSettingsChanged();
             this.unsubscribeSettingsChanged = null;

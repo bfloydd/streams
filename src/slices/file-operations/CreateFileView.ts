@@ -20,14 +20,14 @@ export const CREATE_FILE_VIEW_TYPE = 'streams-create-file-view';
 
 export class CreateFileView extends ItemView {
     navigation = true; // Enable navigation history integration
-    
+
     private filePath: string;
     private stream: Stream;
     private dateStateManager: DateStateManager;
     private unsubscribeDateChanged: (() => void) | null = null;
     private emptyStateObserver: EmptyStateObserver | null = null;
     private fileCreationService: FileCreationService;
-    
+
     constructor(
         leaf: WorkspaceLeaf,
         app: App,
@@ -38,7 +38,7 @@ export class CreateFileView extends ItemView {
         this.app = app;
         this.filePath = filePath;
         this.stream = stream;
-        this.dateStateManager = DateStateManager.getInstance();
+        this.dateStateManager = new DateStateManager();
 
         // Initialize MeldDetectionService with plugin context
         const meldDetectionService = new MeldDetectionService();
@@ -65,7 +65,7 @@ export class CreateFileView extends ItemView {
     getState(): { stream: Stream; date: string; filePath: string } {
         const state = this.dateStateManager.getState();
         const dateISOString = state.currentDate.toISOString();
-        
+
         return {
             filePath: this.filePath,
             stream: this.stream,
@@ -79,22 +79,22 @@ export class CreateFileView extends ItemView {
             if (!this || !this.contentEl || !this.leaf || this.contentEl === null || this.leaf === null) {
                 return;
             }
-            
+
             // Additional safety check - ensure the view is still attached to the DOM
             if (!document.contains(this.contentEl)) {
                 return;
             }
-            
+
             if (state) {
                 const previousStream = this.stream;
                 this.filePath = state.filePath || this.filePath;
                 this.stream = state.stream || this.stream;
-                
+
                 // If the stream changed, update the active stream
                 if (state.stream && state.stream.id !== previousStream.id) {
                     await this.setActiveStream();
                 }
-                
+
                 // Handle date parameter
                 if (state.date) {
                     const date = typeof state.date === 'string' ? new Date(state.date) : state.date;
@@ -102,7 +102,7 @@ export class CreateFileView extends ItemView {
                         this.dateStateManager.setCurrentDate(date);
                     }
                 }
-                
+
                 // Refresh the view with new state
                 if (this.contentEl) {
                     this.contentEl.empty();
@@ -122,7 +122,7 @@ export class CreateFileView extends ItemView {
         const fileName = `${this.formatDateToYYYYMMDD(state.currentDate)}.md`;
         const folderPath = this.filePath.substring(0, this.filePath.lastIndexOf('/'));
         this.filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
-        
+
         // Refresh the view content
         if (this.contentEl) {
             this.contentEl.empty();
@@ -141,25 +141,25 @@ export class CreateFileView extends ItemView {
     async onOpen(): Promise<void> {
         // Set this as the active stream in the main plugin
         await this.setActiveStream();
-        
+
         // Set up date change listener
         this.unsubscribeDateChanged = this.dateStateManager.onDateChanged((state) => {
             this.handleDateChange(state);
         });
-        
+
         // Trigger streams bar component to be added to this view
         this.triggerCalendarComponent();
-        
+
         // Prepare our content element
         this.contentEl.empty();
         this.contentEl.addClass('streams-create-file-container');
-        
+
         // Content element styling is handled by CSS class
-        
+
         // Set up empty state observer
         this.emptyStateObserver = new EmptyStateObserver(this.leaf);
         this.emptyStateObserver.start();
-        
+
         // Create our create file view content
         this.createFileViewContent(this.contentEl);
     }
@@ -170,58 +170,58 @@ export class CreateFileView extends ItemView {
             this.emptyStateObserver.stop();
             this.emptyStateObserver = null;
         }
-        
+
         // Clean up date change listener
         if (this.unsubscribeDateChanged) {
             this.unsubscribeDateChanged();
             this.unsubscribeDateChanged = null;
         }
-        
+
         // Clear content and mark as invalid
         if (this.contentEl) {
             this.contentEl.empty();
         }
-        
+
         // Mark the view as invalid to prevent setState calls
         this.contentEl = null!;
         this.leaf = null!;
     }
-    
+
     private createFileViewContent(container: HTMLElement): void {
         // Create the content box
         const contentBox = container.createDiv('streams-create-file-content');
-        
+
         // Add icon
         const iconContainer = contentBox.createDiv('streams-create-file-icon');
         setIcon(iconContainer, 'file-plus');
-        
+
         // Stream info display
         const streamContainer = contentBox.createDiv('streams-create-file-stream-container');
         const streamIcon = streamContainer.createSpan('streams-create-file-stream-icon');
         setIcon(streamIcon, this.stream.icon || 'book');
-        
+
         const streamName = streamContainer.createSpan('streams-create-file-stream');
         streamName.setText(this.stream.name);
-        
+
         // Date display
         const dateEl = contentBox.createDiv('streams-create-file-date');
-        
+
         const state = this.dateStateManager.getState();
         const formattedDate = this.formatDate(state.currentDate);
         dateEl.setText(formattedDate);
-        
+
         // Create button
         const buttonContainer = contentBox.createDiv('streams-create-file-button-container');
         const createButton = buttonContainer.createEl('button', {
             cls: 'mod-cta streams-create-file-button',
             text: 'Create file'
         });
-        
+
         createButton.addEventListener('click', async () => {
             await this.createAndOpenFile();
         });
     }
-    
+
     private triggerCalendarComponent(): void {
         // Trigger the streams bar component to be added to this view
         try {
@@ -232,7 +232,7 @@ export class CreateFileView extends ItemView {
             // Calendar component trigger failed - not critical
         }
     }
-    
+
     private formatTitleDate(date: Date): string {
         return date.toLocaleDateString('en-US', {
             month: 'short',
@@ -240,27 +240,27 @@ export class CreateFileView extends ItemView {
             year: 'numeric'
         });
     }
-    
+
     private formatDate(date: Date): string {
         // Formatting date
-        
+
         try {
-            return date.toLocaleDateString('en-US', { 
+            return date.toLocaleDateString('en-US', {
                 weekday: 'long',
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             });
         } catch (error) {
             centralizedLogger.error(`Error formatting date: ${error}`);
             return "Invalid Date";
         }
     }
-    
+
     private async createAndOpenFile(): Promise<void> {
         await this.fileCreationService.createAndOpenFile(this.filePath, this.stream, this.leaf);
     }
-    
+
     private async setActiveStream(): Promise<void> {
         // Set this as the active stream in the main plugin
         // This is a user-initiated action (opening a create file view), so force the change

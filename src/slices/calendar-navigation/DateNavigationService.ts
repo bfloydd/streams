@@ -1,4 +1,4 @@
-import { App } from 'obsidian';
+import { App, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { OpenStreamDateCommand } from '../file-operations/OpenStreamDateCommand';
 import { DateStateManager } from '../../shared/DateStateManager';
@@ -12,12 +12,14 @@ export class DateNavigationService {
     private stream: Stream;
     private reuseCurrentTab: boolean;
     private dateStateManager: DateStateManager;
+    private targetLeaf?: WorkspaceLeaf;
 
-    constructor(app: App, stream: Stream, reuseCurrentTab: boolean) {
+    constructor(app: App, stream: Stream, reuseCurrentTab: boolean, dateStateManager: DateStateManager, targetLeaf?: WorkspaceLeaf) {
         this.app = app;
         this.stream = stream;
         this.reuseCurrentTab = reuseCurrentTab;
-        this.dateStateManager = DateStateManager.getInstance();
+        this.dateStateManager = dateStateManager;
+        this.targetLeaf = targetLeaf;
     }
 
     /**
@@ -32,9 +34,9 @@ export class DateNavigationService {
      * Format date as "Month Day" (e.g., "Jan 15")
      */
     formatDate(date: Date): string {
-        return date.toLocaleDateString('en-US', { 
-            month: 'short', 
-            day: 'numeric' 
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric'
         });
     }
 
@@ -52,9 +54,9 @@ export class DateNavigationService {
      * Format date as "Month Year" (e.g., "January 2024")
      */
     formatMonthYear(date: Date): string {
-        return date.toLocaleDateString('en-US', { 
-            month: 'long', 
-            year: 'numeric' 
+        return date.toLocaleDateString('en-US', {
+            month: 'long',
+            year: 'numeric'
         });
     }
 
@@ -63,9 +65,9 @@ export class DateNavigationService {
      */
     isToday(date: Date): boolean {
         const today = new Date();
-        return date.getDate() === today.getDate() && 
-               date.getMonth() === today.getMonth() && 
-               date.getFullYear() === today.getFullYear();
+        return date.getDate() === today.getDate() &&
+            date.getMonth() === today.getMonth() &&
+            date.getFullYear() === today.getFullYear();
     }
 
     /**
@@ -94,12 +96,12 @@ export class DateNavigationService {
      */
     async selectDate(monthView: Date, day: number): Promise<void> {
         const selectedDate = new Date(monthView.getFullYear(), monthView.getMonth(), day);
-        
+
         // Update the date state
         this.dateStateManager.setCurrentDate(selectedDate);
-        
+
         // Navigate to the selected date
-        const command = new OpenStreamDateCommand(this.app, this.stream, selectedDate, this.reuseCurrentTab);
+        const command = new OpenStreamDateCommand(this.app, this.stream, selectedDate, this.reuseCurrentTab, this.targetLeaf, this.dateStateManager);
         await command.execute();
     }
 
@@ -110,10 +112,10 @@ export class DateNavigationService {
     async navigateToAdjacentDay(offset: number): Promise<void> {
         // Update the date state first
         this.dateStateManager.navigateToAdjacentDay(offset);
-        
+
         // Then navigate to the new date
         const state = this.dateStateManager.getState();
-        const command = new OpenStreamDateCommand(this.app, this.stream, state.currentDate, this.reuseCurrentTab);
+        const command = new OpenStreamDateCommand(this.app, this.stream, state.currentDate, this.reuseCurrentTab, this.targetLeaf, this.dateStateManager);
         await command.execute();
     }
 }
