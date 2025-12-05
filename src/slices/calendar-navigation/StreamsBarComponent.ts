@@ -161,6 +161,9 @@ export class StreamsBarComponent extends Component {
             },
             isExpanded: () => {
                 return this.expanded;
+            },
+            onStreamSelected: (stream: Stream) => {
+                this.updateActiveStream(stream);
             }
         };
     }
@@ -399,6 +402,10 @@ export class StreamsBarComponent extends Component {
             return;
         }
 
+        this.updateActiveStream(newActiveStream);
+    }
+
+    public updateActiveStream(newActiveStream: Stream): void {
         this.selectedStream = newActiveStream;
         this.stateManager.updateSelectedStream(newActiveStream);
         this.dateNavigationService.updateStream(newActiveStream);
@@ -419,7 +426,7 @@ export class StreamsBarComponent extends Component {
         }
 
         if (this.streamSelector) {
-            this.streamSelector.updateActiveStreamId(streamId);
+            this.streamSelector.updateActiveStreamId(newActiveStream.id);
         }
 
         this.updateTodayButton();

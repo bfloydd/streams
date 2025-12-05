@@ -40,6 +40,7 @@ export interface ComponentCallbacks {
     hideStreamsDropdown: () => void;
     updateTodayButton: () => void;
     isExpanded: () => boolean;
+    onStreamSelected: (stream: Stream) => void;
 }
 
 /**
@@ -102,10 +103,10 @@ export class ComponentUIBuilder {
         this.setupExpandedViewScroll(expandedView);
 
         const navControls = collapsedView.createDiv('streams-bar-nav-controls');
-        const { todayButton, streamSelector, streamsDropdown, changeStreamSection, changeStreamText } = 
+        const { todayButton, streamSelector, streamsDropdown, changeStreamSection, changeStreamText } =
             this.setupCollapsedView(collapsedView, navControls);
 
-        const { prevButton, nextButton, dateDisplay, grid, calendarRenderer, currentMonthView } = 
+        const { prevButton, nextButton, dateDisplay, grid, calendarRenderer, currentMonthView } =
             this.setupExpandedView(expandedView);
 
         const touchGestureHandler = this.setupCalendarHandlers(
@@ -193,7 +194,7 @@ export class ComponentUIBuilder {
             this.app,
             this.settingsManager as any,
             this.reuseCurrentTab,
-            () => {}
+            this.callbacks.onStreamSelected
         );
         streamSelector.populateStreamsDropdown();
 
@@ -306,7 +307,7 @@ export class ComponentUIBuilder {
                     this.callbacks.toggleExpanded();
                 }
             },
-            () => {}
+            () => { }
         );
         calendarRenderer.updateCalendarGrid();
 

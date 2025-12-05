@@ -91,18 +91,18 @@ export class ComponentLifecycleManager {
             if (component && typeof component.updateReuseCurrentTab === 'function') {
                 component.updateReuseCurrentTab(settings.reuseCurrentTab);
             }
-            
+
             // Refresh bar style for all existing components
             if (component && typeof component.refreshBarStyle === 'function') {
                 component.refreshBarStyle();
             }
-            
+
             // Update streams list for all existing components
             if (component && typeof component.updateStreamsList === 'function' && settings.streams) {
                 component.updateStreamsList(settings.streams);
             }
         }
-        
+
         // Force immediate refresh for mobile devices
         // Use requestAnimationFrame to ensure DOM updates are processed
         requestAnimationFrame(() => {
@@ -141,6 +141,18 @@ export class ComponentLifecycleManager {
     }
 
     /**
+     * Get component for a specific leaf
+     */
+    getComponentForLeaf(leaf: WorkspaceLeaf): StreamsBarComponent | undefined {
+        for (const component of this.calendarComponents.values()) {
+            if (component.leaf === leaf) {
+                return component;
+            }
+        }
+        return undefined;
+    }
+
+    /**
      * Get stream to use for a component (active stream or default)
      */
     getStreamToUse(): Stream | undefined {
@@ -157,9 +169,18 @@ export class ComponentLifecycleManager {
             if (apiService) {
                 const stream = apiService.getStreamForFile(filePath);
                 if (stream) {
-                    // This is a stream file, update the stream bar to reflect the file's stream and date
-                    await apiService.updateStreamBarFromFile(filePath);
-                    centralizedLogger.debug(`Updated stream bar for file: ${filePath}`);
+                    // Find component for this leaf
+                    const component = this.getComponentForLeaf(activeLeaf);
+                    if (component) {
+                        // Update component locally
+                        component.updateActiveStream(stream);
+
+                        // Update global settings silently to ensure persistence without affecting other panels
+                        // We use serviceRegistry.streamManagement directly because StreamsAPI doesn't expose suppressEvent
+                        await serviceRegistry.streamManagement?.setActiveStream(stream.id, true, true);
+
+                        centralizedLogger.debug(`Updated stream bar for file: ${filePath}`);
+                    }
                 }
             }
         }

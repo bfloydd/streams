@@ -55,9 +55,9 @@ export class StreamManagementService extends SettingsAwareSliceService {
     /**
      * Set the active stream
      */
-    public setActiveStream = withAsyncErrorHandling(async (streamId: string | undefined, force = false): Promise<void> => {
+    public setActiveStream = withAsyncErrorHandling(async (streamId: string | undefined, force = false, suppressEvent = false): Promise<void> => {
         const currentActiveStreamId = this.getSettings().activeStreamId;
-        
+
         if (currentActiveStreamId === streamId && !force) {
             return; // No change needed
         }
@@ -65,7 +65,7 @@ export class StreamManagementService extends SettingsAwareSliceService {
         // Update the settings
         const plugin = this.getPlugin();
         plugin.settings.activeStreamId = streamId;
-        
+
         // Save settings
         await plugin.saveSettings();
 
@@ -81,7 +81,9 @@ export class StreamManagementService extends SettingsAwareSliceService {
         this.globalIndicator.update(this.getActiveStream());
 
         // Emit event for other services
-        eventBus.emit(EVENTS.ACTIVE_STREAM_CHANGED, { streamId, previousStreamId: currentActiveStreamId }, 'stream-management');
+        if (!suppressEvent) {
+            eventBus.emit(EVENTS.ACTIVE_STREAM_CHANGED, { streamId, previousStreamId: currentActiveStreamId }, 'stream-management');
+        }
     }, 'stream-management', 'setActiveStream');
 
     /**
@@ -96,8 +98,8 @@ export class StreamManagementService extends SettingsAwareSliceService {
      */
     public showStreamSelection = withErrorHandling((): void => {
         const modal = new StreamSelectionModal(
-            this.getPlugin().app, 
-            this.getStreams(), 
+            this.getPlugin().app,
+            this.getStreams(),
             async (selectedStream) => {
                 if (selectedStream) {
                     await this.setActiveStream(selectedStream.id, true);

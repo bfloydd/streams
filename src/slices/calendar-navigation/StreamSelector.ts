@@ -8,7 +8,7 @@ interface PluginInterface {
     settings: {
         activeStreamId?: string;
     };
-    setActiveStream(streamId: string, force?: boolean): Promise<void>;
+    setActiveStream(streamId: string, force?: boolean, suppressEvent?: boolean): Promise<void>;
 }
 
 /**
@@ -54,25 +54,25 @@ export class StreamSelector extends Component {
      */
     populateStreamsDropdown(): void {
         if (!this.dropdown) return;
-        
+
         this.dropdown.empty();
-        
+
         // Filter out disabled streams
         const enabledStreams = this.streams.filter(stream => !stream.disabled);
-        
+
         enabledStreams.forEach(stream => {
             const streamItem = this.dropdown.createDiv('streams-bar-stream-item');
-            
+
             const isSelected = stream.id === this.activeStreamId;
             if (isSelected) {
                 streamItem.addClass('streams-bar-stream-item-selected');
             }
-            
+
             const streamIcon = streamItem.createDiv('streams-bar-stream-item-icon');
             setIcon(streamIcon, stream.icon);
             const streamName = streamItem.createDiv('streams-bar-stream-item-name');
             streamName.setText(stream.name);
-            
+
             // Add encryption icon if stream is encrypted
             if (stream.encryptThisStream) {
                 const encryptionIcon = streamItem.createDiv('streams-bar-stream-item-encryption');
@@ -80,18 +80,18 @@ export class StreamSelector extends Component {
                 encryptionIcon.setAttribute('title', 'Encrypted stream');
                 encryptionIcon.setAttribute('aria-label', 'Encrypted stream');
             }
-            
+
             if (isSelected) {
                 const checkmark = streamItem.createDiv('streams-bar-stream-item-checkmark');
                 setIcon(checkmark, 'check');
             }
-            
+
             streamItem.addEventListener('click', (e) => {
                 e.stopPropagation();
                 this.selectStream(stream);
             });
         });
-        
+
         // Force a reflow on mobile devices to ensure the dropdown updates immediately
         if (this.dropdown) {
             // Trigger a reflow to ensure the changes are visible
@@ -105,7 +105,7 @@ export class StreamSelector extends Component {
     updateStreams(streams: Stream[]): void {
         this.streams = streams;
         this.populateStreamsDropdown();
-        
+
         // Force immediate DOM update for mobile devices
         requestAnimationFrame(() => {
             this.dropdown?.offsetHeight;
@@ -126,7 +126,7 @@ export class StreamSelector extends Component {
     private async selectStream(stream: Stream): Promise<void> {
         // Update the plugin's active stream - this will trigger the event listener
         if (this.plugin) {
-            await this.plugin.setActiveStream(stream.id, true);
+            await this.plugin.setActiveStream(stream.id, true, true);
         }
 
         // Notify parent component
@@ -147,7 +147,7 @@ export class StreamSelector extends Component {
         try {
             const state = this.dateStateManager.getState();
             const targetDate = state.currentDate;
-            
+
             const command = new OpenStreamDateCommand(this.app, stream, targetDate, this.reuseCurrentTab);
             await command.execute();
         } catch (error) {

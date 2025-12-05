@@ -14,7 +14,7 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 
 	async onload() {
 		sliceContainer.setPlugin(this);
-		
+
 		await this.loadSettings();
 
 		ServiceLoader.registerAllServices();
@@ -26,7 +26,7 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		// Register all views using the centralized configuration
 		// Note: Views are registered after services to avoid conflicts with CalendarNavigationService
 		this.registerViews();
-		
+
 		this.log?.info('Streams plugin loaded with vertical slice architecture');
 	}
 
@@ -38,13 +38,13 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 	async loadSettings() {
 		const loadedData = await this.loadData();
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
-		
+
 		// Migration: ensure barStyle exists
 		if (!this.settings.barStyle) {
 			this.settings.barStyle = 'default';
 			await this.saveSettings();
 		}
-		
+
 		// Migration: ensure encryptThisStream exists for existing streams
 		let needsSave = false;
 		for (const stream of this.settings.streams) {
@@ -57,7 +57,7 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 				needsSave = true;
 			}
 		}
-		
+
 		if (needsSave) {
 			await this.saveSettings();
 		}
@@ -93,8 +93,8 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 	// ============================================================================
 
 	// Stream Management
-	async setActiveStream(streamId: string, force?: boolean): Promise<void> {
-		await serviceRegistry.streamManagement?.setActiveStream(streamId, force);
+	async setActiveStream(streamId: string, force?: boolean, suppressEvent?: boolean): Promise<void> {
+		await serviceRegistry.streamManagement?.setActiveStream(streamId, force, suppressEvent);
 	}
 
 	getActiveStream(): Stream | null {

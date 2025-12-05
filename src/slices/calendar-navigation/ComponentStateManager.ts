@@ -38,12 +38,6 @@ export class ComponentStateManager {
      * Get the display name for the active stream
      */
     getDisplayStreamName(): string {
-        if (this.plugin?.settings?.activeStreamId) {
-            const activeStream = this.streams.find(s => s.id === this.plugin!.settings.activeStreamId);
-            if (activeStream) {
-                return activeStream.name;
-            }
-        }
         return this.selectedStream.name;
     }
 
@@ -51,16 +45,13 @@ export class ComponentStateManager {
      * Get the active stream ID
      */
     getActiveStreamId(): string {
-        return this.plugin?.settings?.activeStreamId || this.selectedStream.id;
+        return this.selectedStream.id;
     }
 
     /**
      * Get the active stream
      */
     getActiveStream(): Stream {
-        if (this.plugin?.settings?.activeStreamId) {
-            return this.streams.find(s => s.id === this.plugin!.settings.activeStreamId) || this.selectedStream;
-        }
         return this.selectedStream;
     }
 
@@ -69,13 +60,13 @@ export class ComponentStateManager {
      */
     updateStreamEncryptionIcon(container: HTMLElement): void {
         const activeStream = this.getActiveStream();
-        
+
         // Remove existing encryption icon if it exists
         const existingIcon = container.querySelector('.streams-bar-encryption-icon');
         if (existingIcon) {
             existingIcon.remove();
         }
-        
+
         // Add encryption icon if stream is encrypted
         if (activeStream.encryptThisStream) {
             const encryptionIcon = container.createDiv('streams-bar-encryption-icon');
@@ -92,12 +83,12 @@ export class ComponentStateManager {
         if (!this.plugin?.settings) {
             return;
         }
-        
+
         const barStyle = this.plugin.settings.barStyle;
-        
+
         // Remove existing style classes
         component.removeClass('modern-style');
-        
+
         // Apply the appropriate style class
         if (barStyle === 'modern') {
             component.addClass('modern-style');
@@ -112,11 +103,11 @@ export class ComponentStateManager {
         const todayYear = today.getFullYear();
         const todayMonth = today.getMonth();
         const todayDay = today.getDate();
-        
+
         const currentYear = currentDate.getFullYear();
         const currentMonth = currentDate.getMonth();
         const currentDay = currentDate.getDate();
-        
+
         if (currentYear === todayYear && currentMonth === todayMonth && currentDay === todayDay) {
             return 'TODAY';
         } else {
