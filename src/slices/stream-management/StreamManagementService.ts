@@ -7,90 +7,42 @@ import { withErrorHandling, withAsyncErrorHandling, handleError } from '../../sh
 import { GlobalStreamIndicator } from '../../shared/GlobalStreamIndicator';
 
 export class StreamManagementService extends SettingsAwareSliceService {
-    private globalIndicator: GlobalStreamIndicator;
+    // private globalIndicator: GlobalStreamIndicator; // Global indicator removed
 
     async initialize(): Promise<void> {
         if (this.initialized) return;
 
-        this.globalIndicator = new GlobalStreamIndicator();
-        this.globalIndicator.create(() => this.showStreamSelection());
+        // Global indicator removed
+        // this.globalIndicator = new GlobalStreamIndicator();
+        // this.globalIndicator.create(() => this.showStreamSelection());
+
         this.registerCommands();
 
         this.initialized = true;
     }
 
     cleanup(): void {
-        this.globalIndicator?.destroy();
+        // this.globalIndicator?.destroy();
         this.initialized = false;
     }
 
     onStreamAdded(stream: Stream): void {
-        this.globalIndicator.update(this.getActiveStream());
         eventBus.emit(EVENTS.STREAM_ADDED, stream, 'stream-management');
     }
 
     onStreamUpdated(stream: Stream): void {
-        this.globalIndicator.update(this.getActiveStream());
         eventBus.emit(EVENTS.STREAM_UPDATED, stream, 'stream-management');
     }
 
     onStreamRemoved(streamId: string): void {
-        // If the removed stream was active, clear the active stream
-        if (this.getSettings().activeStreamId === streamId) {
-            void this.setActiveStream(undefined);
-        }
-        this.globalIndicator.update(this.getActiveStream());
+        // Active stream check removed
         eventBus.emit(EVENTS.STREAM_REMOVED, { streamId }, 'stream-management');
     }
 
-    onActiveStreamChanged(streamId: string | undefined): void {
-        this.globalIndicator.update(this.getActiveStream());
-    }
+    // onActiveStreamChanged removed
 
     onSettingsChanged(settings: StreamsSettings): void {
-        this.globalIndicator.update(this.getActiveStream());
         eventBus.emit(EVENTS.SETTINGS_CHANGED, settings, 'stream-management');
-    }
-
-    /**
-     * Set the active stream
-     */
-    public setActiveStream = withAsyncErrorHandling(async (streamId: string | undefined, force = false, suppressEvent = false): Promise<void> => {
-        const currentActiveStreamId = this.getSettings().activeStreamId;
-
-        if (currentActiveStreamId === streamId && !force) {
-            return; // No change needed
-        }
-
-        // Update the settings
-        const plugin = this.getPlugin();
-        plugin.settings.activeStreamId = streamId;
-
-        // Save settings
-        await plugin.saveSettings();
-
-        // Log the change
-        if (streamId) {
-            const stream = this.getStreams().find(s => s.id === streamId);
-            this.log(`Active stream changed to: ${stream?.name || 'Unknown'} (${streamId})`);
-        } else {
-            this.log('Active stream cleared');
-        }
-
-        // Update the global indicator
-        this.globalIndicator.update(this.getActiveStream());
-
-        // Emit event for other services
-        if (!suppressEvent) {
-            eventBus.emit(EVENTS.ACTIVE_STREAM_CHANGED, { streamId, previousStreamId: currentActiveStreamId }, 'stream-management');
-        }
-    }, 'stream-management', 'setActiveStream');
-
-    /**
-     * Get the currently active stream
-     */
-    public getActiveStream(): Stream | null {
-        return super.getActiveStream();
     }
 
     /**
@@ -101,8 +53,14 @@ export class StreamManagementService extends SettingsAwareSliceService {
             this.getPlugin().app,
             this.getStreams(),
             async (selectedStream) => {
+                // Previously set active stream, now just emits event or navigates?
+                // For now, if someone calls this, maybe they want to open a stream.
+                // But setActiveStream is gone.
+                // We'll leave it empty or trigger navigation if we can contextually.
+                // For now, removing the setActiveStream call.
                 if (selectedStream) {
-                    await this.setActiveStream(selectedStream.id, true);
+                    // TODO: Decide what 'selecting a stream' does globally if anything.
+                    // Maybe nothing. This modal might be obsolete or need repurposing.
                 }
             }
         );
@@ -114,6 +72,5 @@ export class StreamManagementService extends SettingsAwareSliceService {
 
         // No commands currently registered
     }
-
 
 }

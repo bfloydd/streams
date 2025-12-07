@@ -36,7 +36,7 @@ export interface DefaultSettingsConfiguration {
     readonly streams: readonly [];
     readonly showStreamsBarComponent: boolean;
     readonly reuseCurrentTab: boolean;
-    readonly activeStreamId: undefined;
+
     readonly debugLoggingEnabled: boolean;
     readonly barStyle: 'default';
 }
@@ -79,6 +79,7 @@ export class ConfigurationService extends BaseSliceService implements Configurat
                 'graph',
                 'markdown',
                 'streams-install-meld-view',
+                'streams-create-file-view',
                 'streams-create-file-view-encrypted'
             ] as const
         },
@@ -106,7 +107,7 @@ export class ConfigurationService extends BaseSliceService implements Configurat
             streams: [],
             showStreamsBarComponent: true,
             reuseCurrentTab: false,
-            activeStreamId: undefined,
+
             debugLoggingEnabled: false,
             barStyle: 'default'
         } as const
@@ -222,7 +223,7 @@ export class ConfigurationService extends BaseSliceService implements Configurat
             streams: [...this.config.defaults.streams],
             showStreamsBarComponent: this.config.defaults.showStreamsBarComponent,
             reuseCurrentTab: this.config.defaults.reuseCurrentTab,
-            activeStreamId: this.config.defaults.activeStreamId,
+
             debugLoggingEnabled: this.config.defaults.debugLoggingEnabled,
             barStyle: this.config.defaults.barStyle
         };

@@ -81,7 +81,6 @@ export class EventHandlerService {
         eventBus.subscribe(EVENTS.STREAM_ADDED, () => this.handleStreamChange());
         eventBus.subscribe(EVENTS.STREAM_UPDATED, () => this.handleStreamChange());
         eventBus.subscribe(EVENTS.STREAM_REMOVED, () => this.handleStreamChange());
-        eventBus.subscribe(EVENTS.ACTIVE_STREAM_CHANGED, () => this.handleStreamChange());
 
         // Listen for create file view opened
         eventBus.subscribe('create-file-view-opened', (event) => {

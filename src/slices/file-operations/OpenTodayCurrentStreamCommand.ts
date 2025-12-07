@@ -1,9 +1,10 @@
-import { App, Notice, WorkspaceLeaf } from 'obsidian';
+import { App, Notice, WorkspaceLeaf, MarkdownView } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { openStreamDate } from './streamUtils';
 import { Logger } from '../debug-logging/Logger';
 import { Command, StreamManager } from '../../shared/interfaces';
 import { DateStateManager } from '../../shared/DateStateManager';
+import { StreamContextService } from '../../shared/StreamContextService';
 
 const log = new Logger();
 
@@ -28,12 +29,12 @@ export class OpenTodayCurrentStreamCommand implements Command {
             return;
         }
 
-        // Get the current stream from the targetStream or centralized active stream tracking
+        // Get the current stream from the targetStream or dynamic resolution
         const currentStream = this.targetStream || this.findCurrentStream();
 
         if (!currentStream) {
             log.debug('No current stream found, cannot open today note');
-            new Notice('No active stream found. Please open a stream view or file to establish stream context.');
+            new Notice('No active stream context found. Please open a file belonging to a stream first.');
             return;
         }
 
@@ -42,16 +43,22 @@ export class OpenTodayCurrentStreamCommand implements Command {
     }
 
     private findCurrentStream(): Stream | null {
-        // Get the active stream from the main plugin's centralized tracking
-        if (this.plugin) {
-            const activeStream = this.plugin.getActiveStream();
-            if (activeStream) {
-                log.debug(`Found active stream from plugin: ${activeStream.name}`);
-                return activeStream;
-            }
+        const streamContextService = new StreamContextService();
+
+        // 1. Try target leaf if provided
+        if (this.targetLeaf && this.targetLeaf.view instanceof MarkdownView && this.targetLeaf.view.file) {
+            const stream = streamContextService.getStreamForFile(this.targetLeaf.view.file, this.streams);
+            if (stream) return stream;
         }
 
-        log.debug('No active stream found in plugin settings');
+        // 2. Try active file
+        const activeFile = this.app.workspace.getActiveFile();
+        if (activeFile) {
+            const stream = streamContextService.getStreamForFile(activeFile, this.streams);
+            if (stream) return stream;
+        }
+
+        log.debug('No stream context found for current context');
         return null;
     }
 }

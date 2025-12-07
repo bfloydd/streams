@@ -19,11 +19,11 @@ jest.mock('../StreamProviderService');
 jest.mock('../FilePathProviderService');
 jest.mock('../../../shared');
 jest.mock('obsidian', () => ({
-    Component: class MockComponent {},
-    ItemView: class MockItemView {},
-    WorkspaceLeaf: class MockWorkspaceLeaf {},
-    PluginSettingTab: class MockPluginSettingTab {},
-    Modal: class MockModal {}
+    Component: class MockComponent { },
+    ItemView: class MockItemView { },
+    WorkspaceLeaf: class MockWorkspaceLeaf { },
+    PluginSettingTab: class MockPluginSettingTab { },
+    Modal: class MockModal { }
 }));
 
 describe('ServiceCoordinator', () => {
@@ -51,8 +51,7 @@ describe('ServiceCoordinator', () => {
 
         mockSettingsManager = {
             settings: {
-                streams: [],
-                activeStreamId: 'test-stream'
+                streams: []
             }
         };
 
@@ -149,7 +148,6 @@ describe('ServiceCoordinator', () => {
         it('should update existing components when settings change', () => {
             const newSettings: StreamsSettings = {
                 streams: [],
-                activeStreamId: 'new-stream',
                 showStreamsBarComponent: true,
                 reuseCurrentTab: false,
                 debugLoggingEnabled: false,

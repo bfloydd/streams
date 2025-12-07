@@ -69,19 +69,14 @@ export abstract class PluginAwareSliceService extends BaseSliceService implement
         await settingsManager.saveSettings();
     }
 
-    protected getActiveStream(): Stream | null {
-        const settingsManager = this.getSettingsManager();
-        const activeStreamId = settingsManager.settings?.activeStreamId;
-        if (!activeStreamId) return null;
-        return this.getStreams().find(s => s.id === activeStreamId) || null;
-    }
+
 }
 
 export abstract class StreamAwareSliceService extends PluginAwareSliceService implements StreamAwareService {
     abstract onStreamAdded(stream: Stream): void;
     abstract onStreamUpdated(stream: Stream): void;
     abstract onStreamRemoved(streamId: string): void;
-    abstract onActiveStreamChanged(streamId: string | undefined): void;
+
 }
 
 export abstract class SettingsAwareSliceService extends PluginAwareSliceService implements SettingsAwareService {

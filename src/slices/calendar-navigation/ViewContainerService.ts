@@ -22,21 +22,21 @@ export class ViewContainerService {
     findContentContainer(leaf: WorkspaceLeaf): HTMLElement | null {
         const viewType = leaf.view.getViewType();
         let contentContainer: HTMLElement | null = null;
-        
+
         if (viewType === 'markdown') {
             const markdownView = leaf.view as MarkdownView;
             contentContainer = markdownView.contentEl;
-            
-        } else if (viewType === CREATE_FILE_VIEW_TYPE || 
-                   viewType === INSTALL_MELD_VIEW_TYPE || 
-                   viewType === CREATE_FILE_VIEW_ENCRYPTED_TYPE) {
+
+        } else if (viewType === CREATE_FILE_VIEW_TYPE ||
+            viewType === INSTALL_MELD_VIEW_TYPE ||
+            viewType === CREATE_FILE_VIEW_ENCRYPTED_TYPE) {
             const view = leaf.view as unknown as ViewWithContentEl;
             if (!view) {
                 centralizedLogger.error(`View is null for viewType: ${viewType}`);
                 return null;
             }
             contentContainer = view.contentEl;
-            
+
         } else if (viewType === 'empty') {
             // For empty views, try to find the view-content element
             const viewContent = leaf.view.containerEl.querySelector('.view-content');
@@ -48,9 +48,9 @@ export class ViewContainerService {
             }
         } else if (viewType === 'file-explorer') {
             // For file explorer, add to the main content area
-            const mainContent = leaf.view.containerEl.querySelector('.nav-files-container') || 
-                               leaf.view.containerEl.querySelector('.nav-files') ||
-                               leaf.view.containerEl;
+            const mainContent = leaf.view.containerEl.querySelector('.nav-files-container') ||
+                leaf.view.containerEl.querySelector('.nav-files') ||
+                leaf.view.containerEl;
             contentContainer = mainContent as HTMLElement;
 
         } else {
@@ -61,7 +61,7 @@ export class ViewContainerService {
             }
             contentContainer = view.contentEl;
         }
-        
+
         return contentContainer;
     }
 
@@ -98,7 +98,7 @@ export class ViewContainerService {
     attachComponent(component: HTMLElement, leaf: WorkspaceLeaf, contentContainer: HTMLElement): boolean {
         // Add class to content container
         contentContainer.addClass('streams-markdown-view-content');
-        
+
         // Only add the calendar component if we're in the main editor area
         if (!this.isMainEditorLeaf(leaf)) {
             // Don't add calendar component to sidebars or other panes
@@ -108,13 +108,13 @@ export class ViewContainerService {
 
         // Apply standard calendar component styling
         component.addClass('streams-bar-component');
-        
+
         // Attach directly to the leaf's container element to ensure it stays with the specific editor window
         const leafContainer = leaf.view.containerEl;
-        
+
         // Find the view-header within this specific leaf
         const viewHeader = leafContainer.querySelector('.view-header');
-        
+
         if (viewHeader && viewHeader.parentElement) {
             // Insert after the view-header for this specific leaf
             viewHeader.parentElement.insertBefore(component, viewHeader.nextSibling);

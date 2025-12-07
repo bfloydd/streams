@@ -26,7 +26,7 @@ export interface StreamAwareService {
     onStreamAdded(stream: Stream): void;
     onStreamUpdated(stream: Stream): void;
     onStreamRemoved(streamId: string): void;
-    onActiveStreamChanged(streamId: string | undefined): void;
+
 }
 
 /**
@@ -106,9 +106,8 @@ export interface SettingsManager {
 /**
  * Interface for stream management operations
  */
+// Methods removed
 export interface StreamManager {
-    setActiveStream(streamId: string, force?: boolean): Promise<void>;
-    getActiveStream(): Stream | undefined;
 }
 
 /**

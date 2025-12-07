@@ -33,7 +33,7 @@ export interface StreamsSettings {
     streams: Stream[];
     showStreamsBarComponent: boolean;
     reuseCurrentTab: boolean;
-    activeStreamId?: string; // ID of the currently active/selected stream
+
     debugLoggingEnabled: boolean; // Whether debug logging is enabled by default
     barStyle: 'default' | 'modern'; // Style variant for the streams bar
 }
@@ -55,7 +55,7 @@ export type EventData =
     // Stream events
     | { stream: Stream } // STREAM_ADDED, STREAM_UPDATED
     | { streamId: string } // STREAM_REMOVED
-    | { streamId: string; previousStreamId?: string } // ACTIVE_STREAM_CHANGED
+
     | { streamId: string; disabled: boolean } // STREAM_UPDATED (disabled state)
 
     // Settings events

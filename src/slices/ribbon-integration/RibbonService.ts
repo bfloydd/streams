@@ -6,7 +6,7 @@ import { OpenTodayStreamCommand } from '../file-operations/OpenTodayStreamComman
 import { OpenTodayCurrentStreamCommand } from '../file-operations/OpenTodayCurrentStreamCommand';
 
 export class RibbonService extends SettingsAwareSliceService {
-    private ribbonIconsByStream: Map<string, {today?: HTMLElement}> = new Map();
+    private ribbonIconsByStream: Map<string, { today?: HTMLElement }> = new Map();
     private commandsByStreamId: Map<string, string> = new Map();
 
     async initialize(): Promise<void> {
@@ -31,8 +31,8 @@ export class RibbonService extends SettingsAwareSliceService {
         eventBus.subscribe(EVENTS.STREAM_ADDED, (event) => this.onStreamAdded(event.data));
         eventBus.subscribe(EVENTS.STREAM_UPDATED, (event) => this.onStreamUpdated(event.data));
         eventBus.subscribe(EVENTS.STREAM_REMOVED, (event) => this.onStreamRemoved(event.data.streamId));
-        eventBus.subscribe(EVENTS.ACTIVE_STREAM_CHANGED, () => this.updateAllRibbonIcons());
-        
+        // eventBus.subscribe(EVENTS.ACTIVE_STREAM_CHANGED, () => this.updateAllRibbonIcons()); - REMOVED
+
         // Listen for settings changes
         eventBus.subscribe(EVENTS.SETTINGS_CHANGED, () => this.updateAllRibbonIcons());
     }
@@ -94,11 +94,11 @@ export class RibbonService extends SettingsAwareSliceService {
             streamIcons = {};
             this.ribbonIconsByStream.set(stream.id, streamIcons);
         }
-        
+
         // Only create the icon if it should be visible
         if (stream.showTodayInRibbon && !streamIcons.today) {
             this.log(`Creating Today icon for stream ${stream.id}`);
-            
+
             streamIcons.today = this.getPlugin().addRibbonIcon(
                 stream.icon,
                 `Open today for ${stream.name}`,
@@ -152,7 +152,7 @@ export class RibbonService extends SettingsAwareSliceService {
         this.removeStreamCommand(stream.id);
 
         const commandId = `open-today-${stream.id}`;
-        
+
         this.getPlugin().addCommand({
             id: commandId,
             name: `Open today for ${stream.name}`,

@@ -1,12 +1,12 @@
 import { App, WorkspaceLeaf, TFile, MarkdownView, Component, Plugin } from 'obsidian';
 import { Stream, StreamsSettings } from '../../shared/types';
-import { DateState } from '../../shared/DateStateManager';
+import { DateState, DateStateManager } from '../../shared/DateStateManager';
 import { centralizedLogger } from '../../shared/CentralizedLogger';
 import { StreamsPluginInterface } from '../../shared/interfaces';
 import { CREATE_FILE_VIEW_TYPE } from '../file-operations/CreateFileView';
-import { DateStateManager } from '../../shared/DateStateManager';
 import { MeldDetectionService } from '../meld-integration';
 import { configurationService } from '../../shared/ConfigurationService';
+import { StreamContextService } from '../../shared/StreamContextService';
 import { CalendarRenderer } from './CalendarRenderer';
 import { StreamSelector } from './StreamSelector';
 import { ContentIndicatorService } from './ContentIndicatorService';
@@ -25,7 +25,7 @@ interface PluginInterface {
         barStyle?: 'default' | 'modern';
     };
     saveSettings(): void;
-    setActiveStream(streamId: string, force?: boolean): Promise<void>;
+    setActiveStream(streamId: string, force?: boolean, suppressEvent?: boolean): Promise<void>;
 }
 
 export class StreamsBarComponent extends Component {
@@ -63,6 +63,12 @@ export class StreamsBarComponent extends Component {
     private prevButton: HTMLElement | null = null;
     private nextButton: HTMLElement | null = null;
 
+    private streamContextService: StreamContextService;
+
+    public get activeStreamId(): string {
+        return this.selectedStream?.id || '';
+    }
+
     public updateReuseCurrentTab(reuseCurrentTab: boolean): void {
         this.reuseCurrentTab = reuseCurrentTab;
     }
@@ -72,11 +78,12 @@ export class StreamsBarComponent extends Component {
 
         this.leaf = leaf;
 
-        this.selectedStream = stream;
+        // this.selectedStream = stream; // Now derived from context
         this.app = app;
         this.reuseCurrentTab = reuseCurrentTab;
         this.streams = streams;
         this.plugin = plugin;
+        this.streamContextService = new StreamContextService(); // Instantiate service
         this.dateStateManager = new DateStateManager();
 
         this.meldDetectionService = new MeldDetectionService();
@@ -86,6 +93,9 @@ export class StreamsBarComponent extends Component {
                 centralizedLogger.error('Error initializing MeldDetectionService:', error);
             });
         }
+
+        // Initialize with default or passed stream, but immediately verify context
+        this.selectedStream = stream;
 
         this.contentIndicatorService = new ContentIndicatorService(app, stream, this.meldDetectionService);
         this.dateNavigationService = new DateNavigationService(app, stream, reuseCurrentTab, this.dateStateManager, this.leaf);
@@ -103,8 +113,6 @@ export class StreamsBarComponent extends Component {
         this.eventSubscriptionManager.subscribeToDateChanges((state) => {
             this.handleDateStateChange(state);
         });
-
-
 
         this.eventSubscriptionManager.subscribeToSettingsChanges((settings) => {
             this.handleSettingsChange(settings);
@@ -126,13 +134,68 @@ export class StreamsBarComponent extends Component {
         this.registerEvent(this.app.vault.on('modify', this.fileModifyHandler));
 
         this.registerEvent(this.app.workspace.on('file-open', (file) => {
+            // console.log(`[StreamsBarComponent] file-open event: ${file?.path}`); // Remove debug logs after fix? Or keep for verification? I'll comment them out for now to reduce noise if it works.
+
             if (this.leaf.view instanceof MarkdownView && this.leaf.view.file === file) {
-                this.updateTodayButton();
+                // console.log(`[StreamsBarComponent] MarkdownView match. Updating context.`);
+                this.updateStreamContext(file);
+            } else {
+                // Handle Custom Views (CreateFileView, InstallMeldView, etc.)
+                const viewType = this.leaf.view.getViewType();
+                // console.log(`[StreamsBarComponent] Checking custom view type: ${viewType}`);
+
+                if (viewType === CREATE_FILE_VIEW_TYPE || viewType === 'streams-create-file-view-encrypted') {
+                    const view = this.leaf.view as any;
+                    if (view.getState) {
+                        const state = view.getState();
+                        if (state && state.stream) {
+                            // console.log(`[StreamsBarComponent] Custom view stream found: ${state.stream.name}`);
+                            this.updateActiveStream(state.stream);
+                            this.component.show();
+                        }
+                    }
+                }
             }
         }));
 
+        // Initialize component UI first so elements exist
         this.initializeComponent();
+
+        // Initial context check
+        const viewType = this.leaf.view.getViewType();
+        if (this.leaf.view instanceof MarkdownView) {
+            this.updateStreamContext(this.leaf.view.file);
+        } else if (viewType === CREATE_FILE_VIEW_TYPE || viewType === 'streams-create-file-view-encrypted') {
+            const view = this.leaf.view as any;
+            if (view.getState) {
+                const state = view.getState();
+                if (state && state.stream) {
+                    this.updateActiveStream(state.stream);
+                    this.component.show(); // Ensure we show it if we have a stream
+                }
+            }
+        }
+
         this.updateTodayButton();
+
+        // Ensure initial visibility state is correct
+        if (this.leaf.view instanceof MarkdownView) {
+            this.updateStreamContext(this.leaf.view.file);
+        }
+    }
+
+    private updateStreamContext(file: TFile | null): void {
+        const stream = this.streamContextService.getStreamForFile(file, this.streams);
+
+        if (stream) {
+            if (this.selectedStream?.id !== stream.id) {
+                this.updateActiveStream(stream);
+            }
+            this.component.show();
+        } else {
+            // If no stream found for file, hide the component
+            this.component.hide();
+        }
     }
 
     private createUIBuilderCallbacks(): ComponentCallbacks {
@@ -161,7 +224,7 @@ export class StreamsBarComponent extends Component {
                 return this.expanded;
             },
             onStreamSelected: (stream: Stream) => {
-                this.updateActiveStream(stream);
+                this.handleStreamSwitch(stream);
             }
         };
     }
@@ -251,6 +314,8 @@ export class StreamsBarComponent extends Component {
     }
 
     private updateTodayButton() {
+        if (!this.todayButton) return;
+
         // Check if current file is in stream
         const view = this.leaf.view;
         let isInStream = true;
@@ -398,21 +463,7 @@ export class StreamsBarComponent extends Component {
         }
     }
 
-    private handleActiveStreamChange(eventData: { streamId: string }): void {
-        const { streamId } = eventData;
 
-        if (!streamId) {
-            return;
-        }
-
-        const newActiveStream = this.streams.find(s => s.id === streamId);
-        if (!newActiveStream) {
-            centralizedLogger.warn(`Active stream changed to unknown stream ID: ${streamId}`);
-            return;
-        }
-
-        this.updateActiveStream(newActiveStream);
-    }
 
     public updateActiveStream(newActiveStream: Stream): void {
         this.selectedStream = newActiveStream;
@@ -439,6 +490,30 @@ export class StreamsBarComponent extends Component {
         }
 
         this.updateTodayButton();
+    }
+
+    /**
+     * Handle explicit stream switch by user (navigates context)
+     */
+    public handleStreamSwitch(newStream: Stream): void {
+        // First update the UI/internal component state
+        this.updateActiveStream(newStream);
+
+        // Then trigger navigation/update for the current view
+        const view = this.leaf.view;
+        const currentDate = this.dateStateManager.getState().currentDate;
+        const viewType = view.getViewType();
+
+        if (viewType === CREATE_FILE_VIEW_TYPE || viewType === 'streams-create-file-view-encrypted') {
+            // For CreateFileView, update state in place
+            const viewAny = view as any;
+            if (viewAny.setState) {
+                viewAny.setState({ stream: newStream, date: currentDate });
+            }
+        } else if (view instanceof MarkdownView) {
+            // For MarkdownView, navigate to the corresponding date in the new stream
+            this.dateNavigationService.navigateToDate(currentDate);
+        }
     }
 
     private handleSettingsChange(settings: StreamsSettings): void {

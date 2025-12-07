@@ -9,7 +9,7 @@ import { StreamsSettings } from '../../shared/types';
  */
 export class ComponentEventSubscriptionManager {
     private unsubscribeDateChanged: (() => void) | null = null;
-    private unsubscribeActiveStreamChanged: (() => void) | null = null;
+
     private unsubscribeSettingsChanged: (() => void) | null = null;
     private dateStateManager: DateStateManager;
 
@@ -58,10 +58,7 @@ export class ComponentEventSubscriptionManager {
             this.unsubscribeDateChanged = null;
         }
 
-        if (this.unsubscribeActiveStreamChanged) {
-            this.unsubscribeActiveStreamChanged();
-            this.unsubscribeActiveStreamChanged = null;
-        }
+
 
         if (this.unsubscribeSettingsChanged) {
             this.unsubscribeSettingsChanged();

@@ -37,29 +37,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
         return streams.find(stream => stream.id === streamId) || null;
     }
 
-    /**
-     * Get the currently active stream
-     * @returns The active stream if set, null otherwise
-     */
-    public getActiveStream(): Stream | null {
-        const plugin = this.getPlugin();
-        const activeStreamId = plugin.settings?.activeStreamId;
-        
-        if (!activeStreamId) {
-            return null;
-        }
-        
-        const activeStream = this.getStream(activeStreamId);
-        if (!activeStream) {
-            // Clear invalid active stream ID
-            this.log(`Invalid active stream ID found: ${activeStreamId}, clearing it`);
-            plugin.settings.activeStreamId = undefined;
-            plugin.saveSettings();
-            return null;
-        }
-        
-        return activeStream;
-    }
+
 
     /**
      * Generic stream filtering function
@@ -83,8 +61,8 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
             const searchFolder = FileUtils.normalizePath(folderPath);
 
             return streamFolder === searchFolder ||
-                   streamFolder.startsWith(searchFolder + '/') ||
-                   searchFolder.startsWith(streamFolder + '/');
+                streamFolder.startsWith(searchFolder + '/') ||
+                searchFolder.startsWith(streamFolder + '/');
         });
     }
 
@@ -146,7 +124,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
             name: stream.name,
             folder: stream.folder,
             icon: stream.icon,
-            isActive: stream.id === this.getActiveStream()?.id
+            isActive: false // Global active stream concept removed
         };
     }
 
@@ -188,54 +166,6 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
         return this.getStreamCount() > 0;
     }
 
-    /**
-     * Update the stream bar to match an opened file
-     * @param filePath The path of the file that was opened
-     * @returns True if successful, false if stream not found or update failed
-     */
-    public async updateStreamBarFromFile(filePath: string): Promise<boolean> {
-        try {
-            // Detect stream from file path
-            const stream = this.getStreamForFile(filePath);
-            if (!stream) {
-                this.log(`No stream found for file: ${filePath}`);
-                return false;
-            }
 
-            // Extract date from file path
-            const targetDate = DateUtils.extractDateFromFilePath(filePath);
-
-            // Update stream context and settings
-            await this.updateStreamContext(stream.id, targetDate);
-
-            // Emit event to trigger UI refresh
-            eventBus.emit(EVENTS.ACTIVE_STREAM_CHANGED, { streamId: stream.id }, 'api');
-
-            this.log(`Updated stream bar to "${stream.name}" for file: ${filePath} with date: ${targetDate.toISOString()}`);
-            return true;
-
-        } catch (error) {
-            this.error(`Failed to update stream bar for file ${filePath}:`, error);
-            return false;
-        }
-    }
-
-    /**
-     * Update the active stream and date context
-     * @param streamId The stream ID to set as active
-     * @param targetDate The date to set in the date state manager
-     */
-    private async updateStreamContext(streamId: string, targetDate: Date): Promise<void> {
-        const plugin = this.getPlugin();
-
-        // Set the stream context
-        plugin.settings.activeStreamId = streamId;
-        await plugin.saveSettings();
-
-        // Update the date state manager to reflect the file's date
-        const { DateStateManager } = await import('../../shared/DateStateManager');
-        const dateStateManager = DateStateManager.getInstance();
-        dateStateManager.setCurrentDate(targetDate);
-    }
 
 }

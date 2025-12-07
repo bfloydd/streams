@@ -32,9 +32,9 @@ export class EventBus {
         if (!this.handlers.has(eventType)) {
             this.handlers.set(eventType, new Set());
         }
-        
+
         this.handlers.get(eventType)!.add(handler);
-        
+
         // Return unsubscribe function
         return () => {
             const handlers = this.handlers.get(eventType);
@@ -118,23 +118,23 @@ export const EVENTS = {
     STREAM_ADDED: 'stream:added',
     STREAM_UPDATED: 'stream:updated',
     STREAM_REMOVED: 'stream:removed',
-    ACTIVE_STREAM_CHANGED: 'stream:active-changed',
-    
+    // ACTIVE_STREAM_CHANGED: 'stream:active-changed', - REMOVED
+
     // Settings events
     SETTINGS_CHANGED: 'settings:changed',
-    
+
     // UI events
     CALENDAR_COMPONENT_UPDATED: 'ui:calendar-updated',
     RIBBON_ICONS_UPDATED: 'ui:ribbon-updated',
-    
+
     // File events
     FILE_OPENED: 'file:opened',
     FILE_CREATED: 'file:created',
-    
+
     // Plugin events
     PLUGIN_LOADED: 'plugin:loaded',
     PLUGIN_UNLOADED: 'plugin:unloaded',
-    
+
     // Error events
     ERROR_OCCURRED: 'error:occurred'
 } as const;

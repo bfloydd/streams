@@ -18,11 +18,7 @@ export interface StreamsAPI {
      */
     getStream(streamId: string): Stream | null;
 
-    /**
-     * Get the currently active stream
-     * @returns The active stream if set, null otherwise
-     */
-    getActiveStream(): Stream | null;
+
 
     /**
      * Get streams that match a specific folder path
@@ -64,12 +60,7 @@ export interface StreamsAPI {
      */
     getVersion(): PluginVersion;
 
-    /**
-     * Update the stream bar to match an opened file
-     * @param filePath The path of the file that was opened
-     * @returns True if successful, false if stream not found or update failed
-     */
-    updateStreamBarFromFile(filePath: string): Promise<boolean>;
+
 }
 
 /**

@@ -58,6 +58,12 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 			}
 		}
 
+		// Cleanup: Remove legacy activeStreamId
+		if ((this.settings as any).activeStreamId !== undefined) {
+			delete (this.settings as any).activeStreamId;
+			needsSave = true;
+		}
+
 		if (needsSave) {
 			await this.saveSettings();
 		}
@@ -92,14 +98,7 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 	// PUBLIC API METHODS - Available to other plugins
 	// ============================================================================
 
-	// Stream Management
-	async setActiveStream(streamId: string, force?: boolean, suppressEvent?: boolean): Promise<void> {
-		await serviceRegistry.streamManagement?.setActiveStream(streamId, force, suppressEvent);
-	}
-
-	getActiveStream(): Stream | null {
-		return serviceRegistry.streamManagement?.getActiveStream() || null;
-	}
+	// Stream Management methods removed (global active stream deprecated)
 
 	// Stream Data Access
 	getStreams(): Stream[] {
@@ -151,10 +150,7 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		return serviceRegistry.api?.getVersion() || { version: '1.0.0', minAppVersion: '0.15.0', name: 'Streams', id: 'streams' };
 	}
 
-	// Stream Bar Updates
-	async updateStreamBarFromFile(filePath: string): Promise<boolean> {
-		return serviceRegistry.api?.updateStreamBarFromFile(filePath) || false;
-	}
+
 
 	// Internal Services (for plugin functionality)
 	getFileOperationsService(): FileOperationsService | undefined {

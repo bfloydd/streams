@@ -175,9 +175,8 @@ export class ComponentLifecycleManager {
                         // Update component locally
                         component.updateActiveStream(stream);
 
-                        // Update global settings silently to ensure persistence without affecting other panels
-                        // We use serviceRegistry.streamManagement directly because StreamsAPI doesn't expose suppressEvent
-                        await serviceRegistry.streamManagement?.setActiveStream(stream.id, true, true);
+                        // Update global settings silently - REMOVED
+                        // await serviceRegistry.streamManagement?.setActiveStream(stream.id, true, true);
 
                         centralizedLogger.debug(`Updated stream bar for file: ${filePath}`);
                     }
@@ -210,8 +209,28 @@ export class ComponentLifecycleManager {
         }
 
         // Get active stream or default stream
-        const streamToUse = this.getStreamToUse();
+        let streamToUse = this.getStreamToUse();
+
+        // If this is a CreateFileView, try to get the stream from the view state
+        if (viewType === configurationService.getViewConfig().CREATE_FILE_VIEW_TYPE) {
+            const view = leaf.view as any;
+            if (view.getState) {
+                const state = view.getState();
+                if (state && state.stream) {
+                    streamToUse = state.stream;
+                }
+            }
+        }
+
         if (!streamToUse) {
+            return;
+        }
+
+        // Check if component already exists
+        const existingComponent = this.getComponentForLeaf(leaf);
+        if (existingComponent) {
+            // Do NOT force update to streamToUse (which might be default)
+            // Let the component handle its own context via updateStreamContext
             return;
         }
 

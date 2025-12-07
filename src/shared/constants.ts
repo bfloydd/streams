@@ -23,7 +23,6 @@ export const DEFAULT_SETTINGS = {
     streams: [],
     showStreamsBarComponent: true,
     reuseCurrentTab: false,
-    activeStreamId: undefined,
     debugLoggingEnabled: false,
     barStyle: 'default' as const
 } as const;

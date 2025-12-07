@@ -86,38 +86,50 @@ export class CreateFileView extends ItemView {
             }
 
             if (state) {
+                console.log(`[CreateFileView] setState called with stream: ${state.stream?.name}`);
                 const previousStream = this.stream;
-                this.filePath = state.filePath || this.filePath;
+
+                // Update properties
                 this.stream = state.stream || this.stream;
 
-                // If the stream changed, update the active stream
-                if (state.stream && state.stream.id !== previousStream.id) {
-                    await this.setActiveStream();
+
+
+                // Recalculate file path based on current stream and date
+                // This ensures we switch to the correct folder for the new stream
+                const currentDate = this.dateStateManager.getState().currentDate;
+                const fileName = `${this.formatDateToYYYYMMDD(currentDate)}.md`;
+
+                // Construct new path: StreamFolder + / + FileName
+                // Ensure no double slashes
+                const streamFolder = this.stream.folder.replace(/\/$/, '');
+                this.filePath = `${streamFolder}/${fileName}`;
+
+                console.log(`[CreateFileView] New file path: ${this.filePath}`);
+
+                // Refresh the view with new state
+                if (this.contentEl) {
+                    console.log(`[CreateFileView] Re-rendering content for stream: ${this.stream.name}`);
+                    this.contentEl.empty();
+                    this.contentEl.addClass('streams-create-file-container');
+                    this.createFileViewContent(this.contentEl);
                 }
 
-                // Handle date parameter
+                // Handle date parameter (triggers handleDateChange)
                 if (state.date) {
                     const date = typeof state.date === 'string' ? new Date(state.date) : state.date;
                     if (!isNaN(date.getTime())) {
                         this.dateStateManager.setCurrentDate(date);
                     }
                 }
-
-                // Refresh the view with new state
-                if (this.contentEl) {
-                    this.contentEl.empty();
-                    this.contentEl.addClass('streams-create-file-container');
-                    this.createFileViewContent(this.contentEl);
-                }
             }
         } catch (error) {
             centralizedLogger.error(`Error in CreateFileView setState:`, error);
-            // Don't rethrow - just log and continue
         }
     }
 
 
     private handleDateChange(state: DateState): void {
+        console.log(`[CreateFileView] handleDateChange triggered. Updating path and content.`);
         // Update the file path based on the new date
         const fileName = `${this.formatDateToYYYYMMDD(state.currentDate)}.md`;
         const folderPath = this.filePath.substring(0, this.filePath.lastIndexOf('/'));
@@ -139,8 +151,8 @@ export class CreateFileView extends ItemView {
     }
 
     async onOpen(): Promise<void> {
-        // Set this as the active stream in the main plugin
-        await this.setActiveStream();
+        // Set this as the active stream in the main plugin - REMOVED logic
+        // await this.setActiveStream();
 
         // Set up date change listener
         this.unsubscribeDateChanged = this.dateStateManager.onDateChanged((state) => {
@@ -261,17 +273,5 @@ export class CreateFileView extends ItemView {
         await this.fileCreationService.createAndOpenFile(this.filePath, this.stream, this.leaf);
     }
 
-    private async setActiveStream(): Promise<void> {
-        // Set this as the active stream in the main plugin
-        // This is a user-initiated action (opening a create file view), so force the change
-        try {
-            const appWithPlugins = this.app as unknown as AppWithPlugins;
-            const plugin = appWithPlugins.plugins.plugins['streams'];
-            if (plugin?.setActiveStream) {
-                await plugin.setActiveStream(this.stream.id, true);
-            }
-        } catch (error) {
-            centralizedLogger.error('Error setting active stream:', error);
-        }
-    }
+
 } 

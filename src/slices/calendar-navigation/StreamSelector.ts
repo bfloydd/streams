@@ -6,7 +6,6 @@ import { centralizedLogger } from '../../shared/CentralizedLogger';
 
 interface PluginInterface {
     settings: {
-        activeStreamId?: string;
     };
     setActiveStream(streamId: string, force?: boolean, suppressEvent?: boolean): Promise<void>;
 }
@@ -125,20 +124,17 @@ export class StreamSelector extends Component {
      * Select a stream and navigate to it
      */
     private async selectStream(stream: Stream): Promise<void> {
-        // Update the plugin's active stream - this will trigger the event listener
-        if (this.plugin) {
-            await this.plugin.setActiveStream(stream.id, true, true);
-        }
+        // Update the plugin's active stream - REMOVED
+        // if (this.plugin) {
+        //    await this.plugin.setActiveStream(stream.id, true, true);
+        // }
 
         // Notify parent component
         if (this.onStreamSelected) {
             this.onStreamSelected(stream);
+        } else {
+            this.navigateToStreamDailyNote(stream);
         }
-
-        // Hide the dropdown after selection
-        this.hide();
-
-        this.navigateToStreamDailyNote(stream);
     }
 
     /**

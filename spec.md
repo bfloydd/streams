@@ -1,0 +1,4 @@
+- remove the global active stream concept thoroughly and replace it with this more dynamic approach.
+- the calendar, it's buttons, and the home button should relate to the stream we are looking at (no longer anything to do with global streams), and remember that while the stream file is open. 
+- we don't need to store active streams in data.json or anywhere else, just detect the stream by it being "active" in settings and the file is part of a stream.
+- if a stream file is not open, then don't show the streamsbar at all. 

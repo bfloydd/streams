@@ -59,28 +59,22 @@ export class StreamDataService implements StreamProvider, FilePathProvider {
 
     /**
      * Get the currently active stream
+     * @deprecated Global active stream is removed. Returns undefined.
      */
     getActiveStream(): Stream | undefined {
-        const settingsManager = this.getSettingsManager();
-        const activeStreamId = settingsManager.settings?.activeStreamId;
-        if (!activeStreamId) return undefined;
-        const streams = this.getStreams();
-        return streams.find(s => s.id === activeStreamId);
+        return undefined;
     }
 
     /**
-     * Get stream to use (active stream or default)
+     * Get stream to use (default stream)
      */
     getStreamToUse(): Stream | undefined {
-        let streamToUse = this.getActiveStream();
-        if (!streamToUse) {
-            // If no active stream, try to get the first available stream
-            const streams = this.getStreams();
-            if (streams && streams.length > 0) {
-                streamToUse = streams[0];
-            }
+        // Always try to get the first available stream if no context is provided
+        const streams = this.getStreams();
+        if (streams && streams.length > 0) {
+            return streams[0];
         }
-        return streamToUse;
+        return undefined;
     }
 
     /**
