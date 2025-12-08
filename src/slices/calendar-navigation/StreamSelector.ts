@@ -124,6 +124,8 @@ export class StreamSelector extends Component {
      * Select a stream and navigate to it
      */
     private async selectStream(stream: Stream): Promise<void> {
+        this.hide();
+
         // Update the plugin's active stream - REMOVED
         // if (this.plugin) {
         //    await this.plugin.setActiveStream(stream.id, true, true);

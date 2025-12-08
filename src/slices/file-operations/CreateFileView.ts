@@ -6,6 +6,7 @@ import { FileCreationService } from './FileCreationService';
 import { EmptyStateObserver } from './EmptyStateObserver';
 import { StreamManager } from '../../shared/interfaces';
 import { MeldDetectionService } from '../../slices/meld-integration';
+import { eventBus } from '../../shared/EventBus';
 
 // Interface for accessing app.plugins
 interface AppWithPlugins extends App {
@@ -125,6 +126,9 @@ export class CreateFileView extends ItemView {
                     this.contentEl.addClass('streams-create-file-container');
                     this.createFileViewContent(this.contentEl);
                 }
+
+                // Emit update event to sync components (like StreamsBarComponent)
+                eventBus.emit('create-file-view-updated', this.leaf);
             }
         } catch (error) {
             centralizedLogger.error(`Error in CreateFileView setState:`, error);

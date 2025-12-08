@@ -89,6 +89,13 @@ export class EventHandlerService {
             }
         });
 
+        // Listen for create file view updated
+        eventBus.subscribe('create-file-view-updated', (event) => {
+            if (event.data) {
+                this.handleViewOpened(event.data);
+            }
+        });
+
         // Listen for install meld view opened
         eventBus.subscribe('install-meld-view-opened', (event) => {
             if (event.data) {

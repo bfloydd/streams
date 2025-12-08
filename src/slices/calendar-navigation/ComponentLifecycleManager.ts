@@ -229,8 +229,26 @@ export class ComponentLifecycleManager {
         // Check if component already exists
         const existingComponent = this.getComponentForLeaf(leaf);
         if (existingComponent) {
-            // Do NOT force update to streamToUse (which might be default)
-            // Let the component handle its own context via updateStreamContext
+            // For CreateFileView, we force an update if we have fresh state
+            // This handles the case where view state is restored after component creation
+            if (viewType === configurationService.getViewConfig().CREATE_FILE_VIEW_TYPE) {
+                const view = leaf.view as any;
+                if (view.getState) {
+                    const state = view.getState();
+                    if (state) {
+                        if (state.stream) {
+                            existingComponent.updateActiveStream(state.stream);
+                        }
+                        if (state.date) {
+                            const date = new Date(state.date);
+                            if (!isNaN(date.getTime())) {
+                                const dateString = date.toISOString().split('T')[0];
+                                existingComponent.setCurrentViewedDate(dateString);
+                            }
+                        }
+                    }
+                }
+            }
             return;
         }
 
