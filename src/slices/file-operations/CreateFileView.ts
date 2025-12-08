@@ -87,22 +87,34 @@ export class CreateFileView extends ItemView {
 
             if (state) {
                 console.log(`[CreateFileView] setState called with stream: ${state.stream?.name}`);
-                const previousStream = this.stream;
 
                 // Update properties
                 this.stream = state.stream || this.stream;
 
+                // Handle date parameter first (triggers handleDateChange)
+                // We do this first so the DateStateManager has the correct date
+                if (state.date) {
+                    const date = typeof state.date === 'string' ? new Date(state.date) : state.date;
+                    if (!isNaN(date.getTime())) {
+                        this.dateStateManager.setCurrentDate(date);
+                    }
+                }
 
-
-                // Recalculate file path based on current stream and date
-                // This ensures we switch to the correct folder for the new stream
-                const currentDate = this.dateStateManager.getState().currentDate;
-                const fileName = `${this.formatDateToYYYYMMDD(currentDate)}.md`;
-
-                // Construct new path: StreamFolder + / + FileName
-                // Ensure no double slashes
-                const streamFolder = this.stream.folder.replace(/\/$/, '');
-                this.filePath = `${streamFolder}/${fileName}`;
+                // Determine file path:
+                // 1. Use explicitly provided filePath from state
+                // 2. Or assume it's valid if we already have one (and no stream change?) 
+                //    But if stream changed, we MUST recalculate or use provided path.
+                //    Actually, if state.filePath is provided, use it.
+                //    Otherwise, calculate from current date and stream.
+                if (state.filePath) {
+                    this.filePath = state.filePath;
+                } else {
+                    // Recalculate file path based on current stream and date (which is now updated)
+                    const currentDate = this.dateStateManager.getState().currentDate;
+                    const fileName = `${this.formatDateToYYYYMMDD(currentDate)}.md`;
+                    const streamFolder = this.stream.folder.replace(/\/$/, '');
+                    this.filePath = `${streamFolder}/${fileName}`;
+                }
 
                 console.log(`[CreateFileView] New file path: ${this.filePath}`);
 
@@ -112,14 +124,6 @@ export class CreateFileView extends ItemView {
                     this.contentEl.empty();
                     this.contentEl.addClass('streams-create-file-container');
                     this.createFileViewContent(this.contentEl);
-                }
-
-                // Handle date parameter (triggers handleDateChange)
-                if (state.date) {
-                    const date = typeof state.date === 'string' ? new Date(state.date) : state.date;
-                    if (!isNaN(date.getTime())) {
-                        this.dateStateManager.setCurrentDate(date);
-                    }
                 }
             }
         } catch (error) {
