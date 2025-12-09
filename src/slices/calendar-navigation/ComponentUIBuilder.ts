@@ -308,8 +308,8 @@ export class ComponentUIBuilder {
             this.contentIndicatorService,
             this.dateNavigationService,
             currentMonthView,
-            async (day: number) => {
-                await this.dateNavigationService.selectDate(currentMonthView, day);
+            async (day: number, monthView: Date) => {
+                await this.dateNavigationService.selectDate(monthView, day);
                 if (this.callbacks.isExpanded()) {
                     this.callbacks.toggleExpanded();
                 }
