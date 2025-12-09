@@ -6,6 +6,7 @@ import { eventBus, EVENTS } from '../../shared/EventBus';
 import { centralizedLogger } from '../../shared/CentralizedLogger';
 import { configurationService } from '../../shared/ConfigurationService';
 import { MeldDetectionService } from '../../slices/meld-integration';
+import { IconPickerModal } from './IconPickerModal';
 
 export class SettingsService extends SettingsAwareSliceService {
     private settingsTab: StreamsSettingTab | null = null;
@@ -228,6 +229,29 @@ export class StreamsSettingTab extends PluginSettingTab {
                     await this.settingsManager.saveSettings();
                     eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
                 }));
+
+        // Icon
+        const iconSetting = new Setting(container)
+            .setName('Icon')
+            .setDesc('Icon for the stream (used in ribbon and menus)')
+            .addButton(button => {
+                button
+                    .setIcon(stream.icon)
+                    .setTooltip('Select icon')
+                    .onClick(() => {
+                        const modal = new IconPickerModal(
+                            this.app,
+                            stream.icon,
+                            async (newIcon) => {
+                                stream.icon = newIcon;
+                                button.setIcon(newIcon);
+                                await this.settingsManager.saveSettings();
+                                eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+                            }
+                        );
+                        modal.open();
+                    });
+            });
 
         // Add command
         new Setting(container)

@@ -1980,3 +1980,108 @@
     padding: 10px 24px;
     font-size: 0.95em;
 }
+
+/*********************************************************
+ * ICON PICKER MODAL
+ *********************************************************/
+.streams-icon-picker-modal {
+    max-width: 500px;
+    width: 70vw;
+    max-height: 70vh;
+    height: auto;
+}
+
+.streams-icon-picker-header {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.streams-icon-picker-header h2 {
+    margin: 0;
+}
+
+.streams-search-container input {
+    width: 100%;
+    padding: 8px;
+    font-size: 14px;
+}
+
+.streams-icon-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(32px, 1fr));
+    gap: 4px;
+    padding: 4px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    max-height: 50vh;
+    background-color: var(--background-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--background-modifier-border);
+    box-sizing: border-box;
+    width: 100%;
+}
+
+.streams-icon-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: var(--background-primary);
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    padding: 4px;
+}
+
+.streams-icon-item:hover {
+    background-color: var(--interactive-hover);
+    border-color: var(--text-accent);
+}
+
+.streams-icon-item.selected {
+    background-color: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.streams-icon-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.streams-icon-preview svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* Tooltip on hover */
+.streams-icon-item {
+    position: relative;
+}
+
+.streams-icon-item:hover::after {
+    content: attr(aria-label);
+    position: absolute;
+    bottom: -30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--background-modifier-message);
+    color: var(--text-normal);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.streams-no-icons {
+    grid-column: 1 / -1;
+    padding: 40px;
+    text-align: center;
+    color: var(--text-muted);
+}
