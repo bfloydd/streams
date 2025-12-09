@@ -133,22 +133,22 @@ export class StreamsBarComponent extends Component {
         this.registerEvent(this.app.vault.on('modify', this.fileModifyHandler));
 
         this.registerEvent(this.app.workspace.on('file-open', (file) => {
-            // console.log(`[StreamsBarComponent] file-open event: ${file?.path}`); // Remove debug logs after fix? Or keep for verification? I'll comment them out for now to reduce noise if it works.
+
 
             if (this.leaf.view instanceof MarkdownView && this.leaf.view.file === file) {
-                // console.log(`[StreamsBarComponent] MarkdownView match. Updating context.`);
+
                 this.updateStreamContext(file);
             } else {
                 // Handle Custom Views (CreateFileView, InstallMeldView, etc.)
                 const viewType = this.leaf.view.getViewType();
-                // console.log(`[StreamsBarComponent] Checking custom view type: ${viewType}`);
+
 
                 if (viewType === CREATE_FILE_VIEW_TYPE || viewType === 'streams-create-file-view-encrypted') {
                     const view = this.leaf.view as any;
                     if (view.getState) {
                         const state = view.getState();
                         if (state && state.stream) {
-                            // console.log(`[StreamsBarComponent] Custom view stream found: ${state.stream.name}`);
+
                             this.updateActiveStream(state.stream);
                             this.component.show();
                         }
@@ -535,7 +535,7 @@ export class StreamsBarComponent extends Component {
                 if (freshStream) {
                     // Check if data is actually different to avoid loops/noise
                     if (JSON.stringify(freshStream) !== JSON.stringify(this.selectedStream)) {
-                        console.log(`[StreamsBarComponent] Force refreshed stream data. Old folder: ${this.selectedStream.folder}, New folder: ${freshStream.folder}`);
+
                         this.updateActiveStream(freshStream);
                     }
                 }
@@ -554,7 +554,7 @@ export class StreamsBarComponent extends Component {
             if (this.selectedStream) {
                 const updatedStream = settings.streams.find(s => s.id === this.selectedStream.id);
                 if (updatedStream) {
-                    console.log(`[StreamsBarComponent] Updating active stream from settings. New folder: ${updatedStream.folder}, Old: ${this.selectedStream.folder}`);
+
                     this.handleStreamSwitch(updatedStream);
                 } else {
                     console.warn(`[StreamsBarComponent] Current stream ${this.selectedStream.id} not found in new settings.`);

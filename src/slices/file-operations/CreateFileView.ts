@@ -87,7 +87,7 @@ export class CreateFileView extends ItemView {
             }
 
             if (state) {
-                console.log(`[CreateFileView] setState called with stream: ${state.stream?.name}`);
+
 
                 // Update properties
                 this.stream = state.stream || this.stream;
@@ -117,11 +117,11 @@ export class CreateFileView extends ItemView {
                     this.filePath = `${streamFolder}/${fileName}`;
                 }
 
-                console.log(`[CreateFileView] New file path: ${this.filePath}`);
+
 
                 // Refresh the view with new state
                 if (this.contentEl) {
-                    console.log(`[CreateFileView] Re-rendering content for stream: ${this.stream.name}`);
+
                     this.contentEl.empty();
                     this.contentEl.addClass('streams-create-file-container');
                     this.createFileViewContent(this.contentEl);
@@ -137,7 +137,7 @@ export class CreateFileView extends ItemView {
 
 
     private handleDateChange(state: DateState): void {
-        console.log(`[CreateFileView] handleDateChange triggered. Updating path and content.`);
+
         // Update the file path based on the new date
         const fileName = `${this.formatDateToYYYYMMDD(state.currentDate)}.md`;
         const streamFolder = this.stream.folder.replace(/\/$/, '');

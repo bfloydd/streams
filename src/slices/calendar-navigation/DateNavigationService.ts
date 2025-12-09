@@ -96,7 +96,7 @@ export class DateNavigationService {
      */
     async selectDate(monthView: Date, day: number): Promise<void> {
         const selectedDate = new Date(monthView.getFullYear(), monthView.getMonth(), day);
-        console.log(`[DateNavigationService] Selecting date: ${selectedDate.toDateString()} for stream: ${this.stream.name} (${this.stream.id})`);
+
 
         // Update the date state
         this.dateStateManager.setCurrentDate(selectedDate);
@@ -110,7 +110,7 @@ export class DateNavigationService {
      * @param date - The date to navigate to
      */
     async navigateToDate(date: Date): Promise<void> {
-        console.log(`[DateNavigationService] Navigating to date: ${date.toDateString()} for stream: ${this.stream.name} (Folder: ${this.stream.folder})`);
+
 
         // Update the date state
         this.dateStateManager.setCurrentDate(date);

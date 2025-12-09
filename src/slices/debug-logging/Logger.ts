@@ -57,7 +57,7 @@ export class Logger {
 
     setLogging(level: string | boolean): void {
         const parsedLevel = Logger.parseLogLevel(level);
-        
+
         if (typeof parsedLevel === 'boolean') {
             this.enabled = parsedLevel;
             this.level = LogLevel.INFO;
@@ -79,7 +79,7 @@ export class Logger {
         if (!this.enabled || this.level > LogLevel.INFO) {
             return;
         }
-        console.log(this.prefix + message, ...optionalParams);
+        console.info(this.prefix + message, ...optionalParams);
     }
 
     warn(message?: LogMessage, ...optionalParams: LogParams): void {
