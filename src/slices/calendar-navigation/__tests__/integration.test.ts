@@ -6,11 +6,11 @@ import { Stream } from '../../../shared/types';
 
 // Mock Obsidian
 jest.mock('obsidian', () => ({
-    Component: class MockComponent {},
-    ItemView: class MockItemView {},
-    WorkspaceLeaf: class MockWorkspaceLeaf {},
-    PluginSettingTab: class MockPluginSettingTab {},
-    Modal: class MockModal {},
+    Component: class MockComponent { },
+    ItemView: class MockItemView { },
+    WorkspaceLeaf: class MockWorkspaceLeaf { },
+    PluginSettingTab: class MockPluginSettingTab { },
+    Modal: class MockModal { },
     App: class MockApp {
         workspace = {
             getLeavesOfType: jest.fn(),
@@ -50,7 +50,7 @@ describe('Calendar Navigation Integration Tests', () => {
                         disabled: false
                     }
                 ],
-                activeStreamId: 'test-stream',
+
                 showStreamsBarComponent: true,
                 reuseCurrentTab: false,
                 debugLoggingEnabled: false,
@@ -103,7 +103,7 @@ describe('Calendar Navigation Integration Tests', () => {
             // Test StreamProvider interface methods
             expect(typeof streamProviderService.getStreams).toBe('function');
             expect(typeof streamProviderService.getDefaultStream).toBe('function');
-            expect(typeof streamProviderService.getActiveStream).toBe('function');
+
 
             // Test FilePathProvider interface methods
             expect(typeof filePathProviderService.getDefaultFilePath).toBe('function');
@@ -111,13 +111,13 @@ describe('Calendar Navigation Integration Tests', () => {
             // Verify method calls work
             const streams = streamProviderService.getStreams();
             const defaultStream = streamProviderService.getDefaultStream();
-            const activeStream = streamProviderService.getActiveStream();
+
             const filePath = filePathProviderService.getDefaultFilePath(defaultStream);
 
             expect(Array.isArray(streams)).toBe(true);
             expect(defaultStream).toBeDefined();
             expect(typeof filePath).toBe('string');
-            expect(activeStream).toBeDefined();
+
         });
 
         it('should handle service lifecycle correctly', async () => {
@@ -136,7 +136,7 @@ describe('Calendar Navigation Integration Tests', () => {
 
             const newSettings = {
                 ...mockSettingsManager.settings,
-                activeStreamId: 'new-stream'
+
             };
 
             // Mock component lifecycle manager methods

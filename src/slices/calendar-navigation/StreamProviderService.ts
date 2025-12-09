@@ -15,7 +15,7 @@ export class StreamProviderService implements StreamProvider {
      * Creates a new StreamProviderService with injected StreamDataService dependency
      * @param streamDataService - The service that handles actual stream data operations
      */
-    constructor(private streamDataService: StreamDataService) {}
+    constructor(private streamDataService: StreamDataService) { }
 
     /**
      * Get all available streams
@@ -42,11 +42,5 @@ export class StreamProviderService implements StreamProvider {
         };
     }
 
-    /**
-     * Get the currently active stream
-     * @returns The active stream or undefined if none is active
-     */
-    getActiveStream(): Stream | undefined {
-        return this.streamDataService.getActiveStream();
-    }
+
 }

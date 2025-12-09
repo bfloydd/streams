@@ -64,9 +64,7 @@ export class StreamsBarComponent extends Component {
 
     private streamContextService: StreamContextService;
 
-    public get activeStreamId(): string {
-        return this.selectedStream?.id || '';
-    }
+
 
     public updateReuseCurrentTab(reuseCurrentTab: boolean): void {
         this.reuseCurrentTab = reuseCurrentTab;

@@ -57,13 +57,7 @@ export class StreamDataService implements StreamProvider, FilePathProvider {
         return `${stream.folder}/${fileName}`;
     }
 
-    /**
-     * Get the currently active stream
-     * @deprecated Global active stream is removed. Returns undefined.
-     */
-    getActiveStream(): Stream | undefined {
-        return undefined;
-    }
+
 
     /**
      * Get stream to use (default stream)
