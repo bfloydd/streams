@@ -21,7 +21,6 @@ import { ComponentUIBuilder, ComponentCallbacks } from './ComponentUIBuilder';
 
 interface PluginInterface {
     settings: {
-        activeStreamId?: string;
         barStyle?: 'default' | 'modern';
     };
     saveSettings(): void;
@@ -314,6 +313,7 @@ export class StreamsBarComponent extends Component {
     }
 
     private updateTodayButton() {
+        this.refreshStreamFromGlobal();
         if (!this.todayButton) return;
 
         // Check if current file is in stream
@@ -381,6 +381,7 @@ export class StreamsBarComponent extends Component {
     }
 
     private async navigateToAdjacentDay(offset: number): Promise<void> {
+        this.refreshStreamFromGlobal();
         await this.dateNavigationService.navigateToAdjacentDay(offset);
     }
 
@@ -516,13 +517,49 @@ export class StreamsBarComponent extends Component {
         }
     }
 
+    /**
+     * Helper to force refresh the current stream from global source of truth
+     */
+    private refreshStreamFromGlobal(): void {
+        const plugins = (this.app as any).plugins?.plugins;
+        const plugin = plugins?.['streams'] as any;
+
+        if (plugin) {
+            // Try to get fresh streams list via public API first, then active settings
+            const allStreams = plugin.getStreams ? plugin.getStreams() : plugin.settings?.streams;
+
+            if (allStreams && Array.isArray(allStreams)) {
+                const currentId = this.selectedStream?.id;
+                const freshStream = allStreams.find((s: Stream) => s.id === currentId);
+
+                if (freshStream) {
+                    // Check if data is actually different to avoid loops/noise
+                    if (JSON.stringify(freshStream) !== JSON.stringify(this.selectedStream)) {
+                        console.log(`[StreamsBarComponent] Force refreshed stream data. Old folder: ${this.selectedStream.folder}, New folder: ${freshStream.folder}`);
+                        this.updateActiveStream(freshStream);
+                    }
+                }
+            }
+        }
+    }
+
     private handleSettingsChange(settings: StreamsSettings): void {
         this.stateManager.applyBarStyle(this.component);
 
         if (settings.streams) {
-            this.streams = settings.streams;
-            this.stateManager.updateStreams(settings.streams);
-            this.refreshStreamsDropdown();
+            // Update streams list in selector
+            this.updateStreamsList(settings.streams);
+
+            // If current stream exists in new settings, update it to ensure we have latest properties (like folder)
+            if (this.selectedStream) {
+                const updatedStream = settings.streams.find(s => s.id === this.selectedStream.id);
+                if (updatedStream) {
+                    console.log(`[StreamsBarComponent] Updating active stream from settings. New folder: ${updatedStream.folder}, Old: ${this.selectedStream.folder}`);
+                    this.handleStreamSwitch(updatedStream);
+                } else {
+                    console.warn(`[StreamsBarComponent] Current stream ${this.selectedStream.id} not found in new settings.`);
+                }
+            }
         }
     }
 

@@ -117,8 +117,8 @@ export class CreateFileViewEncrypted extends ItemView {
     private handleDateChange(state: DateState): void {
         // Update the file path based on the new date
         const fileName = `${this.formatDateToYYYYMMDD(state.currentDate)}.md`;
-        const folderPath = this.filePath.substring(0, this.filePath.lastIndexOf('/'));
-        this.filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
+        const streamFolder = this.stream.folder.replace(/\/$/, '');
+        this.filePath = `${streamFolder}/${fileName}`;
 
         // Refresh the view content
         if (this.contentEl) {

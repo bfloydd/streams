@@ -7,7 +7,6 @@ import { DateNavigationService } from './DateNavigationService';
  */
 interface PluginInterface {
     settings: {
-        activeStreamId?: string;
         barStyle?: 'default' | 'modern';
     };
 }

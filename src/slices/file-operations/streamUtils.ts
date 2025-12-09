@@ -170,6 +170,7 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
         .split(/[/\\]/)
         .filter(Boolean)
         .join('/');
+    // Always recalculate filePath from the stream object, which should be fresh
     const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
     // Looking for file at path
 

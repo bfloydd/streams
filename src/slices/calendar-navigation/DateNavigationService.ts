@@ -110,7 +110,7 @@ export class DateNavigationService {
      * @param date - The date to navigate to
      */
     async navigateToDate(date: Date): Promise<void> {
-        console.log(`[DateNavigationService] Navigating to date: ${date.toDateString()} for stream: ${this.stream.name}`);
+        console.log(`[DateNavigationService] Navigating to date: ${date.toDateString()} for stream: ${this.stream.name} (Folder: ${this.stream.folder})`);
 
         // Update the date state
         this.dateStateManager.setCurrentDate(date);
