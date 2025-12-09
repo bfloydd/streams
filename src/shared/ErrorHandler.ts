@@ -2,23 +2,27 @@
  * Centralized Error Handling System
  */
 
-import { eventBus, EVENTS } from './event-bus';
-import { centralizedLogger } from './centralized-logger';
+import { eventBus, EVENTS } from './EventBus';
+import { centralizedLogger } from './CentralizedLogger';
+import { ErrorData, FunctionCallErrorData } from './types';
+import { configurationService } from './ConfigurationService';
 
 export interface ErrorContext {
     service: string;
     method: string;
-    data?: any;
+    data?: ErrorData;
     timestamp: number;
 }
 
 export class ErrorHandler {
     private static instance: ErrorHandler;
     private errorCount = 0;
-    private maxErrors = 100;
+    private readonly maxErrors: number;
     private errors: Array<{ error: Error; context: ErrorContext }> = [];
 
-    private constructor() {}
+    private constructor() {
+        this.maxErrors = configurationService.getSystemLimitsConfig().MAX_ERRORS;
+    }
 
     static getInstance(): ErrorHandler {
         if (!ErrorHandler.instance) {
@@ -74,7 +78,7 @@ export class ErrorHandler {
                         this.handleError(error, {
                             service,
                             method,
-                            data: args,
+                            data: { args, functionName: method } as FunctionCallErrorData,
                             timestamp: Date.now()
                         });
                         throw error;
@@ -86,7 +90,7 @@ export class ErrorHandler {
                 this.handleError(error as Error, {
                     service,
                     method,
-                    data: args,
+                    data: { args, functionName: method } as FunctionCallErrorData,
                     timestamp: Date.now()
                 });
                 throw error;
@@ -107,7 +111,7 @@ export class ErrorHandler {
                 this.handleError(error, {
                     service,
                     method,
-                    data: args,
+                    data: { args, functionName: method } as FunctionCallErrorData,
                     timestamp: Date.now()
                 });
                 throw error;
@@ -138,7 +142,7 @@ export class ErrorHandler {
 export const errorHandler = ErrorHandler.getInstance();
 
 // Utility function for easy error handling
-export function handleError(error: Error, service: string, method: string, data?: any): void {
+export function handleError(error: Error, service: string, method: string, data?: ErrorData): void {
     errorHandler.handleError(error, {
         service,
         method,

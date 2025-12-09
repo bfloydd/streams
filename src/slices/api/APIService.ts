@@ -1,7 +1,9 @@
-import { PluginAwareSliceService } from '../../shared/base-slice';
-import { Stream, StreamsSettings } from '../../shared/types';
+import { PluginAwareSliceService } from '../../shared/BaseSlice';
+import { Stream } from '../../shared/types';
 import { StreamsAPI, StreamInfo, PluginVersion } from './StreamsAPI';
-import { eventBus, EVENTS } from '../../shared/event-bus';
+import { eventBus, EVENTS } from '../../shared/EventBus';
+import { DateUtils } from '../../shared/utils/DateUtils';
+import { FileUtils } from '../../shared/utils/FileUtils';
 
 export class APIService extends PluginAwareSliceService implements StreamsAPI {
     async initialize(): Promise<void> {
@@ -22,8 +24,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      * @returns Array of all configured streams
      */
     public getStreams(): Stream[] {
-        const plugin = this.getPlugin() as any;
-        return [...(plugin.settings?.streams || [])];
+        return [...super.getStreams()];
     }
 
     /**
@@ -36,28 +37,15 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
         return streams.find(stream => stream.id === streamId) || null;
     }
 
+
+
     /**
-     * Get the currently active stream
-     * @returns The active stream if set, null otherwise
+     * Generic stream filtering function
+     * @param predicate Function to test each stream
+     * @returns Array of streams that pass the predicate
      */
-    public getActiveStream(): Stream | null {
-        const plugin = this.getPlugin() as any;
-        const activeStreamId = plugin.settings?.activeStreamId;
-        
-        if (!activeStreamId) {
-            return null;
-        }
-        
-        const activeStream = this.getStream(activeStreamId);
-        if (!activeStream) {
-            // Clear invalid active stream ID
-            this.log(`Invalid active stream ID found: ${activeStreamId}, clearing it`);
-            plugin.settings.activeStreamId = undefined;
-            plugin.saveSettings();
-            return null;
-        }
-        
-        return activeStream;
+    private filterStreams(predicate: (stream: Stream) => boolean): Stream[] {
+        return this.getStreams().filter(predicate);
     }
 
     /**
@@ -67,15 +55,14 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      */
     public getStreamsByFolder(folderPath: string): Stream[] {
         if (!folderPath) return [];
-        
-        return this.getStreams().filter(stream => {
-            // Normalize both paths for comparison
-            const streamFolder = this.normalizePath(stream.folder);
-            const searchFolder = this.normalizePath(folderPath);
-            
-            return streamFolder === searchFolder || 
-                   streamFolder.startsWith(searchFolder + '/') ||
-                   searchFolder.startsWith(streamFolder + '/');
+
+        return this.filterStreams(stream => {
+            const streamFolder = FileUtils.normalizePath(stream.folder);
+            const searchFolder = FileUtils.normalizePath(folderPath);
+
+            return streamFolder === searchFolder ||
+                streamFolder.startsWith(searchFolder + '/') ||
+                searchFolder.startsWith(streamFolder + '/');
         });
     }
 
@@ -86,8 +73,8 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      */
     public getStreamsByIcon(icon: string): Stream[] {
         if (!icon) return [];
-        
-        return this.getStreams().filter(stream => stream.icon === icon);
+
+        return this.filterStreams(stream => stream.icon === icon);
     }
 
     /**
@@ -95,7 +82,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      * @returns Array of streams that show in the ribbon
      */
     public getRibbonStreams(): Stream[] {
-        return this.getStreams().filter(stream => stream.showTodayInRibbon && !stream.disabled);
+        return this.filterStreams(stream => stream.showTodayInRibbon && !stream.disabled);
     }
 
     /**
@@ -103,7 +90,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      * @returns Array of streams with commands enabled
      */
     public getCommandStreams(): Stream[] {
-        return this.getStreams().filter(stream => stream.addCommand && !stream.disabled);
+        return this.filterStreams(stream => stream.addCommand && !stream.disabled);
     }
 
     /**
@@ -113,17 +100,12 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
      */
     public getStreamForFile(filePath: string): Stream | null {
         if (!filePath) return null;
-        
-        // Normalize the file path
-        const normalizedFilePath = this.normalizePath(filePath);
-        
+
         // Find streams that match this file path
-        const matchingStreams = this.getStreams().filter(stream => {
-            const streamFolder = this.normalizePath(stream.folder);
-            return normalizedFilePath.startsWith(streamFolder + '/') || 
-                   (streamFolder === '' && !normalizedFilePath.includes('/'));
-        });
-        
+        const matchingStreams = this.getStreams().filter(stream =>
+            FileUtils.fileBelongsToStream(filePath, stream.folder)
+        );
+
         // Return the first match, or null if none found
         return matchingStreams.length > 0 ? matchingStreams[0] : null;
     }
@@ -142,7 +124,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
             name: stream.name,
             folder: stream.folder,
             icon: stream.icon,
-            isActive: stream.id === this.getActiveStream()?.id
+            isActive: false // Global active stream concept removed
         };
     }
 
@@ -184,71 +166,6 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
         return this.getStreamCount() > 0;
     }
 
-    /**
-     * Update the stream bar to match an opened file
-     * @param filePath The path of the file that was opened
-     * @returns True if successful, false if stream not found or update failed
-     */
-    public async updateStreamBarFromFile(filePath: string): Promise<boolean> {
-        try {
-            const plugin = this.getPlugin() as any;
-            
-            // Detect stream from file path
-            const stream = this.getStreamForFile(filePath);
-            if (!stream) {
-                this.log(`No stream found for file: ${filePath}`);
-                return false;
-            }
-            
-            // Extract date from file path (e.g., "2025-10-08.md" -> Date)
-            const fileName = filePath.split('/').pop() || '';
-            const dateMatch = fileName.match(/(\d{4}-\d{2}-\d{2})/);
-            let targetDate = new Date(); // Default to current date
-            
-            if (dateMatch) {
-                const dateString = dateMatch[1];
-                // Parse date as local date to avoid timezone issues
-                const [year, month, day] = dateString.split('-').map(Number);
-                targetDate = new Date(year, month - 1, day); // month is 0-indexed
-                
-                if (isNaN(targetDate.getTime())) {
-                    targetDate = new Date(); // Fallback to current date
-                }
-            }
-            
-            // Set the stream context
-            plugin.settings.activeStreamId = stream.id;
-            await plugin.saveSettings();
-            
-            // Update the date state manager to reflect the file's date
-            const { DateStateManager } = await import('../../shared/date-state-manager');
-            const dateStateManager = DateStateManager.getInstance();
-            dateStateManager.setCurrentDate(targetDate);
-            
-            // Emit ACTIVE_STREAM_CHANGED event to trigger UI refresh
-            eventBus.emit(EVENTS.ACTIVE_STREAM_CHANGED, { streamId: stream.id }, 'api');
-            
-            this.log(`Updated stream bar to "${stream.name}" for file: ${filePath} with date: ${targetDate.toISOString()}`);
-            return true;
-            
-        } catch (error) {
-            this.error(`Failed to update stream bar for file ${filePath}:`, error);
-            return false;
-        }
-    }
 
-    /**
-     * Normalize a path for comparison
-     * @param path The path to normalize
-     * @returns Normalized path
-     */
-    private normalizePath(path: string): string {
-        if (!path) return '';
-        
-        return path
-            .split(/[/\\]/)
-            .filter(Boolean)
-            .join('/')
-            .toLowerCase();
-    }
+
 }

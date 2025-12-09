@@ -1,5 +1,5 @@
 
-import { centralizedLogger } from './centralized-logger';
+import { centralizedLogger } from './CentralizedLogger';
 
 export interface MemoryStats {
     used: number;
@@ -52,7 +52,7 @@ export class MemoryManager {
         return null;
     }
 
-    startMonitoring(intervalMs: number = 30000): void {
+    startMonitoring(intervalMs = 30000): void {
         if (this.isMonitoring) return;
 
         this.isMonitoring = true;

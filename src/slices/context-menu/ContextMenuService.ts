@@ -1,9 +1,11 @@
-import { PluginAwareSliceService } from '../../shared/base-slice';
+import { PluginAwareSliceService } from '../../shared/BaseSlice';
 import { StreamManagementService } from '../stream-management/StreamManagementService';
-import { centralizedLogger } from '../../shared/centralized-logger';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
 import { MoveTextToStreamModal, MoveTextOptions } from './MoveTextToStreamModal';
 import { MarkdownView, Notice, Menu, Editor, TFile, TAbstractFile } from 'obsidian';
 import { Stream } from '../../shared/types';
+import { SettingsManager, ServiceContainer } from '../../shared/interfaces';
+import { withErrorHandling } from '../../shared/ErrorHandler';
 
 export class ContextMenuService extends PluginAwareSliceService {
     private registeredEvents: Array<() => void> = [];
@@ -66,10 +68,16 @@ export class ContextMenuService extends PluginAwareSliceService {
             return;
         }
 
+        const sourceView = this.getPlugin().app.workspace.getActiveViewOfType(MarkdownView);
+        if (!sourceView) {
+            new Notice('No active markdown view found');
+            return;
+        }
+
         const moveOptions: MoveTextOptions = {
             selectedText,
             sourceEditor: editor,
-            sourceView: this.getPlugin().app.workspace.getActiveViewOfType(MarkdownView)
+            sourceView
         };
 
         const modal = new MoveTextToStreamModal(
@@ -93,38 +101,39 @@ export class ContextMenuService extends PluginAwareSliceService {
     }): Promise<void> {
         try {
             const { stream, date, prepend, addDivider, text, sourceEditor } = options;
-            
+
             const fileName = `${date}.md`;
             const filePath = `${stream.folder}/${fileName}`;
-            
+
             let targetFile = this.getPlugin().app.vault.getAbstractFileByPath(filePath);
-            
+
             // If file not found, check for encrypted version (.mdenc)
             if (!targetFile) {
                 const encryptedFilePath = filePath.replace(/\.md$/, '.mdenc');
                 targetFile = this.getPlugin().app.vault.getAbstractFileByPath(encryptedFilePath);
             }
-            
+
             let targetContent = '';
-            
+
             if (targetFile) {
-                targetContent = await this.getPlugin().app.vault.read(targetFile as TFile);
+                targetContent = await this.getPlugin().app.vault.cachedRead(targetFile as TFile);
             } else {
                 targetContent = '';
                 targetFile = await this.getPlugin().app.vault.create(filePath, targetContent);
             }
-            
+
             const textToAdd = this.prepareTextToAdd(text, addDivider, prepend);
-            const newContent = this.insertTextIntoContent(targetContent, textToAdd, prepend);
-            
-            await this.getPlugin().app.vault.modify(targetFile as TFile, newContent);
-            
+
+            await this.getPlugin().app.vault.process(targetFile as TFile, (content) => {
+                return this.insertTextIntoContent(content, textToAdd, prepend);
+            });
+
             if (sourceEditor.getSelection() === text) {
                 sourceEditor.replaceSelection('');
             }
-            
+
             new Notice(`Text moved to ${stream.name} (${date})`);
-            
+
         } catch (error) {
             centralizedLogger.error('Error moving text to stream:', error);
             throw error;
@@ -155,17 +164,13 @@ export class ContextMenuService extends PluginAwareSliceService {
         return textToAdd + content;
     }
 
-    private getStreams(): Stream[] {
-        const plugin = this.getPlugin() as any;
-        return plugin.settings?.streams || [];
-    }
 
     private getStreamService(): StreamManagementService | null {
         return this.getService('stream-management') as StreamManagementService | null;
     }
 
     private getService(serviceName: string): unknown {
-        const container = (this.getPlugin() as any).sliceContainer;
-        return container?.get(serviceName);
+        const serviceContainer = this.getServiceContainer();
+        return serviceContainer.sliceContainer?.get(serviceName);
     }
 }

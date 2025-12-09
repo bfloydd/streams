@@ -1,6 +1,16 @@
-import { App, TFile } from 'obsidian';
+import { App, TFile, Plugin, WorkspaceLeaf, MarkdownView } from 'obsidian';
 import { FileCreationInterface } from './FileCreationStrategy';
-import { centralizedLogger } from '../../../shared/centralized-logger';
+import { centralizedLogger } from '../../../shared/CentralizedLogger';
+import { configurationService } from '../../../shared/ConfigurationService';
+import { getPlugins, getCommands, executeCommandById } from '../../../shared/obsidian-types';
+
+/**
+ * Interface for Meld plugin with encryption methods
+ */
+interface MeldPlugin extends Plugin {
+    encryptFile?(file: TFile): Promise<void>;
+    encryptFileByPath?(filePath: string): Promise<void>;
+}
 
 /**
  * Strategy for creating encrypted files using Meld plugin
@@ -42,7 +52,8 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
             }
             
             // Get the Meld plugin instance
-            const meldPlugin = (app as any).plugins?.plugins?.['meld-encrypt'];
+            const plugins = getPlugins(app);
+            const meldPlugin = plugins?.['meld-encrypt'] as MeldPlugin | undefined;
             if (!meldPlugin) {
                 throw new Error('Meld plugin instance not found');
             }
@@ -60,13 +71,18 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
             }
             
             // Fallback: Use command execution
-            const command = (app as any).commands?.commands?.[this.meldCommandId];
-            if (command) {
-                if (command.callback.length > 0) {
-                    // Command accepts parameters
-                    await command.callback(file.path);
+            const commands = getCommands(app);
+            const command = commands?.[this.meldCommandId];
+            if (command && command.callback) {
+                const callbackFn = command.callback;
+                // Check if callback accepts parameters by checking its length
+                // Note: Function.length gives the number of required parameters
+                if (callbackFn.length > 0) {
+                    // Command accepts parameters - try calling with file path
+                    // TypeScript thinks callback takes 0 args, but we know it might accept a path
+                    await (callbackFn as (path?: string) => Promise<void> | void)(file.path);
                 } else {
-                    // Command needs active file context
+                    // Command doesn't accept parameters - needs active file context
                     const activeLeaf = app.workspace.activeLeaf;
                     let fileLeaf = null;
                     
@@ -75,7 +91,7 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
                         const existingLeaf = app.workspace.getLeavesOfType('markdown')
                             .find(leaf => {
                                 try {
-                                    const view = leaf.view as any;
+                                    const view = leaf.view as MarkdownView;
                                     return view?.file?.path === file.path;
                                 } catch (e) {
                                     return false;
@@ -91,8 +107,8 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
                         
                         // Set as active leaf and execute command
                         app.workspace.setActiveLeaf(fileLeaf, { focus: true });
-                        await new Promise(resolve => setTimeout(resolve, 100));
-                        await command.callback();
+                        await new Promise(resolve => setTimeout(resolve, configurationService.getTimingConfig().FILE_OPERATION_DELAY));
+                        await callbackFn();
                         
                     } finally {
                         // Restore original active leaf
@@ -113,7 +129,7 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
     private isMeldPluginAvailable(app: App): boolean {
         try {
             // Check if the Meld plugin is installed and enabled
-            const plugins = (app as any).plugins?.plugins;
+            const plugins = getPlugins(app);
             if (!plugins) return false;
             
             // Check for Meld plugin
@@ -121,7 +137,7 @@ export class MeldEncryptedFileStrategy implements FileCreationInterface {
             if (!meldPlugin) return false;
             
             // Check if the specific command exists
-            const commands = (app as any).commands?.commands;
+            const commands = getCommands(app);
             if (!commands) return false;
             
             return !!commands[this.meldCommandId];

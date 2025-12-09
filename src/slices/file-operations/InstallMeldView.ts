@@ -1,7 +1,8 @@
 import { App, TFile, WorkspaceLeaf, ItemView, setIcon, Notice } from 'obsidian';
 import { Stream } from '../../shared/types';
-import { centralizedLogger } from '../../shared/centralized-logger';
-import { DateStateManager } from '../../shared/date-state-manager';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
+import { DateStateManager, DateState } from '../../shared/DateStateManager';
+import { ViewWithEmptyStateObserver, getSetting } from '../../shared/obsidian-types';
 
 export const INSTALL_MELD_VIEW_TYPE = 'streams-install-meld-view';
 
@@ -100,12 +101,7 @@ export class InstallMeldView extends ItemView {
         this.contentEl.empty();
         this.contentEl.addClass('streams-install-meld-container');
         
-        // Set up the content element styling
-        this.contentEl.style.height = '100%';
-        this.contentEl.style.width = '100%';
-        this.contentEl.style.display = 'flex';
-        this.contentEl.style.alignItems = 'center';
-        this.contentEl.style.justifyContent = 'center';
+        // Content element styling is handled by CSS class
         
         // Hide any empty-state elements that might still be present
         this.hideEmptyStates();
@@ -127,8 +123,12 @@ export class InstallMeldView extends ItemView {
         }
         
         // Mark the view as invalid to prevent setState calls
-        this.contentEl = null as any;
-        this.leaf = null as any;
+        // Note: TypeScript doesn't allow null assignment to non-nullable properties
+        // This is intentional cleanup - the view is being destroyed
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (this as any).contentEl = null;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (this as any).leaf = null;
     }
     
     private createInstallMeldViewContent(container: HTMLElement): void {
@@ -168,7 +168,7 @@ export class InstallMeldView extends ItemView {
     private triggerCalendarComponent(): void {
         // Trigger the streams bar component to be added to this view
         try {
-            import('../../shared/event-bus').then(({ eventBus }) => {
+            import('../../shared/EventBus').then(({ eventBus }) => {
                 eventBus.emit('install-meld-view-opened', this.leaf);
             });
         } catch (error) {
@@ -191,11 +191,7 @@ export class InstallMeldView extends ItemView {
             const emptyStates = this.leaf.view.containerEl.querySelectorAll('.empty-state, .empty-state-container');
             emptyStates.forEach(el => {
                 const htmlEl = el as HTMLElement;
-                htmlEl.style.display = 'none';
-                htmlEl.style.visibility = 'hidden';
-                htmlEl.style.opacity = '0';
-                htmlEl.style.height = '0';
-                htmlEl.style.overflow = 'hidden';
+                htmlEl.addClass('streams-empty-state-hidden');
             });
         };
         
@@ -214,7 +210,11 @@ export class InstallMeldView extends ItemView {
         });
         
         // Store observer for cleanup
-        (this as any).emptyStateObserver = observer;
+        // Using ViewWithEmptyStateObserver interface for proper typing
+        const view = this.leaf.view as ViewWithEmptyStateObserver;
+        if (view) {
+            view.emptyStateObserver = observer;
+        }
     }
     
     private formatTitleDate(date: Date): string {
@@ -225,7 +225,7 @@ export class InstallMeldView extends ItemView {
         });
     }
     
-    private handleDateChange(state: any): void {
+    private handleDateChange(state: DateState): void {
         // Update the file path based on the new date
         const fileName = `${this.formatDateToYYYYMMDD(state.currentDate)}.mdenc`;
         const folderPath = this.filePath.substring(0, this.filePath.lastIndexOf('/'));
@@ -263,9 +263,11 @@ export class InstallMeldView extends ItemView {
     private openMeldPluginPage(): void {
         // Open the Meld plugin page in the community plugins
         try {
-            const setting = (this.app as any).setting;
-            setting.open();
-            setting.openTabById('community-plugins');
+            const setting = getSetting(this.app);
+            if (setting) {
+                setting.open?.();
+                setting.openTabById?.('community-plugins');
+            }
             // Note: We can't directly search for the plugin, but we can open the community plugins tab
             new Notice('Please search for "Meld Encrypt" in the Community Plugins tab');
         } catch (error) {

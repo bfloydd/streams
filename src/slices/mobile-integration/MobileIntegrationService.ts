@@ -1,5 +1,5 @@
 import { App, Platform } from 'obsidian';
-import { PluginAwareSliceService } from '../../shared/base-slice';
+import { PluginAwareSliceService } from '../../shared/BaseSlice';
 import { StreamManagementService } from '../stream-management/StreamManagementService';
 
 export class MobileIntegrationService extends PluginAwareSliceService {
@@ -47,13 +47,13 @@ export class MobileIntegrationService extends PluginAwareSliceService {
     }
 
     private hasStreams(): boolean {
-        const plugin = this.getPlugin() as any;
-        return plugin.settings?.streams?.length > 0;
+        const plugin = this.getPlugin();
+        return (plugin.settings?.streams?.length ?? 0) > 0;
     }
 
     private getStreamManagementService(): StreamManagementService | undefined {
         // Get the stream management service from the container
-        const container = (this.getPlugin() as any).sliceContainer;
+        const container = this.getPlugin().sliceContainer;
         if (container) {
             return container.get('stream-management') as StreamManagementService;
         }

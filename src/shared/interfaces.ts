@@ -1,5 +1,8 @@
-import { App, Plugin } from 'obsidian';
+import { App, Plugin, WorkspaceLeaf } from 'obsidian';
 import { Stream, StreamsSettings } from './types';
+import { SliceContainer } from './SliceContainer';
+import { Logger } from '../slices/debug-logging';
+import { FileOperationsService } from '../slices/file-operations';
 
 /**
  * Base interface for all slice services
@@ -23,7 +26,7 @@ export interface StreamAwareService {
     onStreamAdded(stream: Stream): void;
     onStreamUpdated(stream: Stream): void;
     onStreamRemoved(streamId: string): void;
-    onActiveStreamChanged(streamId: string | undefined): void;
+
 }
 
 /**
@@ -56,20 +59,90 @@ export interface ViewService {
     unregisterViews(): void;
 }
 
+/**
+ * Interface for stream data access
+ */
+export interface StreamProvider {
+    getStreams(): Stream[];
+    getDefaultStream(): Stream;
+}
+
+/**
+ * Interface for file path generation
+ */
+export interface FilePathProvider {
+    getDefaultFilePath(stream: Stream): string;
+}
+
+/**
+ * Interface for view registration
+ */
+export interface ViewRegistrar {
+    registerView(viewType: string, viewCreator: (leaf: WorkspaceLeaf) => any): void;
+}
+
+/**
+ * Interface for calendar view type checking
+ */
+export interface CalendarViewChecker {
+    shouldCreateCalendarForViewType(viewType: string): boolean;
+}
+
+/**
+ * Interface for leaf inspection
+ */
+export interface LeafInspector {
+    isMainEditorLeaf(leaf: WorkspaceLeaf): boolean;
+}
+
+/**
+ * Interface for settings management
+ */
+export interface SettingsManager {
+    settings: StreamsSettings;
+    saveSettings(): Promise<void>;
+}
+
+/**
+ * Interface for stream management operations
+ */
+// Methods removed
+export interface StreamManager {
+}
+
+/**
+ * Interface for UI component control
+ */
+export interface UIController {
+    refreshAllStreamsBarComponents(): void;
+    updateAllStreamsBarComponents(): void;
+}
+
+/**
+ * Interface for service container access
+ */
+export interface ServiceContainer {
+    sliceContainer?: SliceContainer;
+    getFileOperationsService(): FileOperationsService | undefined;
+}
+
+/**
+ * Interface for logging access
+ */
+export interface LogProvider {
+    log: Logger | undefined;
+}
 
 /**
  * Main plugin interface that slices can depend on
+ * Now composed of focused interfaces following ISP
  */
-export interface StreamsPluginInterface extends Plugin {
-    settings: StreamsSettings;
+export interface StreamsPluginInterface extends
+    Plugin,
+    SettingsManager,
+    StreamManager,
+    UIController,
+    ServiceContainer,
+    LogProvider {
     app: App;
-    log: any; // Logger type will be defined in debug-logging slice
-    
-    // Core methods that slices need
-    saveSettings(): Promise<void>;
-    refreshAllStreamsBarComponents(): void;
-    updateAllStreamsBarComponents(): void;
-    setActiveStream(streamId: string, force?: boolean): void;
-    getActiveStream(): Stream | undefined;
-    getFileOperationsService(): any;
 }

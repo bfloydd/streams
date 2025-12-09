@@ -1,49 +1,19 @@
-import { App, TFolder, TFile, MarkdownView, WorkspaceLeaf, normalizePath } from 'obsidian';
+import { App, TFile, TFolder, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../shared/types';
-import { centralizedLogger } from '../../shared/centralized-logger';
-import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './CreateFileView';
-import { InstallMeldView, INSTALL_MELD_VIEW_TYPE } from './InstallMeldView';
-import { CreateFileViewEncrypted, CREATE_FILE_VIEW_ENCRYPTED_TYPE } from './CreateFileViewEncrypted';
-import { DateStateManager } from '../../shared/date-state-manager';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
+import { CREATE_FILE_VIEW_TYPE } from './CreateFileView';
+import { INSTALL_MELD_VIEW_TYPE } from './InstallMeldView';
+import { CREATE_FILE_VIEW_ENCRYPTED_TYPE } from './CreateFileViewEncrypted';
+import { DateStateManager } from '../../shared/DateStateManager';
+import { MeldDetectionService } from '../meld-integration';
+import { LeafSelectionService } from './LeafSelectionService';
 
 /**
- * Check if file content appears to be encrypted
- */
-function isEncryptedContent(content: string): boolean {
-    // Common patterns that indicate encrypted content
-    const encryptedPatterns = [
-        /^-----BEGIN PGP MESSAGE-----/,
-        /^-----BEGIN ENCRYPTED MESSAGE-----/,
-        /^-----BEGIN MESSAGE-----/,
-        /^U2FsdGVkX1/, // Base64 encoded encrypted content (common in some encryption tools)
-        /^[A-Za-z0-9+/]{100,}={0,2}$/ // Long base64 strings (potential encrypted content)
-    ];
-
-    return encryptedPatterns.some(pattern => pattern.test(content.trim()));
-}
-
-/**
- * Check if Meld plugin is available
+ * Check if Meld plugin is available using MeldDetectionService
+ * Uses static helper method for utility functions that don't have plugin context
  */
 function isMeldPluginAvailable(app: App): boolean {
-    try {
-        // Check if the Meld plugin is installed and enabled
-        const plugins = (app as any).plugins?.plugins;
-        if (!plugins) return false;
-        
-        // Check for Meld plugin
-        const meldPlugin = plugins['meld-encrypt'];
-        if (!meldPlugin) return false;
-        
-        // Check if the specific command exists
-        const commands = (app as any).commands?.commands;
-        if (!commands) return false;
-        
-        return !!commands['meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note'];
-    } catch (error) {
-        centralizedLogger.error('Error checking Meld plugin availability:', error);
-        return false;
-    }
+    return MeldDetectionService.checkMeldAvailability(app);
 }
 
 /**
@@ -51,56 +21,30 @@ function isMeldPluginAvailable(app: App): boolean {
  */
 async function showInstallMeldView(app: App, file: TFile, stream: Stream, date: Date, reuseCurrentTab: boolean): Promise<void> {
     try {
-        // Handle leaf selection based on reuseCurrentTab setting
-        let leaf: WorkspaceLeaf | null = null;
-        
-        if (reuseCurrentTab) {
-            // Always try to reuse the current active leaf when reuseCurrentTab is enabled
-            const activeLeaf = app.workspace.activeLeaf;
-            if (activeLeaf) {
-                leaf = activeLeaf;
-            } else {
-                // Fallback: create a new leaf if no active leaf
-                try {
-                    leaf = app.workspace.getLeaf('tab');
-                } catch (error) {
-                    centralizedLogger.error('Failed to create new leaf:', error);
-                    return;
-                }
-            }
-        } else {
-            // Original behavior: only reuse empty/non-markdown views
-            const activeLeaf = app.workspace.activeLeaf;
-            if (activeLeaf && !activeLeaf.view.getViewType().includes('markdown')) {
-                leaf = activeLeaf;
-            } else {
-                // Create a new leaf if current one is not suitable
-                try {
-                    leaf = app.workspace.getLeaf('tab');
-                } catch (error) {
-                    centralizedLogger.error('Failed to create new leaf:', error);
-                    return;
-                }
-            }
-        }
-        
+        // Use LeafSelectionService to select appropriate leaf
+        const leaf = LeafSelectionService.selectLeaf(
+            app,
+            reuseCurrentTab,
+            (viewType) => !viewType.includes('markdown')
+        );
+
         // Check if leaf is null before proceeding
         if (!leaf) {
             centralizedLogger.error('Failed to create or find a workspace leaf for InstallMeldView');
             return;
         }
-        
+
         try {
             // Check if leaf is still valid
             if (!leaf || !leaf.view) {
                 centralizedLogger.error(`Leaf is no longer valid, cannot set view state`);
                 return;
             }
-            
+
             // Update the date state manager to reflect the current date
             const dateStateManager = DateStateManager.getInstance();
             dateStateManager.setCurrentDate(date);
-            
+
             // Use the proper Obsidian view system instead of direct DOM manipulation
             try {
                 await leaf.setViewState({
@@ -116,10 +60,10 @@ async function showInstallMeldView(app: App, file: TFile, stream: Stream, date: 
                 // If setViewState fails, we can't proceed
                 return;
             }
-            
+
             // Set the active leaf
             app.workspace.setActiveLeaf(leaf, { focus: true });
-            
+
         } catch (error) {
             centralizedLogger.error('Error setting up InstallMeldView:', error);
             return;
@@ -137,7 +81,7 @@ interface ViewRegistry {
      * Register a view creator function for a given view type
      */
     registerView(viewType: string, viewCreator: (leaf: WorkspaceLeaf) => any): void;
-    
+
     /**
      * Get a view creator function for a given view type
      */
@@ -166,11 +110,11 @@ export function formatDateToYYYYMMDD(date: Date): string {
 
 export function getFolderSuggestions(app: App): string[] {
     const folders: string[] = [];
-    
-    function recurseFolder(folder: TFolder, path: string = '') {
+
+    function recurseFolder(folder: TFolder, path = '') {
         const folderPath = path ? `${path}/${folder.name}` : folder.name;
         folders.push(folderPath);
-        
+
         folder.children.forEach(child => {
             if (child instanceof TFolder) {
                 recurseFolder(child, folderPath);
@@ -198,27 +142,27 @@ export async function createDailyNote(app: App, folder: string): Promise<TFile |
     const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
 
     let file = app.vault.getAbstractFileByPath(filePath);
-    
+
     if (!file) {
         if (folderPath && !app.vault.getAbstractFileByPath(folderPath)) {
             await app.vault.createFolder(folderPath);
         }
-        
-        const template = '';  
+
+        const template = '';
         file = await app.vault.create(filePath, template);
     }
 
     return file instanceof TFile ? file : null;
 }
 
-export async function openStreamDate(app: App, stream: Stream, date: Date = new Date(), reuseCurrentTab: boolean = false): Promise<void> {
-	// Opening stream date
-    
+export async function openStreamDate(app: App, stream: Stream, date: Date = new Date(), reuseCurrentTab = false, targetLeaf?: WorkspaceLeaf, dateStateManager?: DateStateManager): Promise<void> {
+    // Opening stream date
+
     if (!(date instanceof Date) || isNaN(date.getTime())) {
         centralizedLogger.error(`Invalid date provided: ${date}`);
         return;
     }
-    
+
     const fileName = `${formatDateToYYYYMMDD(date)}.md`;
     // Formatted date
 
@@ -226,17 +170,18 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
         .split(/[/\\]/)
         .filter(Boolean)
         .join('/');
+    // Always recalculate filePath from the stream object, which should be fresh
     const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
     // Looking for file at path
 
     let file = app.vault.getAbstractFileByPath(filePath);
-    
+
     // If file not found, check for encrypted version (.mdenc)
     if (!file) {
         const encryptedFilePath = filePath.replace(/\.md$/, '.mdenc');
         file = app.vault.getAbstractFileByPath(encryptedFilePath);
     }
-    
+
     if (!file) {
         // File not found, showing create file view
         if (folderPath) {
@@ -250,58 +195,31 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                 // log.debug('Using existing folder:', folderPath);
             }
         }
-        
-        // Handle leaf selection based on reuseCurrentTab setting
-        let leaf: WorkspaceLeaf | null = null;
-        
-        if (reuseCurrentTab) {
-            // Always try to reuse the current active leaf when reuseCurrentTab is enabled
-            const activeLeaf = app.workspace.activeLeaf;
-            if (activeLeaf) {
-                leaf = activeLeaf;
-                // log.debug('Reusing current active leaf for CreateFileView (reuseCurrentTab enabled)');
-            } else {
-                // Fallback: create a new leaf if no active leaf
-                try {
-                    leaf = app.workspace.getLeaf('tab');
-                } catch (error) {
-                    centralizedLogger.error('Failed to create new leaf:', error);
-                    return;
-                }
-            }
-        } else {
-            // Original behavior: only reuse empty/non-markdown views
-            const activeLeaf = app.workspace.activeLeaf;
-            if (activeLeaf && !activeLeaf.view.getViewType().includes('markdown')) {
-                leaf = activeLeaf;
-            } else {
-                // Create a new leaf if current one is not suitable
-                try {
-                    leaf = app.workspace.getLeaf('tab');
-                } catch (error) {
-                    centralizedLogger.error('Failed to create new leaf:', error);
-                    return;
-                }
-            }
-        }
-        
+
+        // Use targetLeaf if provided, otherwise select appropriate leaf
+        const leaf = targetLeaf || LeafSelectionService.selectLeaf(
+            app,
+            reuseCurrentTab,
+            (viewType) => !viewType.includes('markdown')
+        );
+
         // Check if leaf is null before proceeding
         if (!leaf) {
             centralizedLogger.error('Failed to create or find a workspace leaf for CreateFileView');
             return;
         }
-        
+
         try {
             // Check if leaf is still valid
             if (!leaf || !leaf.view) {
                 centralizedLogger.error(`Leaf is no longer valid, cannot set view state`);
                 return;
             }
-            
+
             // Update the date state manager to reflect the current date
-            const dateStateManager = DateStateManager.getInstance();
-            dateStateManager.setCurrentDate(date);
-            
+            const dsm = dateStateManager || DateStateManager.getInstance();
+            dsm.setCurrentDate(date);
+
             // Use the proper Obsidian view system instead of direct DOM manipulation
             // Check if Meld is available and stream encryption status to determine view
             let viewType: string;
@@ -313,7 +231,7 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                 // Meld available: choose based on stream encryption setting
                 viewType = stream.encryptThisStream ? CREATE_FILE_VIEW_ENCRYPTED_TYPE : CREATE_FILE_VIEW_TYPE;
             }
-            
+
             try {
                 await leaf.setViewState({
                     type: viewType,
@@ -328,15 +246,15 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                 // If setViewState fails, we can't proceed
                 return;
             }
-            
+
             // Set the active leaf
             app.workspace.setActiveLeaf(leaf, { focus: true });
-            
+
         } catch (error) {
             centralizedLogger.error('Error setting up CreateFileView:', error);
             return;
         }
-        
+
         return;
     }
 
@@ -344,7 +262,7 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
         try {
             // Check if this is a .mdenc file
             const isMdencFile = file.path.endsWith('.mdenc');
-            
+
             if (isMdencFile) {
                 // For .mdenc files, check if Meld is available first
                 if (!isMeldPluginAvailable(app)) {
@@ -352,21 +270,15 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                     await showInstallMeldView(app, file, stream, date, reuseCurrentTab);
                     return;
                 }
-                
+
                 // For .mdenc files, just open them normally and let Meld handle the encryption
-                
+
                 // Update the date state manager to reflect the current date
-                const dateStateManager = DateStateManager.getInstance();
-                dateStateManager.setCurrentDate(date);
-                
-                let leaf: WorkspaceLeaf | null = null;
-                
-                if (reuseCurrentTab) {
-                    const activeLeaf = app.workspace.activeLeaf;
-                    leaf = activeLeaf || app.workspace.getLeaf('tab');
-                } else {
-                    leaf = app.workspace.getLeaf('tab');
-                }
+                const dsm = dateStateManager || DateStateManager.getInstance();
+                dsm.setCurrentDate(date);
+
+                // Use targetLeaf if provided, otherwise select appropriate leaf
+                const leaf = targetLeaf || LeafSelectionService.selectLeaf(app, reuseCurrentTab);
 
                 if (leaf) {
                     await leaf.openFile(file);
@@ -374,68 +286,16 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
                 }
                 return;
             }
-            
+
             // For .md files, just open them normally
-            
+
             // Update the date state manager to reflect the current date
-            const dateStateManager = DateStateManager.getInstance();
-            dateStateManager.setCurrentDate(date);
-            
-            // File is not encrypted, proceed with normal opening
-            let leaf: WorkspaceLeaf | null = null;
-            
-            if (reuseCurrentTab) {
-                // Always try to reuse the current active leaf when reuseCurrentTab is enabled
-                const activeLeaf = app.workspace.activeLeaf;
-                if (activeLeaf) {
-                    leaf = activeLeaf;
-                } else {
-                    // Fallback: look for existing leaf with the same file
-                    const existingLeaf = app.workspace.getLeavesOfType('markdown')
-                        .find(leaf => {
-                            try {
-                                const view = leaf.view as MarkdownView;
-                                const viewFile = view?.file;
-                                if (!viewFile || !file) return false;
-                                
-                                const viewPath = normalizePath(viewFile.path);
-                                const filePath = normalizePath(file.path);
-                                return viewPath === filePath;
-                            } catch (e) {
-                                return false;
-                            }
-                        });
+            const dsm = dateStateManager || DateStateManager.getInstance();
+            dsm.setCurrentDate(date);
 
-                    if (existingLeaf) {
-                        leaf = existingLeaf;
-                    } else {
-                        leaf = app.workspace.getLeaf('tab');
-                    }
-                }
-            } else {
-                // Original behavior: look for existing leaf with same file first
-                const existingLeaf = app.workspace.getLeavesOfType('markdown')
-                    .find(leaf => {
-                        try {
-                            const view = leaf.view as MarkdownView;
-                            const viewFile = view?.file;
-                            if (!viewFile || !file) return false;
-                            
-                            const viewPath = normalizePath(viewFile.path);
-                            const filePath = normalizePath(file.path);
-                            return viewPath === filePath;
-                        } catch (e) {
-                            return false;
-                        }
-                    });
+            // Use targetLeaf if provided, otherwise find existing leaf or create new one
+            const leaf = targetLeaf || LeafSelectionService.selectLeafForFile(app, file, reuseCurrentTab);
 
-                if (existingLeaf) {
-                    leaf = existingLeaf;
-                } else {
-                    leaf = app.workspace.getLeaf('tab');
-                }
-            }
-            
             if (leaf) {
                 await leaf.openFile(file);
                 app.workspace.setActiveLeaf(leaf, { focus: true });

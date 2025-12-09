@@ -1,25 +1,25 @@
-import { App, Modal, Setting, TFile, MarkdownView, Notice } from 'obsidian';
+import { App, Modal, Setting, TFile, MarkdownView, Notice, Editor } from 'obsidian';
 import { Stream } from '../../shared/types';
-import { centralizedLogger } from '../../shared/centralized-logger';
-import { ModalStateManager } from '../../shared/modal-state-manager';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
+import { ModalStateManager } from '../../shared/ModalStateManager';
 
 export interface MoveTextOptions {
     selectedText: string;
-    sourceEditor: any;
-    sourceView: any;
+    sourceEditor: Editor;
+    sourceView: MarkdownView;
 }
 
 export class MoveTextToStreamModal extends Modal {
     private streams: Stream[];
     private selectedStream: Stream | null = null;
-    private useSourceDate: boolean = true; // true = source date, false = today
+    private useSourceDate = true; // true = source date, false = today
     private selectedDate: string = new Date().toISOString().split('T')[0];
     private sourceDate: string = new Date().toISOString().split('T')[0];
-    private prependMode: boolean = false; // true = prepend, false = append
-    private addDivider: boolean = true; // true = add --- divider, false = no divider
+    private prependMode = false; // true = prepend, false = append
+    private addDivider = true; // true = add --- divider, false = no divider
     private selectedText: string;
-    private sourceEditor: any;
-    private sourceView: any;
+    private sourceEditor: Editor;
+    private sourceView: MarkdownView;
     private toggleTextInput: HTMLInputElement | null = null;
     private stateManager: ModalStateManager;
     private onMove: (options: {
@@ -28,8 +28,8 @@ export class MoveTextToStreamModal extends Modal {
         prepend: boolean;
         addDivider: boolean;
         text: string;
-        sourceEditor: any;
-        sourceView: any;
+        sourceEditor: Editor;
+        sourceView: MarkdownView;
     }) => Promise<void>;
 
     constructor(
@@ -42,8 +42,8 @@ export class MoveTextToStreamModal extends Modal {
             prepend: boolean;
             addDivider: boolean;
             text: string;
-            sourceEditor: any;
-            sourceView: any;
+            sourceEditor: Editor;
+            sourceView: MarkdownView;
         }) => Promise<void>
     ) {
         super(app);
@@ -280,12 +280,20 @@ export class MoveTextToStreamModal extends Modal {
                     });
             });
 
-        this.dateSetting.settingEl.style.display = this.useSourceDate ? 'none' : 'block';
+        if (this.useSourceDate) {
+            this.dateSetting.settingEl.addClass('streams-date-setting-hidden');
+        } else {
+            this.dateSetting.settingEl.removeClass('streams-date-setting-hidden');
+        }
     }
 
     private updateDateSetting(): void {
         if (this.dateSetting) {
-            this.dateSetting.settingEl.style.display = this.useSourceDate ? 'none' : 'block';
+            if (this.useSourceDate) {
+                this.dateSetting.settingEl.addClass('streams-date-setting-hidden');
+            } else {
+                this.dateSetting.settingEl.removeClass('streams-date-setting-hidden');
+            }
         }
         
         // Update the toggle text label

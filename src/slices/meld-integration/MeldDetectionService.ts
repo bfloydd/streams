@@ -1,6 +1,8 @@
 import { App } from 'obsidian';
-import { PluginAwareSliceService } from '../../shared/base-slice';
-import { centralizedLogger } from '../../shared/centralized-logger';
+import { PluginAwareSliceService } from '../../shared/BaseSlice';
+import { centralizedLogger } from '../../shared/CentralizedLogger';
+import { getPlugins, getCommands } from '../../shared/obsidian-types';
+import { withErrorHandling, withAsyncErrorHandling } from '../../shared/ErrorHandler';
 
 /**
  * Service for detecting and validating Meld plugin availability
@@ -21,11 +23,18 @@ export class MeldDetectionService extends PluginAwareSliceService {
      * Check if Meld plugin is installed and enabled
      */
     isMeldPluginAvailable(): boolean {
+        const app = this.getPlugin().app;
+        return MeldDetectionService.checkMeldAvailability(app);
+    }
+    
+    /**
+     * Static helper to check Meld availability without requiring a plugin instance
+     * Useful for utility functions that don't have plugin context
+     */
+    static checkMeldAvailability(app: App): boolean {
         try {
-            const app = this.getPlugin().app;
-            
             // Check if the Meld plugin is installed and enabled
-            const plugins = (app as any).plugins?.plugins;
+            const plugins = getPlugins(app);
             if (!plugins) return false;
             
             // Check for Meld plugin
@@ -33,10 +42,11 @@ export class MeldDetectionService extends PluginAwareSliceService {
             if (!meldPlugin) return false;
             
             // Check if the specific command exists
-            const commands = (app as any).commands?.commands;
+            const commands = getCommands(app);
             if (!commands) return false;
             
-            return !!commands[this.meldCommandId];
+            const meldCommandId = 'meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note';
+            return !!commands[meldCommandId];
         } catch (error) {
             centralizedLogger.error('Error checking Meld plugin availability:', error);
             return false;
@@ -54,22 +64,18 @@ export class MeldDetectionService extends PluginAwareSliceService {
      * Execute the Meld encryption command
      */
     async executeMeldEncryption(): Promise<boolean> {
-        try {
-            if (!this.isMeldPluginAvailable()) {
-                throw new Error('Meld plugin is not available or not enabled');
-            }
-            
-            const app = this.getPlugin().app;
-            const command = (app as any).commands?.commands?.[this.meldCommandId];
-            
-            if (command) {
-                await command.callback();
-                return true;
-            } else {
-                throw new Error(`Meld encryption command not found: ${this.meldCommandId}`);
-            }
-        } catch (error) {
-            centralizedLogger.error('Error executing Meld encryption command:', error);
+        if (!this.isMeldPluginAvailable()) {
+            return false;
+        }
+
+        const app = this.getPlugin().app;
+        const commands = getCommands(app);
+        const command = commands?.[this.meldCommandId];
+
+        if (command?.callback) {
+            await command.callback();
+            return true;
+        } else {
             return false;
         }
     }

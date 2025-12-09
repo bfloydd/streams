@@ -1,12 +1,12 @@
 import { App } from 'obsidian';
-import { SettingsAwareSliceService } from '../../shared/base-slice';
-import { Stream } from '../../shared/types';
-import { eventBus, EVENTS } from '../../shared/event-bus';
+import { SettingsAwareSliceService } from '../../shared/BaseSlice';
+import { Stream, StreamsSettings } from '../../shared/types';
+import { eventBus, EVENTS } from '../../shared/EventBus';
 import { OpenTodayStreamCommand } from '../file-operations/OpenTodayStreamCommand';
 import { OpenTodayCurrentStreamCommand } from '../file-operations/OpenTodayCurrentStreamCommand';
 
 export class RibbonService extends SettingsAwareSliceService {
-    private ribbonIconsByStream: Map<string, {today?: HTMLElement}> = new Map();
+    private ribbonIconsByStream: Map<string, { today?: HTMLElement }> = new Map();
     private commandsByStreamId: Map<string, string> = new Map();
 
     async initialize(): Promise<void> {
@@ -31,8 +31,8 @@ export class RibbonService extends SettingsAwareSliceService {
         eventBus.subscribe(EVENTS.STREAM_ADDED, (event) => this.onStreamAdded(event.data));
         eventBus.subscribe(EVENTS.STREAM_UPDATED, (event) => this.onStreamUpdated(event.data));
         eventBus.subscribe(EVENTS.STREAM_REMOVED, (event) => this.onStreamRemoved(event.data.streamId));
-        eventBus.subscribe(EVENTS.ACTIVE_STREAM_CHANGED, () => this.updateAllRibbonIcons());
-        
+        // eventBus.subscribe(EVENTS.ACTIVE_STREAM_CHANGED, () => this.updateAllRibbonIcons()); - REMOVED
+
         // Listen for settings changes
         eventBus.subscribe(EVENTS.SETTINGS_CHANGED, () => this.updateAllRibbonIcons());
     }
@@ -53,7 +53,7 @@ export class RibbonService extends SettingsAwareSliceService {
         this.removeStreamCommand(streamId);
     }
 
-    onSettingsChanged(settings: any): void {
+    onSettingsChanged(settings: StreamsSettings): void {
         this.updateAllRibbonIcons();
     }
 
@@ -77,10 +77,10 @@ export class RibbonService extends SettingsAwareSliceService {
             'Streams: Open today for current stream',
             () => {
                 const command = new OpenTodayCurrentStreamCommand(
-                    this.getPlugin().app, 
-                    this.getStreams(), 
-                    this.getPluginSettings().reuseCurrentTab, 
-                    this.getPlugin() as any
+                    this.getPlugin().app,
+                    this.getStreams(),
+                    this.getSettings().reuseCurrentTab,
+                    this.getPlugin()
                 );
                 command.execute();
             }
@@ -94,11 +94,11 @@ export class RibbonService extends SettingsAwareSliceService {
             streamIcons = {};
             this.ribbonIconsByStream.set(stream.id, streamIcons);
         }
-        
+
         // Only create the icon if it should be visible
         if (stream.showTodayInRibbon && !streamIcons.today) {
             this.log(`Creating Today icon for stream ${stream.id}`);
-            
+
             streamIcons.today = this.getPlugin().addRibbonIcon(
                 stream.icon,
                 `Open today for ${stream.name}`,
@@ -106,7 +106,7 @@ export class RibbonService extends SettingsAwareSliceService {
                     const command = new OpenTodayStreamCommand(
                         this.getPlugin().app,
                         stream,
-                        this.getPluginSettings().reuseCurrentTab
+                        this.getSettings().reuseCurrentTab
                     );
                     command.execute();
                 }
@@ -151,8 +151,8 @@ export class RibbonService extends SettingsAwareSliceService {
         // Remove existing command if it exists
         this.removeStreamCommand(stream.id);
 
-        const commandId = `streams-open-today-${stream.id}`;
-        
+        const commandId = `open-today-${stream.id}`;
+
         this.getPlugin().addCommand({
             id: commandId,
             name: `Open today for ${stream.name}`,
@@ -160,7 +160,7 @@ export class RibbonService extends SettingsAwareSliceService {
                 const command = new OpenTodayStreamCommand(
                     this.getPlugin().app,
                     stream,
-                    this.getPluginSettings().reuseCurrentTab
+                    this.getSettings().reuseCurrentTab
                 );
                 command.execute();
             }
@@ -177,13 +177,4 @@ export class RibbonService extends SettingsAwareSliceService {
         }
     }
 
-    private getStreams(): Stream[] {
-        const plugin = this.getPlugin() as any;
-        return plugin.settings?.streams || [];
-    }
-
-    private getPluginSettings(): any {
-        const plugin = this.getPlugin() as any;
-        return plugin.settings || {};
-    }
 }

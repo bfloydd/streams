@@ -1,70 +1,32 @@
 import { Plugin } from 'obsidian';
 import { Stream, StreamsSettings } from './src/shared/types';
 import { sliceContainer, serviceRegistry, DEFAULT_SETTINGS, ServiceLoader } from './src/shared';
-import { StreamsAPI } from './src/slices/api';
-import { CreateFileView, CREATE_FILE_VIEW_TYPE } from './src/slices/file-operations/CreateFileView';
-import { InstallMeldView, INSTALL_MELD_VIEW_TYPE } from './src/slices/file-operations/InstallMeldView';
-import { CreateFileViewEncrypted, CREATE_FILE_VIEW_ENCRYPTED_TYPE } from './src/slices/file-operations/CreateFileViewEncrypted';
+import { StreamsAPI, StreamInfo, PluginVersion } from './src/slices/api';
+import { Logger } from './src/slices/debug-logging';
+import { FileOperationsService } from './src/slices/file-operations';
+import { getAllViewConfigs } from './src/shared/view-config';
 
 
 export default class StreamsPlugin extends Plugin implements StreamsAPI {
 	settings: StreamsSettings;
-	public log: any; // Will be set by DebugLoggingService
+	public log: Logger | undefined;
+
 
 	async onload() {
 		sliceContainer.setPlugin(this);
-		
+
 		await this.loadSettings();
-		
-		// Register views directly in the main plugin
-		this.registerView(
-			CREATE_FILE_VIEW_TYPE,
-			(leaf) => new CreateFileView(leaf, this.app, '', { 
-				id: '', 
-				name: '', 
-				folder: '', 
-				icon: 'book',
-				showTodayInRibbon: false,
-				addCommand: false,
-				encryptThisStream: false,
-				disabled: false
-			})
-		);
-		
-		this.registerView(
-			INSTALL_MELD_VIEW_TYPE,
-			(leaf) => new InstallMeldView(leaf, this.app, '', { 
-				id: '', 
-				name: '', 
-				folder: '', 
-				icon: 'book',
-				showTodayInRibbon: false,
-				addCommand: false,
-				encryptThisStream: false,
-				disabled: false
-			}, new Date())
-		);
-		
-		this.registerView(
-			CREATE_FILE_VIEW_ENCRYPTED_TYPE,
-			(leaf) => new CreateFileViewEncrypted(leaf, this.app, '', { 
-				id: '', 
-				name: '', 
-				folder: '', 
-				icon: 'book',
-				showTodayInRibbon: false,
-				addCommand: false,
-				encryptThisStream: true,
-				disabled: false
-			})
-		);
-		
+
 		ServiceLoader.registerAllServices();
-		
+
 		this.log = serviceRegistry.debugLogging?.getLogger();
-		
+
 		await ServiceLoader.initializeAllServices();
-		
+
+		// Register all views using the centralized configuration
+		// Note: Views are registered after services to avoid conflicts with CalendarNavigationService
+		this.registerViews();
+
 		this.log?.info('Streams plugin loaded with vertical slice architecture');
 	}
 
@@ -76,13 +38,13 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 	async loadSettings() {
 		const loadedData = await this.loadData();
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, loadedData);
-		
+
 		// Migration: ensure barStyle exists
 		if (!this.settings.barStyle) {
 			this.settings.barStyle = 'default';
 			await this.saveSettings();
 		}
-		
+
 		// Migration: ensure encryptThisStream exists for existing streams
 		let needsSave = false;
 		for (const stream of this.settings.streams) {
@@ -95,7 +57,13 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 				needsSave = true;
 			}
 		}
-		
+
+		// Cleanup: Remove legacy activeStreamId
+		if ((this.settings as any).activeStreamId !== undefined) {
+			delete (this.settings as any).activeStreamId;
+			needsSave = true;
+		}
+
 		if (needsSave) {
 			await this.saveSettings();
 		}
@@ -105,18 +73,32 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		await this.saveData(this.settings);
 	}
 
+	/**
+	 * Registers all views using configuration-driven approach
+	 * This method centralizes view registration logic and makes it easier to add new views.
+	 */
+	private registerViews(): void {
+		const viewConfigs = getAllViewConfigs();
+		for (const config of viewConfigs) {
+			this.registerView(
+				config.viewType,
+				(leaf) => {
+					// Create the view instance with proper arguments
+					if (config.extraArgs) {
+						return new config.ViewClass(leaf, this.app, '', config.defaultSettings, ...config.extraArgs);
+					} else {
+						return new config.ViewClass(leaf, this.app, '', config.defaultSettings);
+					}
+				}
+			);
+		}
+	}
+
 	// ============================================================================
 	// PUBLIC API METHODS - Available to other plugins
 	// ============================================================================
 
-	// Stream Management
-	setActiveStream(streamId: string, force?: boolean): void {
-		serviceRegistry.streamManagement?.setActiveStream(streamId, force);
-	}
-
-	getActiveStream(): Stream | null {
-		return serviceRegistry.streamManagement?.getActiveStream() || null;
-	}
+	// Stream Management methods removed (global active stream deprecated)
 
 	// Stream Data Access
 	getStreams(): Stream[] {
@@ -147,7 +129,7 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		return serviceRegistry.api?.getCommandStreams() || [];
 	}
 
-	getStreamInfo(streamId: string): any {
+	getStreamInfo(streamId: string): StreamInfo | null {
 		return serviceRegistry.api?.getStreamInfo(streamId) || null;
 	}
 
@@ -164,17 +146,14 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		return serviceRegistry.api?.hasStreams() || false;
 	}
 
-	getVersion(): any {
+	getVersion(): PluginVersion {
 		return serviceRegistry.api?.getVersion() || { version: '1.0.0', minAppVersion: '0.15.0', name: 'Streams', id: 'streams' };
 	}
 
-	// Stream Bar Updates
-	async updateStreamBarFromFile(filePath: string): Promise<boolean> {
-		return serviceRegistry.api?.updateStreamBarFromFile(filePath) || false;
-	}
+
 
 	// Internal Services (for plugin functionality)
-	getFileOperationsService(): any {
+	getFileOperationsService(): FileOperationsService | undefined {
 		return serviceRegistry.fileOperations;
 	}
 }

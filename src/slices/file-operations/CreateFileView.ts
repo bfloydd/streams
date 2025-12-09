@@ -1,18 +1,18 @@
 import { App, TFile, WorkspaceLeaf, ItemView, setIcon } from 'obsidian';
 import { Stream } from '../../shared/types';
-import { centralizedLogger } from '../../shared/centralized-logger';
-import { DateStateManager } from '../../shared/date-state-manager';
-
-// Interface for the streams plugin
-interface StreamsPlugin {
-    	setActiveStream(streamId: string, force?: boolean): void;
-}
+import { centralizedLogger } from '../../shared/CentralizedLogger';
+import { DateStateManager, DateState } from '../../shared/DateStateManager';
+import { FileCreationService } from './FileCreationService';
+import { EmptyStateObserver } from './EmptyStateObserver';
+import { StreamManager } from '../../shared/interfaces';
+import { MeldDetectionService } from '../../slices/meld-integration';
+import { eventBus } from '../../shared/EventBus';
 
 // Interface for accessing app.plugins
 interface AppWithPlugins extends App {
     plugins: {
         plugins: {
-            'streams': StreamsPlugin;
+            'streams': StreamManager;
         };
     };
 }
@@ -21,15 +21,17 @@ export const CREATE_FILE_VIEW_TYPE = 'streams-create-file-view';
 
 export class CreateFileView extends ItemView {
     navigation = true; // Enable navigation history integration
-    
+
     private filePath: string;
     private stream: Stream;
     private dateStateManager: DateStateManager;
     private unsubscribeDateChanged: (() => void) | null = null;
-    
+    private emptyStateObserver: EmptyStateObserver | null = null;
+    private fileCreationService: FileCreationService;
+
     constructor(
-        leaf: WorkspaceLeaf, 
-        app: App, 
+        leaf: WorkspaceLeaf,
+        app: App,
         filePath: string,
         stream: Stream
     ) {
@@ -37,7 +39,13 @@ export class CreateFileView extends ItemView {
         this.app = app;
         this.filePath = filePath;
         this.stream = stream;
-        this.dateStateManager = DateStateManager.getInstance();
+        this.dateStateManager = new DateStateManager();
+
+        // Initialize MeldDetectionService with plugin context
+        const meldDetectionService = new MeldDetectionService();
+        meldDetectionService.setPlugin((app as any).plugins.plugins['streams']);
+
+        this.fileCreationService = new FileCreationService(app, meldDetectionService);
     }
 
     getViewType(): string {
@@ -58,7 +66,7 @@ export class CreateFileView extends ItemView {
     getState(): { stream: Stream; date: string; filePath: string } {
         const state = this.dateStateManager.getState();
         const dateISOString = state.currentDate.toISOString();
-        
+
         return {
             filePath: this.filePath,
             stream: this.stream,
@@ -72,50 +80,69 @@ export class CreateFileView extends ItemView {
             if (!this || !this.contentEl || !this.leaf || this.contentEl === null || this.leaf === null) {
                 return;
             }
-            
+
             // Additional safety check - ensure the view is still attached to the DOM
             if (!document.contains(this.contentEl)) {
                 return;
             }
-            
+
             if (state) {
-                const previousStream = this.stream;
-                this.filePath = state.filePath || this.filePath;
+
+
+                // Update properties
                 this.stream = state.stream || this.stream;
-                
-                // If the stream changed, update the active stream
-                if (state.stream && state.stream.id !== previousStream.id) {
-                    this.setActiveStream();
-                }
-                
-                // Handle date parameter
+
+                // Handle date parameter first (triggers handleDateChange)
+                // We do this first so the DateStateManager has the correct date
                 if (state.date) {
                     const date = typeof state.date === 'string' ? new Date(state.date) : state.date;
                     if (!isNaN(date.getTime())) {
                         this.dateStateManager.setCurrentDate(date);
                     }
                 }
-                
+
+                // Determine file path:
+                // 1. Use explicitly provided filePath from state
+                // 2. Or assume it's valid if we already have one (and no stream change?) 
+                //    But if stream changed, we MUST recalculate or use provided path.
+                //    Actually, if state.filePath is provided, use it.
+                //    Otherwise, calculate from current date and stream.
+                if (state.filePath) {
+                    this.filePath = state.filePath;
+                } else {
+                    // Recalculate file path based on current stream and date (which is now updated)
+                    const currentDate = this.dateStateManager.getState().currentDate;
+                    const fileName = `${this.formatDateToYYYYMMDD(currentDate)}.md`;
+                    const streamFolder = this.stream.folder.replace(/\/$/, '');
+                    this.filePath = `${streamFolder}/${fileName}`;
+                }
+
+
+
                 // Refresh the view with new state
                 if (this.contentEl) {
+
                     this.contentEl.empty();
                     this.contentEl.addClass('streams-create-file-container');
                     this.createFileViewContent(this.contentEl);
                 }
+
+                // Emit update event to sync components (like StreamsBarComponent)
+                eventBus.emit('create-file-view-updated', this.leaf);
             }
         } catch (error) {
             centralizedLogger.error(`Error in CreateFileView setState:`, error);
-            // Don't rethrow - just log and continue
         }
     }
 
 
-    private handleDateChange(state: any): void {
+    private handleDateChange(state: DateState): void {
+
         // Update the file path based on the new date
         const fileName = `${this.formatDateToYYYYMMDD(state.currentDate)}.md`;
-        const folderPath = this.filePath.substring(0, this.filePath.lastIndexOf('/'));
-        this.filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
-        
+        const streamFolder = this.stream.folder.replace(/\/$/, '');
+        this.filePath = `${streamFolder}/${fileName}`;
+
         // Refresh the view content
         if (this.contentEl) {
             this.contentEl.empty();
@@ -132,131 +159,100 @@ export class CreateFileView extends ItemView {
     }
 
     async onOpen(): Promise<void> {
-        // Set this as the active stream in the main plugin
-        this.setActiveStream();
-        
+        // Set this as the active stream in the main plugin - REMOVED logic
+        // await this.setActiveStream();
+
         // Set up date change listener
         this.unsubscribeDateChanged = this.dateStateManager.onDateChanged((state) => {
             this.handleDateChange(state);
         });
-        
+
         // Trigger streams bar component to be added to this view
         this.triggerCalendarComponent();
-        
+
         // Prepare our content element
         this.contentEl.empty();
         this.contentEl.addClass('streams-create-file-container');
-        
-        // Set up the content element styling
-        this.contentEl.style.height = '100%';
-        this.contentEl.style.width = '100%';
-        this.contentEl.style.display = 'flex';
-        this.contentEl.style.alignItems = 'center';
-        this.contentEl.style.justifyContent = 'center';
-        
-        // Hide any empty-state elements that might still be present
-        const hideEmptyStates = () => {
-            const emptyStates = this.leaf.view.containerEl.querySelectorAll('.empty-state, .empty-state-container');
-            emptyStates.forEach(el => {
-                const htmlEl = el as HTMLElement;
-                htmlEl.style.display = 'none';
-                htmlEl.style.visibility = 'hidden';
-                htmlEl.style.opacity = '0';
-                htmlEl.style.height = '0';
-                htmlEl.style.overflow = 'hidden';
-            });
-        };
-        
-        // Hide them immediately
-        hideEmptyStates();
-        
-        // Set up a MutationObserver to hide them if they get recreated
-        const observer = new MutationObserver(() => {
-            hideEmptyStates();
-        });
-        
-        observer.observe(this.leaf.view.containerEl, {
-            childList: true,
-            subtree: true,
-            attributes: false
-        });
-        
-        // Store observer for cleanup
-        (this as any).emptyStateObserver = observer;
-        
+
+        // Content element styling is handled by CSS class
+
+        // Set up empty state observer
+        this.emptyStateObserver = new EmptyStateObserver(this.leaf);
+        this.emptyStateObserver.start();
+
         // Create our create file view content
         this.createFileViewContent(this.contentEl);
     }
 
     async onClose(): Promise<void> {
-        // Clean up the MutationObserver
-        if ((this as any).emptyStateObserver) {
-            (this as any).emptyStateObserver.disconnect();
-            (this as any).emptyStateObserver = null;
+        // Clean up the empty state observer
+        if (this.emptyStateObserver) {
+            this.emptyStateObserver.stop();
+            this.emptyStateObserver = null;
         }
-        
+
         // Clean up date change listener
         if (this.unsubscribeDateChanged) {
             this.unsubscribeDateChanged();
             this.unsubscribeDateChanged = null;
         }
-        
+
         // Clear content and mark as invalid
         if (this.contentEl) {
             this.contentEl.empty();
         }
-        
+
         // Mark the view as invalid to prevent setState calls
-        this.contentEl = null as any;
-        this.leaf = null as any;
+        this.contentEl = null!;
+        this.leaf = null!;
     }
-    
+
     private createFileViewContent(container: HTMLElement): void {
         // Create the content box
         const contentBox = container.createDiv('streams-create-file-content');
-        
+
         // Add icon
         const iconContainer = contentBox.createDiv('streams-create-file-icon');
         setIcon(iconContainer, 'file-plus');
-        
+
         // Stream info display
         const streamContainer = contentBox.createDiv('streams-create-file-stream-container');
         const streamIcon = streamContainer.createSpan('streams-create-file-stream-icon');
         setIcon(streamIcon, this.stream.icon || 'book');
-        
+
         const streamName = streamContainer.createSpan('streams-create-file-stream');
         streamName.setText(this.stream.name);
-        
+
         // Date display
         const dateEl = contentBox.createDiv('streams-create-file-date');
-        
+
         const state = this.dateStateManager.getState();
         const formattedDate = this.formatDate(state.currentDate);
         dateEl.setText(formattedDate);
-        
+
         // Create button
         const buttonContainer = contentBox.createDiv('streams-create-file-button-container');
         const createButton = buttonContainer.createEl('button', {
             cls: 'mod-cta streams-create-file-button',
             text: 'Create file'
         });
-        
+
         createButton.addEventListener('click', async () => {
             await this.createAndOpenFile();
         });
     }
-    
+
     private triggerCalendarComponent(): void {
         // Trigger the streams bar component to be added to this view
         try {
-            import('../../shared/event-bus').then(({ eventBus }) => {
+            import('../../shared/EventBus').then(({ eventBus }) => {
                 eventBus.emit('create-file-view-opened', this.leaf);
             });
         } catch (error) {
             // Calendar component trigger failed - not critical
         }
     }
-    
+
     private formatTitleDate(date: Date): string {
         return date.toLocaleDateString('en-US', {
             month: 'short',
@@ -264,184 +260,26 @@ export class CreateFileView extends ItemView {
             year: 'numeric'
         });
     }
-    
+
     private formatDate(date: Date): string {
         // Formatting date
-        
+
         try {
-            return date.toLocaleDateString('en-US', { 
+            return date.toLocaleDateString('en-US', {
                 weekday: 'long',
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
             });
         } catch (error) {
             centralizedLogger.error(`Error formatting date: ${error}`);
             return "Invalid Date";
         }
     }
-    
+
     private async createAndOpenFile(): Promise<void> {
-        try {
-            // Get the file operations service to use the strategy pattern
-            const plugin = (this.app as any).plugins?.plugins?.['streams'];
-            if (!plugin) {
-                centralizedLogger.error('Streams plugin not found');
-                return;
-            }
-            
-            // Check if encryption is enabled but Meld is not available
-            if (this.stream.encryptThisStream) {
-                const fileOpsService = plugin.getFileOperationsService?.();
-                if (fileOpsService && !fileOpsService.isMeldPluginAvailable()) {
-                    // Show error and don't create file
-                    new (this.app as any).Notice(fileOpsService.getMeldUnavailableMessage());
-                    return;
-                }
-            }
-            
-            // Create the file normally first (without encryption)
-            const file = await this.createFileNormally();
-            
-            if (file instanceof TFile) {
-                // Open the file in the current leaf (this will replace CreateFileView)
-                await this.leaf.openFile(file);
-                
-                // If encryption is enabled, trigger it after the file is opened
-                if (this.stream.encryptThisStream) {
-                    // Small delay to ensure the file is fully loaded
-                    setTimeout(async () => {
-                        await this.triggerEncryption(file);
-                    }, 200);
-                }
-            }
-        } catch (error) {
-            centralizedLogger.error('Error creating file:', error);
-        }
+        await this.fileCreationService.createAndOpenFile(this.filePath, this.stream, this.leaf);
     }
-    
-    private async createFileNormally(): Promise<TFile | null> {
-        try {
-            const folderPath = this.filePath.substring(0, this.filePath.lastIndexOf('/'));
-            
-            if (folderPath) {
-                try {
-                    const folderExists = this.app.vault.getAbstractFileByPath(folderPath);
-                    if (!folderExists) {
-                        await this.app.vault.createFolder(folderPath);
-                    }
-                } catch (error) {
-                    // Using existing folder
-                }
-            }
-            
-            // Create the file normally (without encryption)
-            const file = await this.app.vault.create(this.filePath, '');
-            return file instanceof TFile ? file : null;
-        } catch (error) {
-            centralizedLogger.error('Error creating file normally:', error);
-            return null;
-        }
-    }
-    
-    private async triggerEncryption(file: TFile): Promise<void> {
-        try {
-            // Ensure the file is the active file
-            const activeFile = this.app.workspace.getActiveFile();
-            
-            if (activeFile?.path !== file.path) {
-                // Find a leaf with this file and make it active
-                const fileLeaf = this.app.workspace.getLeavesOfType('markdown')
-                    .find(leaf => {
-                        try {
-                            const view = leaf.view as any;
-                            return view?.file?.path === file.path;
-                        } catch (e) {
-                            return false;
-                        }
-                    });
-                
-                if (fileLeaf) {
-                    this.app.workspace.setActiveLeaf(fileLeaf, { focus: true });
-                } else {
-                    centralizedLogger.error(`Could not find leaf with file: ${file.path}`);
-                    return;
-                }
-            }
-            
-            // Small delay to ensure the file is properly active
-            await new Promise(resolve => setTimeout(resolve, 100));
-            
-            // Try to execute the Meld encryption command
-            const command = (this.app as any).commands?.commands?.['meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note'];
-            
-            if (command && command.callback && typeof command.callback === 'function') {
-                try {
-                    await command.callback();
-                } catch (cmdError) {
-                    centralizedLogger.error(`Meld command execution failed:`, cmdError);
-                }
-            } else {
-                // Fallback: Use command palette API
-                try {
-                    await (this.app as any).commands.executeCommandById('meld-encrypt:meld-encrypt-convert-to-or-from-encrypted-note');
-                } catch (altError) {
-                    centralizedLogger.error('Meld encryption command failed:', altError);
-                }
-            }
-        } catch (error) {
-            centralizedLogger.error(`Error triggering encryption for file ${file.path}:`, error);
-        }
-    }
-    
-    private async createFileWithStrategy(): Promise<TFile | null> {
-        try {
-            const folderPath = this.filePath.substring(0, this.filePath.lastIndexOf('/'));
-            
-            if (folderPath) {
-                try {
-                    const folderExists = this.app.vault.getAbstractFileByPath(folderPath);
-                    if (!folderExists) {
-                        await this.app.vault.createFolder(folderPath);
-                    }
-                } catch (error) {
-                    // Using existing folder
-                }
-            }
-            
-            // Get the file operations service
-            const plugin = (this.app as any).plugins?.plugins?.['streams'];
-            if (!plugin) {
-                centralizedLogger.error('Streams plugin not found');
-                return null;
-            }
-            
-            const fileOpsService = plugin.getFileOperationsService?.();
-            if (fileOpsService) {
-                // Use the strategy pattern
-                return await fileOpsService.createFile(this.filePath, '', this.stream);
-            } else {
-                // Fallback to normal file creation
-                const file = await this.app.vault.create(this.filePath, '');
-                return file instanceof TFile ? file : null;
-            }
-        } catch (error) {
-            centralizedLogger.error('Error creating file with strategy:', error);
-            return null;
-        }
-    }
-    
-    private setActiveStream(): void {
-        // Set this as the active stream in the main plugin
-        // This is a user-initiated action (opening a create file view), so force the change
-        try {
-            const appWithPlugins = this.app as unknown as AppWithPlugins;
-            const plugin = appWithPlugins.plugins.plugins['streams'];
-            if (plugin?.setActiveStream) {
-                plugin.setActiveStream(this.stream.id, true);
-            }
-        } catch (error) {
-            centralizedLogger.error('Error setting active stream:', error);
-        }
-    }
+
+
 } 

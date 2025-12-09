@@ -1,4 +1,17 @@
 /*********************************************************
+ * ANIMATIONS
+ *********************************************************/
+@keyframes streams-fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+/*********************************************************
  * GLOBAL STYLES & INDICATORS
  *********************************************************/
 .streams-global-indicator {
@@ -35,6 +48,12 @@
     gap: 0.25em;
     align-items: center;
     margin-left: auto;
+}
+
+.streams-encryption-warning {
+    color: var(--text-error);
+    font-size: 0.9em;
+    margin-top: 0.5em;
 }
 
 .streams-reorder-container .setting-item {
@@ -130,6 +149,7 @@
     background: transparent;
     color: var(--text-muted);
 }
+
 .streams-plugin-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
@@ -209,28 +229,19 @@
  * STREAMS BAR - MAIN COMPONENT
  *********************************************************/
 .streams-bar-component {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 10000;
-    font-size: 12px;
-    margin: 0;
-    pointer-events: auto;
-    border-bottom: 1px solid var(--background-modifier-border);
-    display: flex;
-    align-items: center;
-    padding: 0 14px;
-    backdrop-filter: blur(8px);
-}
-
-.streams-bar-component {
     position: relative;
     width: 100%;
     background-color: var(--background-primary);
     padding: 4px 6px 4px 6px;
     font-size: 14px;
     line-height: 1.4;
+    margin: 0;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--background-modifier-border);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
 }
 
 .streams-markdown-view-content {
@@ -261,6 +272,14 @@
 
 .streams-bar-component .streams-dropdown--visible {
     display: block;
+}
+
+.streams-bar-dropdown-hidden {
+    display: none !important;
+}
+
+.streams-bar-dropdown-visible {
+    display: block !important;
 }
 
 .streams-bar-component--visible {
@@ -295,7 +314,7 @@
     text-align: left;
     white-space: nowrap;
     user-select: none;
-    z-index: 1000;
+    z-index: 1001;
     pointer-events: auto;
     display: flex;
     align-items: center;
@@ -379,21 +398,33 @@
     text-align: center;
     font-weight: 600;
     color: var(--text-normal);
-    margin: 0 8px;
+    /* margin: 0 8px; */
     font-size: 15px;
     min-width: 60px;
-    padding: 4px 8px;
+    padding: 2px 2px;
     border-radius: 4px;
     background-color: var(--interactive-normal);
     border: 1px solid var(--background-modifier-border);
     cursor: pointer;
-    transition: all 0.2s ease;
+    /* transition: all 0.2s ease; */
 }
 
 .streams-bar-today-button:hover {
     background-color: var(--interactive-hover);
     border-color: var(--text-accent);
     color: var(--text-accent);
+}
+
+.streams-bar-today-button.streams-infinity-mode {
+    font-size: 24px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    height: 28px;
+    box-sizing: border-box;
+    padding-bottom: 3px;
 }
 
 .streams-bar-change-stream {
@@ -478,9 +509,14 @@
     border: 1px solid var(--background-modifier-border);
     border-radius: 6px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    z-index: 10000;
+    z-index: 10002;
     overflow: visible;
     display: none;
+}
+
+.streams-bar-streams-dropdown.streams-bar-dropdown-visible,
+.streams-bar-streams-dropdown.streams-dropdown--visible {
+    display: block !important;
 }
 
 .streams-bar-stream-item {
@@ -604,7 +640,7 @@
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     opacity: 0;
     transition: all 0.3s ease;
-    z-index: 1005;
+    z-index: 10001;
     pointer-events: none;
     display: flex;
     flex-direction: column;
@@ -1007,7 +1043,7 @@
     text-align: left;
     white-space: nowrap;
     user-select: none;
-    z-index: 1000;
+    z-index: 1001;
     pointer-events: auto;
     display: flex;
     align-items: center;
@@ -1213,7 +1249,7 @@
     border: 2px solid var(--background-modifier-border);
     border-radius: 12px;
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
-    z-index: 10000;
+    z-index: 10002;
     overflow: visible;
     display: none;
     backdrop-filter: blur(8px);
@@ -1342,7 +1378,7 @@
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
     opacity: 0;
     transition: all 0.4s ease;
-    z-index: 1005;
+    z-index: 10001;
     pointer-events: none;
     display: flex;
     flex-direction: column;
@@ -1593,6 +1629,18 @@
     box-sizing: border-box;
     flex-direction: column;
     position: relative;
+}
+
+.streams-empty-state-hidden {
+    display: none !important;
+    visibility: hidden;
+    opacity: 0;
+    height: 0;
+    overflow: hidden;
+}
+
+.streams-date-setting-hidden {
+    display: none !important;
 }
 
 .streams-install-meld-content {
