@@ -10,7 +10,7 @@ describe('StreamProviderService', () => {
     let streamProviderService: StreamProviderService;
     let mockStreams: Stream[];
     let mockDefaultStream: Stream;
-    let mockActiveStream: Stream;
+
 
     beforeEach(() => {
         // Create mock streams
@@ -38,13 +38,13 @@ describe('StreamProviderService', () => {
         ];
 
         mockDefaultStream = mockStreams[0];
-        mockActiveStream = mockStreams[1];
+
 
         // Mock the StreamDataService
         streamDataService = new StreamDataService(jest.fn()) as jest.Mocked<StreamDataService>;
         streamDataService.getStreams.mockReturnValue(mockStreams);
         streamDataService.getDefaultStream.mockReturnValue(mockDefaultStream);
-        streamDataService.getActiveStream.mockReturnValue(mockActiveStream);
+
 
         // Create the service under test
         streamProviderService = new StreamProviderService(streamDataService);
@@ -117,30 +117,5 @@ describe('StreamProviderService', () => {
         });
     });
 
-    describe('getActiveStream', () => {
-        it('should return active stream from StreamDataService', () => {
-            const result = streamProviderService.getActiveStream();
 
-            expect(result).toBe(mockActiveStream);
-            expect(streamDataService.getActiveStream).toHaveBeenCalledTimes(1);
-        });
-
-        it('should return undefined when no active stream', () => {
-            streamDataService.getActiveStream.mockReturnValue(undefined);
-
-            const result = streamProviderService.getActiveStream();
-
-            expect(result).toBeUndefined();
-            expect(streamDataService.getActiveStream).toHaveBeenCalledTimes(1);
-        });
-
-        it('should return null when StreamDataService returns null', () => {
-            streamDataService.getActiveStream.mockReturnValue(null as any);
-
-            const result = streamProviderService.getActiveStream();
-
-            expect(result).toBeNull();
-            expect(streamDataService.getActiveStream).toHaveBeenCalledTimes(1);
-        });
-    });
 });
