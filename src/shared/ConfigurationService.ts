@@ -73,7 +73,6 @@ export class ConfigurationService extends BaseSliceService implements Configurat
         view: {
             CREATE_FILE_VIEW_TYPE: 'streams-create-file-view',
             CALENDAR_ENABLED_VIEW_TYPES: [
-                'empty',
                 'file-explorer',
                 'search',
                 'graph',

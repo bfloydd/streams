@@ -316,6 +316,12 @@ export class ComponentLifecycleManager {
             return;
         }
 
+        // Validate view type before creation
+        const viewType = leaf.view.getViewType();
+        if (!this.calendarViewService?.shouldCreateCalendarForViewType(viewType)) {
+            return;
+        }
+
         // Get active stream or default stream
         const streamToUse = this.getStreamToUse();
         if (!streamToUse) {
