@@ -307,6 +307,7 @@ export class ComponentUIBuilder {
             grid,
             this.contentIndicatorService,
             this.dateNavigationService,
+            this.dateStateManager,
             currentMonthView,
             async (day: number, monthView: Date) => {
                 await this.dateNavigationService.selectDate(monthView, day);

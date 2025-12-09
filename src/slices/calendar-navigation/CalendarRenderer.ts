@@ -23,6 +23,7 @@ export class CalendarRenderer extends Component {
         grid: HTMLElement,
         contentIndicatorService: ContentIndicatorService,
         dateNavigationService: DateNavigationService,
+        dateStateManager: DateStateManager,
         currentMonthView: Date,
         onDateSelected: (day: number, monthView: Date) => Promise<void>,
         onDropdownClose?: () => void
@@ -34,7 +35,7 @@ export class CalendarRenderer extends Component {
         this.currentMonthView = currentMonthView;
         this.onDateSelected = onDateSelected;
         this.onDropdownClose = onDropdownClose;
-        this.dateStateManager = DateStateManager.getInstance();
+        this.dateStateManager = dateStateManager;
         this.eventRegistry = new EventHandlerRegistry();
     }
 
