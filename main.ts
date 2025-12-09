@@ -58,9 +58,13 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 			}
 		}
 
-		// Cleanup: Remove legacy activeStreamId
+		// Cleanup: Remove legacy activeStreamId and calendarCompactState
 		if ((this.settings as any).activeStreamId !== undefined) {
 			delete (this.settings as any).activeStreamId;
+			needsSave = true;
+		}
+		if ((this.settings as any).calendarCompactState !== undefined) {
+			delete (this.settings as any).calendarCompactState;
 			needsSave = true;
 		}
 

@@ -75,7 +75,7 @@ export class StreamsSettingTab extends PluginSettingTab {
 
                     new Notice(`Streams bar component ${value ? 'shown' : 'hidden'}`);
                 }));
-                
+
         new Setting(containerEl)
             .setName('Reuse current tab for calendar navigation')
             .setDesc('When enabled, calendar navigation will reuse the current tab instead of opening new tabs')
@@ -89,7 +89,7 @@ export class StreamsSettingTab extends PluginSettingTab {
 
                     new Notice(`Calendar navigation will ${value ? 'reuse' : 'open new'} tabs`);
                 }));
-                
+
         new Setting(containerEl)
             .setName('Enable debug logging')
             .setDesc('Enable debug logging for the Streams plugin (can also be toggled via command palette)')
@@ -110,7 +110,7 @@ export class StreamsSettingTab extends PluginSettingTab {
 
                     new Notice(`Debug logging ${value ? 'enabled' : 'disabled'}`);
                 }));
-                
+
         new Setting(containerEl)
             .setName('Bar style')
             .setDesc('Choose the visual style for the streams bar component')
@@ -126,7 +126,7 @@ export class StreamsSettingTab extends PluginSettingTab {
 
                     new Notice(`Bar style changed to ${value === 'default' ? 'Default' : 'Modern'}`);
                 }));
-                
+
         new Setting(containerEl).setName('Streams').setHeading();
 
         new Setting(containerEl)
@@ -162,19 +162,19 @@ export class StreamsSettingTab extends PluginSettingTab {
 
     private createStreamCard(container: HTMLElement, stream: Stream, index: number): HTMLElement {
         const card = container.createDiv('streams-plugin-card');
-        
+
         // Add disabled class if stream is disabled
         if (stream.disabled) {
             card.addClass('streams-plugin-card-disabled');
         }
-        
+
         // Create header with title and reorder controls
         const header = card.createDiv('streams-card-header');
         const title = header.createEl('h3', { text: stream.name });
-        
+
         // Add reorder controls to the header
         const reorderContainer = header.createDiv('streams-reorder-container');
-        
+
         // Move up button - create simple HTML button
         const upButton = reorderContainer.createEl('button', {
             cls: 'streams-reorder-btn streams-caret-up',
@@ -200,7 +200,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         downButton.addEventListener('click', async () => {
             await this.moveStreamDown(index);
         });
-        
+
         return card;
     }
 
@@ -229,18 +229,6 @@ export class StreamsSettingTab extends PluginSettingTab {
                     eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
                 }));
 
-        // Show today in ribbon
-        new Setting(container)
-            .setName('Show today button in ribbon')
-            .setDesc('Show a today button for this stream in the ribbon')
-            .addToggle(toggle => toggle
-                .setValue(stream.showTodayInRibbon)
-                .onChange(async (value) => {
-                    stream.showTodayInRibbon = value;
-                    await this.settingsManager.saveSettings();
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
-                }));
-
         // Add command
         new Setting(container)
             .setName('Add command')
@@ -249,6 +237,18 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setValue(stream.addCommand)
                 .onChange(async (value) => {
                     stream.addCommand = value;
+                    await this.settingsManager.saveSettings();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+                }));
+
+        // Show today in ribbon
+        new Setting(container)
+            .setName('Show in ribbon')
+            .setDesc('Show a today button for this stream in the ribbon')
+            .addToggle(toggle => toggle
+                .setValue(stream.showTodayInRibbon)
+                .onChange(async (value) => {
+                    stream.showTodayInRibbon = value;
                     await this.settingsManager.saveSettings();
                     eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
                 }));
@@ -277,7 +277,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                         eventBus.emit(EVENTS.STREAM_UPDATED, { streamId: stream.id, disabled: value }, 'settings-management');
                     });
                 }));
-        
+
         // Add a class to identify the disable toggle for styling
         if (stream.disabled) {
             disableSetting.settingEl.addClass('streams-disable-toggle');
@@ -335,10 +335,10 @@ export class StreamsSettingTab extends PluginSettingTab {
         const meldDetectionService = new MeldDetectionService();
         meldDetectionService.setPlugin(this.settingsManager as any);
         const isMeldAvailable = meldDetectionService.isMeldPluginAvailable();
-        
+
         const encryptionSetting = new Setting(container)
             .setName('Encrypt this stream')
-            .setDesc(isMeldAvailable 
+            .setDesc(isMeldAvailable
                 ? 'When enabled, files created in this stream will be encrypted using the Meld plugin'
                 : 'Meld plugin is not available. Please install and enable the Meld plugin to use encryption features.'
             )
@@ -351,11 +351,11 @@ export class StreamsSettingTab extends PluginSettingTab {
                             new Notice('Meld plugin is not available. Please install and enable the Meld plugin first.');
                             return;
                         }
-                        
+
                         stream.encryptThisStream = value;
                         await this.settingsManager.saveSettings();
                         eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
-                        
+
                         new Notice(`Encryption ${value ? 'enabled' : 'disabled'} for stream "${stream.name}"`);
                     });
             });
