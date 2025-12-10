@@ -99,12 +99,20 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     this.settingsManager.settings.debugLoggingEnabled = value;
 
+                    // Toggle Plugin Logger
                     if (this.logProvider.log) {
                         if (value) {
                             this.logProvider.log.on();
                         } else {
                             this.logProvider.log.off();
                         }
+                    }
+
+                    // Toggle Centralized Logger (used by slices)
+                    if (value) {
+                        centralizedLogger.enable();
+                    } else {
+                        centralizedLogger.disable();
                     }
 
                     await this.settingsManager.saveSettings();
@@ -216,6 +224,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                     stream.name = value;
                     await this.settingsManager.saveSettings();
                     eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+                    eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');
                 }));
 
         // Stream folder
@@ -228,6 +237,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                     stream.folder = value;
                     await this.settingsManager.saveSettings();
                     eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+                    eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');
                 }));
 
         // Icon
@@ -247,6 +257,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                                 button.setIcon(newIcon);
                                 await this.settingsManager.saveSettings();
                                 eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+                                eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');
                             }
                         );
                         modal.open();
@@ -263,6 +274,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                     stream.addCommand = value;
                     await this.settingsManager.saveSettings();
                     eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+                    eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');
                 }));
 
         // Show today in ribbon
@@ -274,7 +286,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .onChange(async (value) => {
                     stream.showTodayInRibbon = value;
                     await this.settingsManager.saveSettings();
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+                    // Use STREAM_UPDATED for granular updates (avoiding full ribbon rebuilds)
+                    eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');
                 }));
 
         // Encrypt this stream
@@ -298,7 +311,7 @@ export class StreamsSettingTab extends PluginSettingTab {
                     // Use requestAnimationFrame to ensure DOM updates are processed
                     requestAnimationFrame(() => {
                         // Emit a specific event for stream dropdown refresh
-                        eventBus.emit(EVENTS.STREAM_UPDATED, { streamId: stream.id, disabled: value }, 'settings-management');
+                        eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');
                     });
                 }));
 
