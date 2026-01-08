@@ -129,4 +129,3 @@ export function getCommandById(app: App, commandId: string): ObsidianCommand | u
 export interface ViewWithEmptyStateObserver extends View {
     emptyStateObserver?: MutationObserver;
 }
-
