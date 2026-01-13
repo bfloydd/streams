@@ -3,7 +3,7 @@ export { CreateFileView, CREATE_FILE_VIEW_TYPE } from './CreateFileView';
 export { CreateFileViewEncrypted, CREATE_FILE_VIEW_ENCRYPTED_TYPE } from './CreateFileViewEncrypted';
 export { InstallMeldView, INSTALL_MELD_VIEW_TYPE } from './InstallMeldView';
 export { OpenStreamDateCommand } from './OpenStreamDateCommand';
-export { OpenTodayCurrentStreamCommand } from './OpenTodayCurrentStreamCommand';
+export { OpenTodayPrimaryStreamCommand } from './OpenTodayPrimaryStreamCommand';
 export { OpenTodayStreamCommand } from './OpenTodayStreamCommand';
 export * from './streamUtils';
 export { LeafSelectionService } from './LeafSelectionService';

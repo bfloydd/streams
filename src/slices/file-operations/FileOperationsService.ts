@@ -4,7 +4,7 @@ import { CommandService, ViewService } from '../../shared/interfaces';
 import { Stream } from '../../shared/types';
 import { OpenStreamDateCommand } from './OpenStreamDateCommand';
 import { OpenTodayStreamCommand } from './OpenTodayStreamCommand';
-import { OpenTodayCurrentStreamCommand } from './OpenTodayCurrentStreamCommand';
+import { OpenTodayPrimaryStreamCommand } from './OpenTodayPrimaryStreamCommand';
 import { FileCreationInterface, NormalFileStrategy, MeldEncryptedFileStrategy } from './file-creation-strategies';
 
 export class FileOperationsService extends PluginAwareSliceService implements CommandService, ViewService {
@@ -43,13 +43,13 @@ export class FileOperationsService extends PluginAwareSliceService implements Co
         
         plugin.addCommand({
             id: 'open-today-current-stream',
-            name: 'Open today for current stream',
+            name: 'Go to primary stream',
             callback: () => {
-                const command = new OpenTodayCurrentStreamCommand(
-                    plugin.app, 
-                    plugin.settings?.streams || [], 
-                    plugin.settings?.reuseCurrentTab || false, 
-                    plugin
+                const command = new OpenTodayPrimaryStreamCommand(
+                    plugin.app,
+                    plugin.settings?.streams || [],
+                    plugin,
+                    plugin.settings?.reuseCurrentTab || false
                 );
                 command.execute();
             }

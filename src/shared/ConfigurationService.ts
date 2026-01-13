@@ -34,6 +34,7 @@ export interface SystemLimitsConfiguration {
 
 export interface DefaultSettingsConfiguration {
     readonly streams: readonly [];
+    readonly primaryStreamId: string | null;
     readonly showStreamsBarComponent: boolean;
     readonly reuseCurrentTab: boolean;
 
@@ -104,6 +105,7 @@ export class ConfigurationService extends BaseSliceService implements Configurat
 
         defaults: {
             streams: [],
+            primaryStreamId: null,
             showStreamsBarComponent: true,
             reuseCurrentTab: false,
 
@@ -220,6 +222,7 @@ export class ConfigurationService extends BaseSliceService implements Configurat
     getDefaultSettings(): StreamsSettings {
         return {
             streams: [...this.config.defaults.streams],
+            primaryStreamId: this.config.defaults.primaryStreamId,
             showStreamsBarComponent: this.config.defaults.showStreamsBarComponent,
             reuseCurrentTab: this.config.defaults.reuseCurrentTab,
 

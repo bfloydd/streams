@@ -21,6 +21,7 @@ export const CALENDAR_ENABLED_VIEW_TYPES = [
  */
 export const DEFAULT_SETTINGS = {
     streams: [],
+    primaryStreamId: null,
     showStreamsBarComponent: true,
     reuseCurrentTab: false,
     debugLoggingEnabled: false,

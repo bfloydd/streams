@@ -139,6 +139,28 @@ export class StreamsSettingTab extends PluginSettingTab {
         new Setting(containerEl).setName('Streams').setHeading();
 
         new Setting(containerEl)
+            .setName('Primary stream')
+            .setDesc('Used by the "Go to primary stream" command')
+            .addDropdown(dropdown => {
+                const current = this.settingsManager.settings.primaryStreamId ?? '';
+
+                dropdown.addOption('', 'Not set');
+
+                // Only offer enabled streams; primary stream must be a single usable stream.
+                this.settingsManager.settings.streams
+                    .filter(s => !s.disabled)
+                    .forEach(stream => dropdown.addOption(stream.id, stream.name));
+
+                dropdown.setValue(current);
+
+                dropdown.onChange(async (value) => {
+                    this.settingsManager.settings.primaryStreamId = value ? value : null;
+                    await this.settingsManager.saveSettings();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+                });
+            });
+
+        new Setting(containerEl)
             .setName('Add stream')
             .setDesc('Create a new note stream')
             .addButton(button => button
@@ -301,6 +323,13 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setValue(stream.disabled || false)
                 .onChange(async (value) => {
                     stream.disabled = value;
+
+                    // If the disabled stream was the primary stream, clear it.
+                    if (value && this.settingsManager.settings.primaryStreamId === stream.id) {
+                        this.settingsManager.settings.primaryStreamId = null;
+                        new Notice('Primary stream was disabled and has been cleared.');
+                    }
+
                     await this.settingsManager.saveSettings();
                     eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
 
@@ -326,6 +355,12 @@ export class StreamsSettingTab extends PluginSettingTab {
                 .setButtonText('Remove stream')
                 .setWarning()
                 .onClick(async () => {
+                    // If the removed stream was the primary stream, clear it.
+                    if (this.settingsManager.settings.primaryStreamId === stream.id) {
+                        this.settingsManager.settings.primaryStreamId = null;
+                        new Notice('Primary stream was removed and has been cleared.');
+                    }
+
                     this.settingsManager.settings.streams.splice(index, 1);
                     await this.settingsManager.saveSettings();
                     eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');

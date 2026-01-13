@@ -31,6 +31,11 @@ export interface Stream {
 
 export interface StreamsSettings {
     streams: Stream[];
+    /**
+     * The single "primary" stream used by "Go to primary stream".
+     * Null means no primary stream is configured.
+     */
+    primaryStreamId: string | null;
     showStreamsBarComponent: boolean;
     reuseCurrentTab: boolean;
 

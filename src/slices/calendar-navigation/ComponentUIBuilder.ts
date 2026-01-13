@@ -1,7 +1,7 @@
 import { App, setIcon, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { SettingsManager, UIController } from '../../shared/interfaces';
-import { OpenTodayCurrentStreamCommand } from '../file-operations/OpenTodayCurrentStreamCommand';
+import { OpenTodayPrimaryStreamCommand } from '../file-operations/OpenTodayPrimaryStreamCommand';
 import { getSetting } from '../../shared/obsidian-types';
 import { CalendarRenderer } from './CalendarRenderer';
 import { StreamSelector } from './StreamSelector';
@@ -251,15 +251,14 @@ export class ComponentUIBuilder {
     private setupHomeButton(navControls: HTMLElement): void {
         const homeButton = navControls.createDiv('streams-bar-home-button');
         setIcon(homeButton, 'home');
-        homeButton.setAttribute('aria-label', 'Go to current stream today');
+        homeButton.setAttribute('aria-label', 'Go to primary stream');
         this.eventRegistry.register(homeButton, 'click', async (e: Event) => {
             e.stopPropagation();
-            const command = new OpenTodayCurrentStreamCommand(
+            const command = new OpenTodayPrimaryStreamCommand(
                 this.app,
                 this.streams,
+                this.settingsManager as any,
                 this.reuseCurrentTab,
-                (this.settingsManager as any) ?? undefined,
-                this.stateManager.getActiveStream(),
                 this.leaf,
                 this.dateStateManager
             );

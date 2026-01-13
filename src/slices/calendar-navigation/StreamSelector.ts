@@ -5,9 +5,9 @@ import { DateStateManager } from '../../shared/DateStateManager';
 import { centralizedLogger } from '../../shared/CentralizedLogger';
 
 interface PluginInterface {
-    settings: {
+    settings?: {
+        primaryStreamId?: string | null;
     };
-    setActiveStream(streamId: string, force?: boolean, suppressEvent?: boolean): Promise<void>;
 }
 
 /**
@@ -57,6 +57,8 @@ export class StreamSelector extends Component {
 
         this.dropdown.empty();
 
+        const primaryStreamId = this.plugin?.settings?.primaryStreamId ?? null;
+
         // Filter out disabled streams
         const enabledStreams = this.streams.filter(stream => !stream.disabled);
 
@@ -72,6 +74,14 @@ export class StreamSelector extends Component {
             setIcon(streamIcon, stream.icon);
             const streamName = streamItem.createDiv('streams-bar-stream-item-name');
             streamName.setText(stream.name);
+
+            // Subtle indicator for the primary stream (configured in settings)
+            if (primaryStreamId && stream.id === primaryStreamId) {
+                streamItem.addClass('streams-bar-stream-item-primary');
+                const primaryIndicator = streamItem.createDiv('streams-bar-stream-item-primary-indicator');
+                primaryIndicator.setAttribute('title', 'Primary stream');
+                primaryIndicator.setAttribute('aria-label', 'Primary stream');
+            }
 
             // Add encryption icon if stream is encrypted
             if (stream.encryptThisStream) {

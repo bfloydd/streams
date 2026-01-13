@@ -3,7 +3,7 @@ import { SettingsAwareSliceService } from '../../shared/BaseSlice';
 import { Stream, StreamsSettings } from '../../shared/types';
 import { eventBus, EVENTS } from '../../shared/EventBus';
 import { OpenTodayStreamCommand } from '../file-operations/OpenTodayStreamCommand';
-import { OpenTodayCurrentStreamCommand } from '../file-operations/OpenTodayCurrentStreamCommand';
+import { OpenTodayPrimaryStreamCommand } from '../file-operations/OpenTodayPrimaryStreamCommand';
 
 export class RibbonService extends SettingsAwareSliceService {
     private ribbonIconsByStream: Map<string, { today?: HTMLElement }> = new Map();
@@ -86,16 +86,16 @@ export class RibbonService extends SettingsAwareSliceService {
 
 
     private createAllStreamsIcon(): void {
-        // Open today for current stream button
+        // Go to primary stream button
         this.getPlugin().addRibbonIcon(
             'calendar',
-            'Streams: Open today for current stream',
+            'Streams: Go to primary stream',
             () => {
-                const command = new OpenTodayCurrentStreamCommand(
+                const command = new OpenTodayPrimaryStreamCommand(
                     this.getPlugin().app,
                     this.getStreams(),
-                    this.getSettings().reuseCurrentTab,
-                    this.getPlugin()
+                    this.getPlugin(),
+                    this.getSettings().reuseCurrentTab
                 );
                 command.execute();
             }
