@@ -1,7 +1,6 @@
-import { App, setIcon, WorkspaceLeaf } from 'obsidian';
+import { App, MarkdownView, Notice, setIcon, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { SettingsManager, UIController } from '../../shared/interfaces';
-import { OpenTodayPrimaryStreamCommand } from '../file-operations/OpenTodayPrimaryStreamCommand';
 import { getSetting } from '../../shared/obsidian-types';
 import { CalendarRenderer } from './CalendarRenderer';
 import { StreamSelector } from './StreamSelector';
@@ -12,6 +11,10 @@ import { TouchGestureHandler } from './TouchGestureHandler';
 import { DocumentEventHandler } from './DocumentEventHandler';
 import { ComponentStateManager } from './ComponentStateManager';
 import { DateStateManager } from '../../shared/DateStateManager';
+import { StreamContextService } from '../../shared/StreamContextService';
+import { openStreamDate } from '../file-operations/streamUtils';
+import { CREATE_FILE_VIEW_TYPE } from '../file-operations/CreateFileView';
+import { CREATE_FILE_VIEW_ENCRYPTED_TYPE } from '../file-operations/CreateFileViewEncrypted';
 
 /**
  * Interface for UI element references that will be set by the builder
@@ -60,6 +63,7 @@ export class ComponentUIBuilder {
     private contentIndicatorService: ContentIndicatorService;
     private callbacks: ComponentCallbacks;
     private leaf: WorkspaceLeaf;
+    private streamContextService: StreamContextService;
 
     constructor(
         app: App,
@@ -87,6 +91,7 @@ export class ComponentUIBuilder {
         this.contentIndicatorService = contentIndicatorService;
         this.callbacks = callbacks;
         this.leaf = leaf;
+        this.streamContextService = new StreamContextService();
     }
 
     /**
@@ -251,19 +256,49 @@ export class ComponentUIBuilder {
     private setupHomeButton(navControls: HTMLElement): void {
         const homeButton = navControls.createDiv('streams-bar-home-button');
         setIcon(homeButton, 'home');
-        homeButton.setAttribute('aria-label', 'Go to primary stream');
+        homeButton.setAttribute('aria-label', 'Go to today in current stream');
         this.eventRegistry.register(homeButton, 'click', async (e: Event) => {
             e.stopPropagation();
-            const command = new OpenTodayPrimaryStreamCommand(
+            const streamInView = this.resolveCurrentLeafStream();
+            if (!streamInView) {
+                new Notice('No stream found for this view.');
+                return;
+            }
+
+            await openStreamDate(
                 this.app,
-                this.streams,
-                this.settingsManager as any,
+                streamInView,
+                new Date(),
                 this.reuseCurrentTab,
                 this.leaf,
                 this.dateStateManager
             );
-            await command.execute();
         });
+    }
+
+    /**
+     * Resolve the stream that is currently "in view" for this component's leaf.
+     *
+     * - Markdown views: infer stream from the open file's path.
+     * - Streams custom views (CreateFileView / CreateFileViewEncrypted): read stream from view state.
+     */
+    private resolveCurrentLeafStream(): Stream | null {
+        const view = this.leaf.view;
+
+        if (view instanceof MarkdownView) {
+            return this.streamContextService.getStreamForFile(view.file, this.streams);
+        }
+
+        const viewType = view.getViewType?.();
+        if (viewType === CREATE_FILE_VIEW_TYPE || viewType === CREATE_FILE_VIEW_ENCRYPTED_TYPE) {
+            const state = (view as unknown as { getState?: () => unknown }).getState?.();
+            if (state && typeof state === 'object' && 'stream' in state) {
+                const stream = (state as { stream?: Stream }).stream;
+                return stream ?? null;
+            }
+        }
+
+        return null;
     }
 
     private setupSettingsButton(navControls: HTMLElement): void {
