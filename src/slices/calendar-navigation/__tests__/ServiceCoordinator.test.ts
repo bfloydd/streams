@@ -148,6 +148,7 @@ describe('ServiceCoordinator', () => {
         it('should update existing components when settings change', () => {
             const newSettings: StreamsSettings = {
                 streams: [],
+                primaryStreamId: null,
                 showStreamsBarComponent: true,
                 reuseCurrentTab: false,
                 debugLoggingEnabled: false,
