@@ -1,4 +1,11 @@
 /*********************************************************
+ * CSS VARIABLES - STREAMS BAR DIMENSIONS
+ *********************************************************/
+:root {
+    --streams-bar-widget-height: 28px;
+}
+
+/*********************************************************
  * ANIMATIONS
  *********************************************************/
 @keyframes streams-fade-in {
@@ -389,7 +396,7 @@
     align-items: center;
     justify-content: center;
     width: 28px;
-    height: 28px;
+    height: var(--streams-bar-widget-height);
     border-radius: 4px;
     cursor: pointer;
     color: var(--text-muted);
@@ -420,6 +427,7 @@
     /* margin: 0 8px; */
     font-size: 15px;
     min-width: 60px;
+    height: var(--streams-bar-widget-height);
     padding: 2px 2px;
     border-radius: 4px;
     background-color: var(--interactive-normal);
@@ -441,7 +449,7 @@
     align-items: center;
     justify-content: center;
     padding: 0;
-    height: 28px;
+    height: var(--streams-bar-widget-height);
     box-sizing: border-box;
     padding-bottom: 3px;
 }
@@ -452,6 +460,7 @@
     justify-content: center;
     gap: 6px;
     padding: 5px 12px;
+    height: var(--streams-bar-widget-height);
     border-radius: 4px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -482,7 +491,7 @@
     align-items: center;
     justify-content: center;
     width: 28px;
-    height: 28px;
+    height: var(--streams-bar-widget-height);
     border-radius: 4px;
     background-color: var(--interactive-normal);
     border: 1px solid var(--background-modifier-border);
@@ -502,7 +511,7 @@
     align-items: center;
     justify-content: center;
     width: 28px;
-    height: 28px;
+    height: var(--streams-bar-widget-height);
     border-radius: 4px;
     background-color: var(--interactive-normal);
     border: 1px solid var(--background-modifier-border);
