@@ -262,8 +262,27 @@
     overflow: hidden;
 }
 
+.is-phone .view-header {
+    position: relative;
+    z-index: 10000;
+}
+
 .is-phone .streams-bar-component {
+    position: absolute;
+    top: 45px;
+    backdrop-filter: none;
+    background-color: transparent;
+    border-bottom: none;
     font-size: 11px;
+    z-index: 10001;
+}
+
+.is-phone .streams-bar-collapsed {
+    background-color: transparent;
+}
+
+.is-phone .streams-bar-change-stream {
+    margin-right: 25px;
 }
 
 .streams-bar-component .streams-dropdown {

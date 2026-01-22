@@ -1,4 +1,4 @@
-import { WorkspaceLeaf, MarkdownView, View } from 'obsidian';
+import { WorkspaceLeaf, MarkdownView, View, Platform } from 'obsidian';
 import { centralizedLogger } from '../../shared/CentralizedLogger';
 import { CREATE_FILE_VIEW_TYPE } from '../file-operations/CreateFileView';
 import { INSTALL_MELD_VIEW_TYPE } from '../file-operations/InstallMeldView';
@@ -115,9 +115,17 @@ export class ViewContainerService {
         // Find the view-header within this specific leaf
         const viewHeader = leafContainer.querySelector('.view-header');
 
-        if (viewHeader && viewHeader.parentElement) {
-            // Insert after the view-header for this specific leaf
-            viewHeader.parentElement.insertBefore(component, viewHeader.nextSibling);
+        if (viewHeader) {
+            // On mobile/phone, append inside the view-header as the last child
+            // On desktop, insert after the view-header
+            if (Platform.isPhone) {
+                viewHeader.appendChild(component);
+            } else if (viewHeader.parentElement) {
+                // Insert after the view-header for desktop
+                viewHeader.parentElement.insertBefore(component, viewHeader.nextSibling);
+            } else {
+                viewHeader.appendChild(component);
+            }
         } else {
             // Fallback: attach to the leaf container itself
             leafContainer.insertBefore(component, leafContainer.firstChild);
