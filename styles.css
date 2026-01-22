@@ -1058,8 +1058,22 @@
 
 
 .is-phone .streams-bar-component.modern-style {
+    position: absolute;
+    top: 45px;
+    backdrop-filter: none;
+    background: transparent;
+    border-bottom: none;
     font-size: 11px;
     padding: 6px 10px;
+    z-index: 10001;
+}
+
+.is-phone .streams-bar-component.modern-style .streams-bar-collapsed {
+    background: transparent;
+}
+
+.is-phone .streams-bar-component.modern-style .streams-bar-change-stream {
+    margin-right: 25px;
 }
 
 /*********************************************************
@@ -1622,10 +1636,16 @@
 }
 
 .is-phone .streams-bar-component.modern-style {
+    position: absolute;
+    top: 45px;
+    backdrop-filter: none;
+    background: transparent;
+    border-bottom: none;
     font-size: 11px;
     padding: 4px 6px;
     margin: 0 2px;
     width: calc(100% - 4px);
+    z-index: 10001;
 }
 
 
