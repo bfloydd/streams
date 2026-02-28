@@ -233,6 +233,33 @@ export class StreamsSettingTab extends PluginSettingTab {
             await this.moveStreamDown(index);
         });
 
+        // Add status toggle
+        const statusToggle = reorderContainer.createEl('button', {
+            cls: `streams-status-toggle ${stream.disabled ? 'is-disabled' : 'is-enabled'}`,
+            text: stream.disabled ? 'DISABLED' : 'ENABLED',
+            attr: {
+                title: stream.disabled ? 'Click to enable stream' : 'Click to disable stream'
+            }
+        });
+
+        statusToggle.addEventListener('click', async () => {
+            const newValue = !stream.disabled;
+            stream.disabled = newValue;
+
+            if (newValue && this.settingsManager.settings.primaryStreamId === stream.id) {
+                this.settingsManager.settings.primaryStreamId = null;
+                new Notice('Primary stream was disabled and has been cleared.');
+            }
+
+            await this.settingsManager.saveSettings();
+            eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+            this.display();
+
+            requestAnimationFrame(() => {
+                eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');
+            });
+        });
+
         return card;
     }
 
@@ -340,40 +367,6 @@ export class StreamsSettingTab extends PluginSettingTab {
 
         // Encrypt this stream
         this.addEncryptionToggle(container, stream);
-
-        // Disable stream
-        const disableSetting = new Setting(container)
-            .setName('Disable stream')
-            .setDesc('When disabled, this stream will be hidden from selection lists and grayed out in settings')
-            .addToggle(toggle => toggle
-                .setValue(stream.disabled || false)
-                .onChange(async (value) => {
-                    stream.disabled = value;
-
-                    // If the disabled stream was the primary stream, clear it.
-                    if (value && this.settingsManager.settings.primaryStreamId === stream.id) {
-                        this.settingsManager.settings.primaryStreamId = null;
-                        new Notice('Primary stream was disabled and has been cleared.');
-                    }
-
-                    await this.settingsManager.saveSettings();
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
-
-                    // Refresh the display to update visual styling
-                    this.display();
-
-                    // Force immediate UI refresh for mobile devices
-                    // Use requestAnimationFrame to ensure DOM updates are processed
-                    requestAnimationFrame(() => {
-                        // Emit a specific event for stream dropdown refresh
-                        eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');
-                    });
-                }));
-
-        // Add a class to identify the disable toggle for styling
-        if (stream.disabled) {
-            disableSetting.settingEl.addClass('streams-disable-toggle');
-        }
 
         // Remove stream
         new Setting(container)
