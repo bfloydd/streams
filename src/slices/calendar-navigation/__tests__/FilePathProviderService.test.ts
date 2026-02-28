@@ -20,6 +20,7 @@ describe('FilePathProviderService', () => {
             showTodayInRibbon: true,
             addCommand: true,
             encryptThisStream: false,
+            dateFormat: 'YYYY-MM-DD',
             disabled: false
         };
 

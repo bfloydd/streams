@@ -87,7 +87,8 @@ describe('RibbonService', () => {
                 showTodayInRibbon: true,
                 disabled: true, // DISABLED
                 addCommand: false,
-                encryptThisStream: false
+                encryptThisStream: false,
+            dateFormat: 'YYYY-MM-DD',
             };
             mockSettings.streams = [disabledStream];
 
@@ -116,7 +117,8 @@ describe('RibbonService', () => {
                 showTodayInRibbon: false, // HIDDEN
                 disabled: false,
                 addCommand: false,
-                encryptThisStream: false
+                encryptThisStream: false,
+            dateFormat: 'YYYY-MM-DD',
             };
             mockSettings.streams = [hiddenStream];
 
@@ -158,7 +160,8 @@ describe('RibbonService', () => {
                 showTodayInRibbon: false, // Should NOT be there
                 disabled: false,
                 addCommand: false,
-                encryptThisStream: false
+                encryptThisStream: false,
+            dateFormat: 'YYYY-MM-DD',
             };
             mockSettings.streams = [legacyStream];
 
@@ -178,7 +181,8 @@ describe('RibbonService', () => {
                 showTodayInRibbon: true,
                 disabled: false,
                 addCommand: false,
-                encryptThisStream: false
+                encryptThisStream: false,
+            dateFormat: 'YYYY-MM-DD',
             };
             mockSettings.streams = [validStream];
 
@@ -202,7 +206,8 @@ describe('RibbonService', () => {
                 showTodayInRibbon: true,
                 disabled: false,
                 addCommand: false,
-                encryptThisStream: false
+                encryptThisStream: false,
+            dateFormat: 'YYYY-MM-DD',
             };
             mockSettings.streams = [validStream];
 

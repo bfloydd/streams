@@ -23,6 +23,7 @@ describe('StreamProviderService', () => {
                 showTodayInRibbon: true,
                 addCommand: true,
                 encryptThisStream: false,
+            dateFormat: 'YYYY-MM-DD',
                 disabled: false
             },
             {
@@ -33,6 +34,7 @@ describe('StreamProviderService', () => {
                 showTodayInRibbon: false,
                 addCommand: false,
                 encryptThisStream: true,
+            dateFormat: 'YYYY-MM-DD',
                 disabled: false
             }
         ];
@@ -93,6 +95,7 @@ describe('StreamProviderService', () => {
                 showTodayInRibbon: true,
                 addCommand: true,
                 encryptThisStream: false,
+            dateFormat: 'YYYY-MM-DD',
                 disabled: false
             });
             expect(streamDataService.getDefaultStream).toHaveBeenCalledTimes(1);
@@ -111,6 +114,7 @@ describe('StreamProviderService', () => {
                 showTodayInRibbon: true,
                 addCommand: true,
                 encryptThisStream: false,
+            dateFormat: 'YYYY-MM-DD',
                 disabled: false
             });
             expect(streamDataService.getDefaultStream).toHaveBeenCalledTimes(1);

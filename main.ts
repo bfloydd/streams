@@ -160,8 +160,6 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 		return serviceRegistry.api?.getVersion() || { version: '1.0.0', minAppVersion: '0.15.0', name: 'Streams', id: 'streams' };
 	}
 
-
-
 	// Internal Services (for plugin functionality)
 	getFileOperationsService(): FileOperationsService | undefined {
 		return serviceRegistry.fileOperations;

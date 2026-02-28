@@ -47,6 +47,7 @@ describe('Calendar Navigation Integration Tests', () => {
                         showTodayInRibbon: true,
                         addCommand: true,
                         encryptThisStream: false,
+            dateFormat: 'YYYY-MM-DD',
                         disabled: false
                     }
                 ],

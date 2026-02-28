@@ -27,6 +27,7 @@ export interface Stream {
     addCommand: boolean;
     encryptThisStream: boolean; // New field for encryption toggle
     disabled: boolean; // New field for disabling streams
+    dateFormat: string; // New field for flexible date formatting
 }
 
 export interface StreamsSettings {

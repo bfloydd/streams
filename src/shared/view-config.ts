@@ -26,6 +26,7 @@ export const VIEW_CONFIGS: ViewConfig[] = [
             showTodayInRibbon: false,
             addCommand: false,
             encryptThisStream: false,
+            dateFormat: 'YYYY-MM-DD',
             disabled: false
         },
         extraArgs: [new Date()]
@@ -41,6 +42,7 @@ export const VIEW_CONFIGS: ViewConfig[] = [
             showTodayInRibbon: false,
             addCommand: false,
             encryptThisStream: true,
+            dateFormat: 'YYYY-MM-DD',
             disabled: false
         }
     }

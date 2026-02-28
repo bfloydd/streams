@@ -99,6 +99,29 @@ interface AppWithViewRegistry extends App {
 
 
 /**
+ * Recursively creates a folder path if it doesn't exist.
+ */
+export async function ensureFolderExists(app: App, folderPath: string): Promise<void> {
+    if (!folderPath) return;
+
+    const parts = folderPath.split(/[/\\]/).filter(Boolean);
+    let currentPath = '';
+
+    for (const part of parts) {
+        currentPath = currentPath ? `${currentPath}/${part}` : part;
+        const folderExists = app.vault.getAbstractFileByPath(currentPath);
+        if (!folderExists) {
+            try {
+                await app.vault.createFolder(currentPath);
+            } catch (error) {
+                // Folder might have been created concurrently
+                centralizedLogger.debug(`Folder might already exist ${currentPath}`, error);
+            }
+        }
+    }
+}
+
+/**
  * Formats a date as YYYY-MM-DD for filenames
  */
 export function formatDateToYYYYMMDD(date: Date): string {
@@ -144,9 +167,7 @@ export async function createDailyNote(app: App, folder: string): Promise<TFile |
     let file = app.vault.getAbstractFileByPath(filePath);
 
     if (!file) {
-        if (folderPath && !app.vault.getAbstractFileByPath(folderPath)) {
-            await app.vault.createFolder(folderPath);
-        }
+        await ensureFolderExists(app, folderPath);
 
         const template = '';
         file = await app.vault.create(filePath, template);
@@ -163,7 +184,9 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
         return;
     }
 
-    const fileName = `${formatDateToYYYYMMDD(date)}.md`;
+    const formatString = stream.dateFormat || 'YYYY-MM-DD';
+    const formattedDate = (window as any).moment(date).format(formatString);
+    const fileName = `${formattedDate}.md`;
     // Formatted date
 
     const folderPath = stream.folder
@@ -184,17 +207,7 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
 
     if (!file) {
         // File not found, showing create file view
-        if (folderPath) {
-            try {
-                const folderExists = app.vault.getAbstractFileByPath(folderPath);
-                if (!folderExists) {
-                    await app.vault.createFolder(folderPath);
-                    // Created folder
-                }
-            } catch (error) {
-                // log.debug('Using existing folder:', folderPath);
-            }
-        }
+        await ensureFolderExists(app, folderPath);
 
         // Use targetLeaf if provided, otherwise select appropriate leaf
         const leaf = targetLeaf || LeafSelectionService.selectLeaf(

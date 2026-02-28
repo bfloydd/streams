@@ -175,7 +175,8 @@ export class StreamsSettingTab extends PluginSettingTab {
                         showTodayInRibbon: true,
                         addCommand: false,
                         encryptThisStream: false,
-                        disabled: false
+                        disabled: false,
+                        dateFormat: 'YYYY-MM-DD'
                     };
                     this.settingsManager.settings.streams.push(newStream);
                     await this.settingsManager.saveSettings();
@@ -251,12 +252,37 @@ export class StreamsSettingTab extends PluginSettingTab {
 
         // Stream folder
         new Setting(container)
-            .setName('Folder')
+            .setName('Base Folder')
             .setDesc('Folder where daily notes will be created')
             .addText(text => text
                 .setValue(stream.folder)
                 .onChange(async (value) => {
                     stream.folder = value;
+                    await this.settingsManager.saveSettings();
+                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+                    eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');
+                }));
+
+        // Date format
+        const dateFormatDesc = document.createDocumentFragment();
+        dateFormatDesc.append(
+            'Format string for the date file name (e.g. YYYY-MM-DD). Uses moment.js tokens.',
+            document.createElement('br'),
+            'Preview: ',
+        );
+        const previewSpan = document.createElement('strong');
+        previewSpan.textContent = (window as any).moment().format(stream.dateFormat || 'YYYY-MM-DD');
+        dateFormatDesc.append(previewSpan);
+
+        new Setting(container)
+            .setName('Date format')
+            .setDesc(dateFormatDesc)
+            .addText(text => text
+                .setValue(stream.dateFormat || 'YYYY-MM-DD')
+                .setPlaceholder('YYYY-MM-DD')
+                .onChange(async (value) => {
+                    stream.dateFormat = value;
+                    previewSpan.textContent = (window as any).moment().format(value || 'YYYY-MM-DD');
                     await this.settingsManager.saveSettings();
                     eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
                     eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');

@@ -38,6 +38,7 @@ export class StreamProviderService implements StreamProvider {
             showTodayInRibbon: true,
             addCommand: true,
             encryptThisStream: false,
+            dateFormat: 'YYYY-MM-DD',
             disabled: false
         };
     }

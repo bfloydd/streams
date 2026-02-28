@@ -32,6 +32,7 @@ describe('View Selection Logic for Meld Integration', () => {
         showTodayInRibbon: false,
         addCommand: false,
         encryptThisStream: false,
+            dateFormat: 'YYYY-MM-DD',
         disabled: false,
       };
 
@@ -48,6 +49,7 @@ describe('View Selection Logic for Meld Integration', () => {
         showTodayInRibbon: false,
         addCommand: false,
         encryptThisStream: true,
+            dateFormat: 'YYYY-MM-DD',
         disabled: false,
       };
 
@@ -66,6 +68,7 @@ describe('View Selection Logic for Meld Integration', () => {
         showTodayInRibbon: false,
         addCommand: false,
         encryptThisStream: true,
+            dateFormat: 'YYYY-MM-DD',
         disabled: false,
       };
 
@@ -82,6 +85,7 @@ describe('View Selection Logic for Meld Integration', () => {
         showTodayInRibbon: false,
         addCommand: false,
         encryptThisStream: false,
+            dateFormat: 'YYYY-MM-DD',
         disabled: false,
       };
 

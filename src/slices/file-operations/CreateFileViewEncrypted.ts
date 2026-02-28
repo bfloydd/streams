@@ -116,9 +116,11 @@ export class CreateFileViewEncrypted extends ItemView {
 
     private handleDateChange(state: DateState): void {
         // Update the file path based on the new date
-        const fileName = `${this.formatDateToYYYYMMDD(state.currentDate)}.md`;
+        const formatString = this.stream.dateFormat || 'YYYY-MM-DD';
+        const formattedDate = (window as any).moment(state.currentDate).format(formatString);
+        const fileName = `${formattedDate}.md`;
         const streamFolder = this.stream.folder.replace(/\/$/, '');
-        this.filePath = `${streamFolder}/${fileName}`;
+        this.filePath = streamFolder ? `${streamFolder}/${fileName}` : fileName;
 
         // Refresh the view content
         if (this.contentEl) {
@@ -128,12 +130,7 @@ export class CreateFileViewEncrypted extends ItemView {
         }
     }
 
-    private formatDateToYYYYMMDD(date: Date): string {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
+
 
     async onOpen(): Promise<void> {
         // Set this as the active stream in the main plugin

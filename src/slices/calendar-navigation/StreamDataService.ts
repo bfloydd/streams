@@ -40,6 +40,7 @@ export class StreamDataService implements StreamProvider, FilePathProvider {
             showTodayInRibbon: true,
             addCommand: true,
             encryptThisStream: false,
+            dateFormat: 'YYYY-MM-DD',
             disabled: false
         };
     }
