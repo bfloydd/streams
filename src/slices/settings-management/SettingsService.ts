@@ -212,11 +212,14 @@ export class StreamsSettingTab extends PluginSettingTab {
             cls: 'streams-reorder-btn streams-caret-up',
             attr: {
                 'data-action': 'move-up',
-                'title': 'Move stream up'
+                'title': 'Move stream up',
+                'type': 'button'
             }
         });
         if (index === 0) upButton.disabled = true;
-        upButton.addEventListener('click', async () => {
+        upButton.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             await this.moveStreamUp(index);
         });
 
@@ -225,11 +228,14 @@ export class StreamsSettingTab extends PluginSettingTab {
             cls: 'streams-reorder-btn streams-caret-down',
             attr: {
                 'data-action': 'move-down',
-                'title': 'Move stream down'
+                'title': 'Move stream down',
+                'type': 'button'
             }
         });
         if (index === this.settingsManager.settings.streams.length - 1) downButton.disabled = true;
-        downButton.addEventListener('click', async () => {
+        downButton.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
             await this.moveStreamDown(index);
         });
 
@@ -238,11 +244,15 @@ export class StreamsSettingTab extends PluginSettingTab {
             cls: `streams-status-toggle ${stream.disabled ? 'is-disabled' : 'is-enabled'}`,
             text: stream.disabled ? 'DISABLED' : 'ENABLED',
             attr: {
-                title: stream.disabled ? 'Click to enable stream' : 'Click to disable stream'
+                'title': stream.disabled ? 'Click to enable stream' : 'Click to disable stream',
+                'type': 'button'
             }
         });
 
-        statusToggle.addEventListener('click', async () => {
+        statusToggle.addEventListener('click', async (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
             const newValue = !stream.disabled;
             stream.disabled = newValue;
 
@@ -253,7 +263,17 @@ export class StreamsSettingTab extends PluginSettingTab {
 
             await this.settingsManager.saveSettings();
             eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
-            this.display();
+
+            // Update DOM directly instead of calling this.display() to prevent losing focus
+            statusToggle.className = `streams-status-toggle ${stream.disabled ? 'is-disabled' : 'is-enabled'}`;
+            statusToggle.textContent = stream.disabled ? 'DISABLED' : 'ENABLED';
+            statusToggle.title = stream.disabled ? 'Click to enable stream' : 'Click to disable stream';
+
+            if (stream.disabled) {
+                card.addClass('streams-plugin-card-disabled');
+            } else {
+                card.removeClass('streams-plugin-card-disabled');
+            }
 
             requestAnimationFrame(() => {
                 eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');

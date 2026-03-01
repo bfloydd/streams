@@ -553,7 +553,7 @@ export class StreamsBarComponent extends Component {
                 const updatedStream = settings.streams.find(s => s.id === this.selectedStream.id);
                 if (updatedStream) {
 
-                    this.handleStreamSwitch(updatedStream);
+                    this.updateActiveStream(updatedStream);
                 } else {
                     console.warn(`[StreamsBarComponent] Current stream ${this.selectedStream.id} not found in new settings.`);
                 }
