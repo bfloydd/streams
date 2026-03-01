@@ -286,6 +286,7 @@ export class StreamsSettingTab extends PluginSettingTab {
     private addStreamSettings(container: HTMLElement, stream: Stream, index: number): void {
         // Stream name
         new Setting(container)
+            .setClass('streams-setting-stacked')
             .setName('Stream name')
             .setDesc('Name of the stream')
             .addText(text => text
@@ -299,6 +300,7 @@ export class StreamsSettingTab extends PluginSettingTab {
 
         // Stream folder
         new Setting(container)
+            .setClass('streams-setting-stacked')
             .setName('Base Folder')
             .setDesc('Folder where daily notes will be created')
             .addText(text => text
@@ -322,6 +324,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         dateFormatDesc.append(previewSpan);
 
         new Setting(container)
+            .setClass('streams-setting-stacked')
             .setName('Date format')
             .setDesc(dateFormatDesc)
             .addText(text => text
