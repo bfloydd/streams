@@ -1,4 +1,4 @@
-import { App, PluginSettingTab, Setting, Notice } from 'obsidian';
+import { App, PluginSettingTab, Setting, Notice, ButtonComponent } from 'obsidian';
 import { SettingsAwareSliceService } from '../../shared/BaseSlice';
 import { Stream, StreamsSettings, LucideIcon } from '../../shared/types';
 import { StreamsPluginInterface, SettingsManager, UIController, LogProvider } from '../../shared/interfaces';
@@ -413,22 +413,25 @@ export class StreamsSettingTab extends PluginSettingTab {
         this.addEncryptionToggle(container, stream);
 
         // Remove stream
-        new Setting(container)
-            .addButton(button => button
-                .setButtonText('Remove stream')
-                .setWarning()
-                .onClick(async () => {
-                    // If the removed stream was the primary stream, clear it.
-                    if (this.settingsManager.settings.primaryStreamId === stream.id) {
-                        this.settingsManager.settings.primaryStreamId = null;
-                        new Notice('Primary stream was removed and has been cleared.');
-                    }
+        const removeContainer = container.createDiv('streams-remove-button-container');
+        removeContainer.style.marginTop = '1em';
+        removeContainer.style.marginBottom = '1em';
 
-                    this.settingsManager.settings.streams.splice(index, 1);
-                    await this.settingsManager.saveSettings();
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
-                    this.display();
-                }));
+        new ButtonComponent(removeContainer)
+            .setButtonText('Remove stream')
+            .setWarning()
+            .onClick(async () => {
+                // If the removed stream was the primary stream, clear it.
+                if (this.settingsManager.settings.primaryStreamId === stream.id) {
+                    this.settingsManager.settings.primaryStreamId = null;
+                    new Notice('Primary stream was removed and has been cleared.');
+                }
+
+                this.settingsManager.settings.streams.splice(index, 1);
+                await this.settingsManager.saveSettings();
+                eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+                this.display();
+            });
     }
 
     private async moveStreamUp(index: number): Promise<void> {
