@@ -194,8 +194,11 @@ export function resolveStreamFilePath(stream: Stream, date: Date | string, exten
         // Evaluate {TOKENS}
         fullPath = fullPath.replace(/\{([^}]+)\}/g, (_, token) => momentDate.format(token));
     } else {
-        // Legacy mode: entire string is a format
-        fullPath = momentDate.format(fullPath);
+        // Legacy mode: try to intelligently wrap recognized date tokens to prevent parsing literal folder names
+        // Only target standard Y/M/D/H/m/s/w components separated by non-word chars
+        fullPath = fullPath.replace(/\b(Y+|M+|D+|d+|H+|h+|m+|s+|w+|W+|A|a)\b/g, (match) => {
+            return momentDate.format(match);
+        });
     }
 
     if (!fullPath.endsWith(`.${extension}`)) {
