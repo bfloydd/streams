@@ -316,7 +316,13 @@ export class StreamsSettingTab extends PluginSettingTab {
 
         const previewSpan = document.createElement('strong');
         previewSpan.textContent = resolveStreamFilePath(stream, new Date());
-        dateFormatDesc.append('Preview: ', previewSpan);
+        dateFormatDesc.append(
+            'Preview: ',
+            previewSpan,
+            document.createElement('br'),
+            document.createElement('br'),
+            document.createElement('i').appendChild(document.createTextNode('*YYYY, MM, and DD must all be present'))
+        );
 
         new Setting(container)
             .setClass('streams-setting-stacked')
@@ -327,10 +333,16 @@ export class StreamsSettingTab extends PluginSettingTab {
                 text.setValue(stream.dateFormat || 'YYYY-MM-DD')
                     .setPlaceholder('my/folder/{YYYY-MM-DD}')
                     .onChange(async (value) => {
-                        if (!value.includes('DD')) {
+                        const missingTokens = [];
+                        if (!value.includes('YYYY')) missingTokens.push('YYYY');
+                        if (!value.includes('MM')) missingTokens.push('MM');
+                        if (!value.includes('DD')) missingTokens.push('DD');
+
+                        if (missingTokens.length > 0) {
                             // Invalid format, visually indicate error
                             settingInput.style.borderColor = 'var(--text-error)';
-                            previewSpan.textContent = "Error: 'DD' token is missing!";
+                            const tokenString = missingTokens.join(', ');
+                            previewSpan.textContent = `Error: Missing required tokens (${tokenString})!`;
                             previewSpan.style.color = 'var(--text-error)';
                             return; // PREVENT SAVE
                         }
