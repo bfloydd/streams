@@ -302,28 +302,51 @@ export class StreamsSettingTab extends PluginSettingTab {
         // File path template
         const dateFormatDesc = document.createDocumentFragment();
         dateFormatDesc.append(
-            'Template string for constructing the full file path. Uses advanced tokens (e.g. {YYYY}/{MM}).',
+            'Advanced path support, i.e.:',
             document.createElement('br'),
-            'Preview: ',
+            document.createElement('br'),
+            '/path/{YYYY}/deeper/{MM}/{DD}',
+            document.createElement('br'),
+            '/path/{YYYY-MM-DD}',
+            document.createElement('br'),
+            '/path/{YYYY}/{MM}/{DD}',
+            document.createElement('br'),
+            document.createElement('br')
         );
+
         const previewSpan = document.createElement('strong');
         previewSpan.textContent = resolveStreamFilePath(stream, new Date());
-        dateFormatDesc.append(previewSpan);
+        dateFormatDesc.append('Preview: ', previewSpan);
 
         new Setting(container)
             .setClass('streams-setting-stacked')
             .setName('File path template')
             .setDesc(dateFormatDesc)
-            .addText(text => text
-                .setValue(stream.dateFormat || 'YYYY-MM-DD')
-                .setPlaceholder('my/folder/{YYYY-MM-DD}')
-                .onChange(async (value) => {
-                    stream.dateFormat = value;
-                    previewSpan.textContent = resolveStreamFilePath(stream, new Date());
-                    await this.settingsManager.saveSettings();
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
-                    eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');
-                }));
+            .addText(text => {
+                const settingInput = text.inputEl;
+                text.setValue(stream.dateFormat || 'YYYY-MM-DD')
+                    .setPlaceholder('my/folder/{YYYY-MM-DD}')
+                    .onChange(async (value) => {
+                        if (!value.includes('DD')) {
+                            // Invalid format, visually indicate error
+                            settingInput.style.borderColor = 'var(--text-error)';
+                            previewSpan.textContent = "Error: 'DD' token is missing!";
+                            previewSpan.style.color = 'var(--text-error)';
+                            return; // PREVENT SAVE
+                        }
+
+                        // Valid format, clear errors
+                        settingInput.style.borderColor = '';
+                        previewSpan.style.color = '';
+
+                        stream.dateFormat = value;
+                        previewSpan.textContent = resolveStreamFilePath(stream, new Date());
+
+                        await this.settingsManager.saveSettings();
+                        eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
+                        eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');
+                    });
+            });
 
         // Icon
         const iconSetting = new Setting(container)
