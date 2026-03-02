@@ -289,7 +289,6 @@ export class StreamsSettingTab extends PluginSettingTab {
         new Setting(container)
             .setClass('streams-setting-stacked')
             .setName('Stream name')
-            .setDesc('Name of the stream')
             .addText(text => text
                 .setValue(stream.name)
                 .onChange(async (value) => {
