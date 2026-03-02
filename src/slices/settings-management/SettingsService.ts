@@ -304,11 +304,11 @@ export class StreamsSettingTab extends PluginSettingTab {
             'Advanced path support, i.e.:',
             document.createElement('br'),
             document.createElement('br'),
-            '/path/{YYYY}/deeper/{MM}/{DD}',
-            document.createElement('br'),
             '/path/{YYYY-MM-DD}',
             document.createElement('br'),
             '/path/{YYYY}/{MM}/{DD}',
+            document.createElement('br'),
+            '/path/{YYYY}/deeper/{MM}/{DD}',
             document.createElement('br'),
             document.createElement('br')
         );
@@ -317,6 +317,7 @@ export class StreamsSettingTab extends PluginSettingTab {
         previewSpan.textContent = resolveStreamFilePath(stream, new Date());
         dateFormatDesc.append(
             'Preview: ',
+            document.createElement('br'),
             previewSpan,
             document.createElement('br'),
             document.createElement('br'),
