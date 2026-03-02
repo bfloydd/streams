@@ -4,6 +4,7 @@ import { encryptionDetectionService } from '../../shared/EncryptionDetectionServ
 import { configurationService } from '../../shared/ConfigurationService';
 import { MeldDetectionService } from '../meld-integration';
 import { centralizedLogger } from '../../shared/CentralizedLogger';
+import { resolveStreamFilePath } from '../file-operations/streamUtils';
 
 /**
  * Content indicator for calendar day display
@@ -36,17 +37,7 @@ export class ContentIndicatorService {
      * @returns Promise resolving to content indicator
      */
     async getContentIndicator(date: Date): Promise<ContentIndicator> {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        const fileName = `${year}-${month}-${day}.md`;
-        
-        const folderPath = this.stream.folder
-            .split(/[/\\]/)
-            .filter(Boolean)
-            .join('/');
-        
-        const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
+        const filePath = resolveStreamFilePath(this.stream, date);
         let file = this.app.vault.getAbstractFileByPath(filePath);
         let isEncrypted = false;
 
@@ -63,14 +54,14 @@ export class ContentIndicatorService {
 
         // Check if file is encrypted by extension or content
         if (!isEncrypted) {
-            isEncrypted = encryptionDetectionService.isEncryptedFileByPath(file.path) || 
-                         await encryptionDetectionService.isFileEncrypted(this.app, file);
+            isEncrypted = encryptionDetectionService.isEncryptedFileByPath(file.path) ||
+                await encryptionDetectionService.isFileEncrypted(this.app, file);
         }
 
         const fileSize = file.stat.size;
         const fileSizeConfig = configurationService.getFileSizeConfig();
         const size = fileSize < fileSizeConfig.SMALL_THRESHOLD ? 'small' :
-                    fileSize < fileSizeConfig.MEDIUM_THRESHOLD ? 'medium' : 'large';
+            fileSize < fileSizeConfig.MEDIUM_THRESHOLD ? 'medium' : 'large';
 
         // Determine if encrypted file is locked or unlocked
         let isLocked = false;
@@ -78,11 +69,11 @@ export class ContentIndicatorService {
             isLocked = await this.isEncryptedFileLocked(file);
         }
 
-        return { 
-            exists: true, 
-            size, 
-            isEncrypted, 
-            isLocked 
+        return {
+            exists: true,
+            size,
+            isEncrypted,
+            isLocked
         };
     }
 
@@ -99,7 +90,7 @@ export class ContentIndicatorService {
 
             // Try to read the file content to see if it's accessible
             const content = await this.app.vault.cachedRead(file);
-            
+
             // If we can read the content and it's not encrypted patterns, it's unlocked
             if (content && !encryptionDetectionService.isEncryptedContent(content)) {
                 return false;

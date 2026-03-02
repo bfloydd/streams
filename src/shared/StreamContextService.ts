@@ -1,5 +1,7 @@
 import { TFile } from 'obsidian';
 import { Stream } from './types';
+import { getStreamBaseFolder } from '../slices/file-operations/streamUtils';
+import { FileUtils } from './utils/FileUtils';
 
 export class StreamContextService {
     /**
@@ -30,13 +32,9 @@ export class StreamContextService {
      * @param stream The stream to check against.
      */
     public isFileInStream(file: TFile, stream: Stream): boolean {
-        if (!file.path || !stream.folder) return false;
+        if (!file.path || !stream.dateFormat) return false;
 
-        // Normalize paths for comparison (remove trailing slashes if any, though obsidian paths usually don't have them)
-        const streamFolder = stream.folder.replace(/\/$/, '');
-
-        // Exact match (file is the folder? unlikely) or subdirectory match
-        // We verify it starts with "folder/"
-        return file.path.startsWith(streamFolder + '/');
+        const streamFolder = getStreamBaseFolder(stream);
+        return FileUtils.fileBelongsToStream(file.path, streamFolder);
     }
 }

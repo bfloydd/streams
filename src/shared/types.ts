@@ -21,13 +21,13 @@ export type LucideIcon =
 export interface Stream {
     id: string;
     name: string;
-    folder: string;
     icon: LucideIcon;
     showTodayInRibbon: boolean;
     addCommand: boolean;
     encryptThisStream: boolean; // New field for encryption toggle
     disabled: boolean; // New field for disabling streams
     dateFormat: string; // New field for flexible date formatting
+    folder?: string; // DEPRECATED: Migrated to dateFormat
 }
 
 export interface StreamsSettings {

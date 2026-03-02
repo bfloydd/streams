@@ -156,17 +156,19 @@ export function getFolderSuggestions(app: App): string[] {
 
 export async function createDailyNote(app: App, folder: string): Promise<TFile | null> {
     const date = new Date();
-    const fileName = `${formatDateToYYYYMMDD(date)}.md`;
+    // Use the flexible resolver but for a generic/default stream context
+    const fakeStream: Stream = {
+        id: 'tmp', name: 'tmp', icon: 'book', showTodayInRibbon: false, addCommand: false,
+        encryptThisStream: false, disabled: false,
+        dateFormat: `${folder}/YYYY-MM-DD`
+    };
 
-    const folderPath = folder
-        .split(/[/\\]/)
-        .filter(Boolean)
-        .join('/');
-    const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
+    const filePath = resolveStreamFilePath(fakeStream, date);
 
     let file = app.vault.getAbstractFileByPath(filePath);
 
     if (!file) {
+        const folderPath = filePath.substring(0, filePath.lastIndexOf('/'));
         await ensureFolderExists(app, folderPath);
 
         const template = '';
@@ -174,6 +176,61 @@ export async function createDailyNote(app: App, folder: string): Promise<TFile |
     }
 
     return file instanceof TFile ? file : null;
+}
+
+/**
+ * Resolves a dynamic file path for a stream using the provided date.
+ * Supports `{TOKEN}` bracket syntax for mixing literal text and moment.js formats.
+ * Maintains backwards compatibility for `dateFormat` strings without brackets.
+ */
+export function resolveStreamFilePath(stream: Stream, date: Date | string, extension: string = 'md'): string {
+    const d = typeof date === 'string' ? new Date(date) : date;
+    const momentDate = (window as any).moment(d);
+
+    // Process File path template (File Name + Path)
+    let fullPath = stream.dateFormat || 'YYYY-MM-DD';
+
+    if (fullPath.includes('{')) {
+        // Evaluate {TOKENS}
+        fullPath = fullPath.replace(/\{([^}]+)\}/g, (_, token) => momentDate.format(token));
+    } else {
+        // Legacy mode: entire string is a format
+        fullPath = momentDate.format(fullPath);
+    }
+
+    if (!fullPath.endsWith(`.${extension}`)) {
+        fullPath += `.${extension}`;
+    }
+
+    // Normalize path for Obsidian API compatibility (remove leading slash if present)
+    if (fullPath.startsWith('/')) {
+        fullPath = fullPath.slice(1);
+    }
+
+    return fullPath;
+}
+
+/**
+ * Extracts the static top-level directory from a stream's file path template.
+ * Used to identify if an arbitrary file belongs to a stream.
+ */
+export function getStreamBaseFolder(stream: Stream): string {
+    const format = stream.dateFormat || '';
+
+    const braceIndex = format.indexOf('{');
+    let prefix = format;
+
+    if (braceIndex !== -1) {
+        prefix = format.substring(0, braceIndex);
+    }
+
+    // Find the last slash in the remaining literal prefix
+    const lastSlash = prefix.lastIndexOf('/');
+    if (lastSlash !== -1) {
+        return prefix.substring(0, lastSlash);
+    }
+
+    return '';
 }
 
 export async function openStreamDate(app: App, stream: Stream, date: Date = new Date(), reuseCurrentTab = false, targetLeaf?: WorkspaceLeaf, dateStateManager?: DateStateManager): Promise<void> {
@@ -184,17 +241,10 @@ export async function openStreamDate(app: App, stream: Stream, date: Date = new 
         return;
     }
 
-    const formatString = stream.dateFormat || 'YYYY-MM-DD';
-    const formattedDate = (window as any).moment(date).format(formatString);
-    const fileName = `${formattedDate}.md`;
-    // Formatted date
-
-    const folderPath = stream.folder
-        .split(/[/\\]/)
-        .filter(Boolean)
-        .join('/');
     // Always recalculate filePath from the stream object, which should be fresh
-    const filePath = folderPath ? `${folderPath}/${fileName}` : fileName;
+    const filePath = resolveStreamFilePath(stream, date);
+    const folderPath = filePath.substring(0, filePath.lastIndexOf('/'));
+
     // Looking for file at path
 
     let file = app.vault.getAbstractFileByPath(filePath);

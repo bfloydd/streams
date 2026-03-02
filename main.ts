@@ -51,7 +51,7 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 			await this.saveSettings();
 		}
 
-		// Migration: ensure encryptThisStream exists for existing streams
+		// Migration: ensure encryptThisStream, disabled, and merge 'folder' into 'dateFormat' for existing streams
 		let needsSave = false;
 		for (const stream of this.settings.streams) {
 			if (stream.encryptThisStream === undefined) {
@@ -60,6 +60,39 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 			}
 			if (stream.disabled === undefined) {
 				stream.disabled = false;
+				needsSave = true;
+			}
+
+			// Ensure dateFormat has a default if missing
+			if (stream.dateFormat === undefined) {
+				stream.dateFormat = 'YYYY-MM-DD';
+				needsSave = true;
+			}
+
+			// Migration: merge 'folder' into 'dateFormat' and delete 'folder'
+			if (stream.folder !== undefined) {
+				let newDateFormat = stream.dateFormat;
+				if (!newDateFormat.includes('{') && !newDateFormat.includes('}')) {
+					newDateFormat = `{${newDateFormat}}`;
+				}
+
+				if (stream.folder.trim() !== '') {
+					// Clean folder slashes
+					let cleanFolder = stream.folder.trim().replace(/\/+$/, '');
+
+					// If the legacy dateFormat was an absolute path, it overrides the folder
+					// (as per previous backward compatibility logic). So only prefix if it's not absolute.
+					if (!stream.dateFormat.startsWith('/')) {
+						stream.dateFormat = `${cleanFolder}/${newDateFormat}`;
+					} else {
+						stream.dateFormat = newDateFormat;
+					}
+				} else {
+					stream.dateFormat = newDateFormat;
+				}
+
+				// Remove the deprecated property
+				delete stream.folder;
 				needsSave = true;
 			}
 		}

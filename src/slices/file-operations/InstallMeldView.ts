@@ -3,6 +3,7 @@ import { Stream } from '../../shared/types';
 import { centralizedLogger } from '../../shared/CentralizedLogger';
 import { DateStateManager, DateState } from '../../shared/DateStateManager';
 import { ViewWithEmptyStateObserver, getSetting } from '../../shared/obsidian-types';
+import { resolveStreamFilePath } from './streamUtils';
 
 export const INSTALL_MELD_VIEW_TYPE = 'streams-install-meld-view';
 
@@ -227,11 +228,7 @@ export class InstallMeldView extends ItemView {
 
     private handleDateChange(state: DateState): void {
         // Update the file path based on the new date
-        const formatString = this.stream.dateFormat || 'YYYY-MM-DD';
-        const formattedDate = (window as any).moment(state.currentDate).format(formatString);
-        const fileName = `${formattedDate}.mdenc`;
-        const streamFolder = this.stream.folder.replace(/\/$/, '');
-        this.filePath = streamFolder ? `${streamFolder}/${fileName}` : fileName;
+        this.filePath = resolveStreamFilePath(this.stream, state.currentDate, 'mdenc');
 
         // Refresh the view content
         if (this.contentEl) {

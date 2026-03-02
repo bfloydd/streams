@@ -4,6 +4,7 @@ import { StreamsAPI, StreamInfo, PluginVersion } from './StreamsAPI';
 import { eventBus, EVENTS } from '../../shared/EventBus';
 import { DateUtils } from '../../shared/utils/DateUtils';
 import { FileUtils } from '../../shared/utils/FileUtils';
+import { getStreamBaseFolder } from '../file-operations/streamUtils';
 
 export class APIService extends PluginAwareSliceService implements StreamsAPI {
     async initialize(): Promise<void> {
@@ -57,7 +58,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
         if (!folderPath) return [];
 
         return this.filterStreams(stream => {
-            const streamFolder = FileUtils.normalizePath(stream.folder);
+            const streamFolder = FileUtils.normalizePath(getStreamBaseFolder(stream));
             const searchFolder = FileUtils.normalizePath(folderPath);
 
             return streamFolder === searchFolder ||
@@ -102,9 +103,9 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
         if (!filePath) return null;
 
         // Find streams that match this file path
-        const matchingStreams = this.getStreams().filter(stream =>
-            FileUtils.fileBelongsToStream(filePath, stream.folder)
-        );
+        const matchingStreams = this.getStreams().filter(stream => {
+            return FileUtils.fileBelongsToStream(filePath, getStreamBaseFolder(stream));
+        });
 
         // Return the first match, or null if none found
         return matchingStreams.length > 0 ? matchingStreams[0] : null;
@@ -122,7 +123,7 @@ export class APIService extends PluginAwareSliceService implements StreamsAPI {
         return {
             id: stream.id,
             name: stream.name,
-            folder: stream.folder,
+            folder: getStreamBaseFolder(stream),
             icon: stream.icon,
             isActive: false // Global active stream concept removed
         };

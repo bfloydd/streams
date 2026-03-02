@@ -23,7 +23,7 @@ export class StreamSelectionModal extends Modal {
         enabledStreams.forEach(stream => {
             new Setting(contentEl)
                 .setName(stream.name)
-                .setDesc(stream.folder)
+                .setDesc(stream.dateFormat)
                 .addButton(button => button
                     .setButtonText('Select')
                     .onClick(() => {

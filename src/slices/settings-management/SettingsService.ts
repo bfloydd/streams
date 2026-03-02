@@ -7,6 +7,7 @@ import { centralizedLogger } from '../../shared/CentralizedLogger';
 import { configurationService } from '../../shared/ConfigurationService';
 import { MeldDetectionService } from '../../slices/meld-integration';
 import { IconPickerModal } from './IconPickerModal';
+import { resolveStreamFilePath } from '../file-operations/streamUtils';
 
 export class SettingsService extends SettingsAwareSliceService {
     private settingsTab: StreamsSettingTab | null = null;
@@ -298,41 +299,27 @@ export class StreamsSettingTab extends PluginSettingTab {
                     eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');
                 }));
 
-        // Stream folder
-        new Setting(container)
-            .setClass('streams-setting-stacked')
-            .setName('Base Folder')
-            .setDesc('Folder where daily notes will be created')
-            .addText(text => text
-                .setValue(stream.folder)
-                .onChange(async (value) => {
-                    stream.folder = value;
-                    await this.settingsManager.saveSettings();
-                    eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
-                    eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');
-                }));
-
-        // Date format
+        // File path template
         const dateFormatDesc = document.createDocumentFragment();
         dateFormatDesc.append(
-            'Format string for the date file name (e.g. YYYY-MM-DD). Uses moment.js tokens.',
+            'Template string for constructing the full file path. Uses advanced tokens (e.g. {YYYY}/{MM}).',
             document.createElement('br'),
             'Preview: ',
         );
         const previewSpan = document.createElement('strong');
-        previewSpan.textContent = (window as any).moment().format(stream.dateFormat || 'YYYY-MM-DD');
+        previewSpan.textContent = resolveStreamFilePath(stream, new Date());
         dateFormatDesc.append(previewSpan);
 
         new Setting(container)
             .setClass('streams-setting-stacked')
-            .setName('Date format')
+            .setName('File path template')
             .setDesc(dateFormatDesc)
             .addText(text => text
                 .setValue(stream.dateFormat || 'YYYY-MM-DD')
-                .setPlaceholder('YYYY-MM-DD')
+                .setPlaceholder('my/folder/{YYYY-MM-DD}')
                 .onChange(async (value) => {
                     stream.dateFormat = value;
-                    previewSpan.textContent = (window as any).moment().format(value || 'YYYY-MM-DD');
+                    previewSpan.textContent = resolveStreamFilePath(stream, new Date());
                     await this.settingsManager.saveSettings();
                     eventBus.emit(EVENTS.SETTINGS_CHANGED, this.settingsManager.settings, 'settings-management');
                     eventBus.emit(EVENTS.STREAM_UPDATED, { stream: stream }, 'settings-management');

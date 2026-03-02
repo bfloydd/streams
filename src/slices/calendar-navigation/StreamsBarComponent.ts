@@ -18,6 +18,7 @@ import { ViewContainerService } from './ViewContainerService';
 import { ComponentEventSubscriptionManager } from './ComponentEventSubscriptionManager';
 import { ComponentStateManager } from './ComponentStateManager';
 import { ComponentUIBuilder, ComponentCallbacks } from './ComponentUIBuilder';
+import { getStreamBaseFolder } from '../file-operations/streamUtils';
 
 interface PluginInterface {
     settings: {
@@ -227,10 +228,7 @@ export class StreamsBarComponent extends Component {
     }
 
     private handleFileModify(file: TFile) {
-        const streamPath = this.selectedStream.folder.split(/[/\\]/).filter(Boolean);
-        const filePath = file.path.split(/[/\\]/).filter(Boolean);
-
-        const isInStream = streamPath.every((part, index) => streamPath[index] === filePath[index]);
+        const isInStream = this.streamContextService.isFileInStream(file, this.selectedStream);
 
         if (isInStream && this.calendarRenderer) {
             this.calendarRenderer.updateGridContent();
@@ -319,14 +317,7 @@ export class StreamsBarComponent extends Component {
         let isInStream = true;
 
         if (view instanceof MarkdownView && view.file) {
-            const streamPath = this.selectedStream.folder.split(/[/\\]/).filter(Boolean);
-            const filePath = view.file.path.split(/[/\\]/).filter(Boolean);
-
-            if (filePath.length >= streamPath.length) {
-                isInStream = streamPath.every((part, index) => streamPath[index] === filePath[index]);
-            } else {
-                isInStream = false;
-            }
+            isInStream = this.streamContextService.isFileInStream(view.file, this.selectedStream);
         }
 
         if (!isInStream) {

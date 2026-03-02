@@ -81,7 +81,7 @@ describe('RibbonService', () => {
                 id: 'disabled-stream',
                 name: 'Disabled Stream',
                 icon: 'calendar',
-                folder: 'foo',
+                
 
 
                 showTodayInRibbon: true,
@@ -111,7 +111,7 @@ describe('RibbonService', () => {
                 id: 'hidden-stream',
                 name: 'Hidden Stream',
                 icon: 'calendar',
-                folder: 'foo',
+                
 
 
                 showTodayInRibbon: false, // HIDDEN
@@ -154,7 +154,7 @@ describe('RibbonService', () => {
                 id: 'legacy-stream',
                 name: 'Legacy Stream',
                 icon: 'calendar',
-                folder: 'foo',
+                
 
 
                 showTodayInRibbon: false, // Should NOT be there
@@ -175,7 +175,7 @@ describe('RibbonService', () => {
                 id: 'valid-stream',
                 name: 'Valid Stream',
                 icon: 'calendar',
-                folder: 'foo',
+                
 
 
                 showTodayInRibbon: true,
@@ -200,7 +200,7 @@ describe('RibbonService', () => {
                 id: 'valid-stream',
                 name: 'Valid Stream',
                 icon: 'calendar',
-                folder: 'foo',
+                
 
 
                 showTodayInRibbon: true,

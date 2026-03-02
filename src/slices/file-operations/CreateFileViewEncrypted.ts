@@ -6,6 +6,7 @@ import { configurationService } from '../../shared/ConfigurationService';
 import { getPluginById, getCommands, executeCommandById } from '../../shared/obsidian-types';
 import { ServiceContainer } from '../../shared/interfaces';
 import { MeldDetectionService } from '../../slices/meld-integration';
+import { resolveStreamFilePath } from './streamUtils';
 
 // Interface for the streams plugin
 interface StreamsPlugin {
@@ -116,11 +117,7 @@ export class CreateFileViewEncrypted extends ItemView {
 
     private handleDateChange(state: DateState): void {
         // Update the file path based on the new date
-        const formatString = this.stream.dateFormat || 'YYYY-MM-DD';
-        const formattedDate = (window as any).moment(state.currentDate).format(formatString);
-        const fileName = `${formattedDate}.md`;
-        const streamFolder = this.stream.folder.replace(/\/$/, '');
-        this.filePath = streamFolder ? `${streamFolder}/${fileName}` : fileName;
+        this.filePath = resolveStreamFilePath(this.stream, state.currentDate);
 
         // Refresh the view content
         if (this.contentEl) {

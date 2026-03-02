@@ -27,7 +27,7 @@ describe('View Selection Logic for Meld Integration', () => {
       const stream: Stream = {
         id: 'test-stream',
         name: 'Test Stream',
-        folder: 'test',
+        
         icon: 'file-text',
         showTodayInRibbon: false,
         addCommand: false,
@@ -44,7 +44,7 @@ describe('View Selection Logic for Meld Integration', () => {
       const stream: Stream = {
         id: 'test-stream',
         name: 'Test Stream',
-        folder: 'test',
+        
         icon: 'file-text',
         showTodayInRibbon: false,
         addCommand: false,
@@ -63,7 +63,7 @@ describe('View Selection Logic for Meld Integration', () => {
       const stream: Stream = {
         id: 'test-stream',
         name: 'Test Stream',
-        folder: 'test',
+        
         icon: 'file-text',
         showTodayInRibbon: false,
         addCommand: false,
@@ -80,7 +80,7 @@ describe('View Selection Logic for Meld Integration', () => {
       const stream: Stream = {
         id: 'test-stream',
         name: 'Test Stream',
-        folder: 'test',
+        
         icon: 'file-text',
         showTodayInRibbon: false,
         addCommand: false,

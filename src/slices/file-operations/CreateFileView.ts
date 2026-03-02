@@ -7,6 +7,7 @@ import { EmptyStateObserver } from './EmptyStateObserver';
 import { StreamManager } from '../../shared/interfaces';
 import { MeldDetectionService } from '../../slices/meld-integration';
 import { eventBus } from '../../shared/EventBus';
+import { resolveStreamFilePath } from './streamUtils';
 
 // Interface for accessing app.plugins
 interface AppWithPlugins extends App {
@@ -109,14 +110,9 @@ export class CreateFileView extends ItemView {
                 //    Otherwise, calculate from current date and stream.
                 if (state.filePath) {
                     this.filePath = state.filePath;
-                } else {
                     // Recalculate file path based on current stream and date (which is now updated)
                     const currentDate = this.dateStateManager.getState().currentDate;
-                    const formatString = this.stream.dateFormat || 'YYYY-MM-DD';
-                    const formattedDate = (window as any).moment(currentDate).format(formatString);
-                    const fileName = `${formattedDate}.md`;
-                    const streamFolder = this.stream.folder.replace(/\/$/, '');
-                    this.filePath = streamFolder ? `${streamFolder}/${fileName}` : fileName;
+                    this.filePath = resolveStreamFilePath(this.stream, currentDate);
                 }
 
 
@@ -139,13 +135,8 @@ export class CreateFileView extends ItemView {
 
 
     private handleDateChange(state: DateState): void {
-
         // Update the file path based on the new date
-        const formatString = this.stream.dateFormat || 'YYYY-MM-DD';
-        const formattedDate = (window as any).moment(state.currentDate).format(formatString);
-        const fileName = `${formattedDate}.md`;
-        const streamFolder = this.stream.folder.replace(/\/$/, '');
-        this.filePath = streamFolder ? `${streamFolder}/${fileName}` : fileName;
+        this.filePath = resolveStreamFilePath(this.stream, state.currentDate);
 
         // Refresh the view content
         if (this.contentEl) {
