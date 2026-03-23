@@ -90,12 +90,19 @@ export class RibbonService extends SettingsAwareSliceService {
         this.getPlugin().addRibbonIcon(
             'calendar',
             'Streams: Go to primary stream',
-            () => {
+            (evt: MouseEvent) => {
+                // Ctrl/Cmd+click forces a new tab
+                const forceNewTab = evt.ctrlKey || evt.metaKey;
+                const targetLeaf = forceNewTab
+                    ? this.getPlugin().app.workspace.getLeaf('tab')
+                    : undefined;
+
                 const command = new OpenTodayPrimaryStreamCommand(
                     this.getPlugin().app,
                     this.getStreams(),
                     this.getPlugin(),
-                    this.getSettings().reuseCurrentTab
+                    this.getSettings().reuseCurrentTab,
+                    targetLeaf
                 );
                 command.execute();
             }
@@ -156,11 +163,18 @@ export class RibbonService extends SettingsAwareSliceService {
         const iconEl = this.getPlugin().addRibbonIcon(
             stream.icon,
             `Open today for ${stream.name}`,
-            () => {
+            (evt: MouseEvent) => {
+                // Ctrl/Cmd+click forces a new tab
+                const forceNewTab = evt.ctrlKey || evt.metaKey;
+                const targetLeaf = forceNewTab
+                    ? this.getPlugin().app.workspace.getLeaf('tab')
+                    : undefined;
+
                 const command = new OpenTodayStreamCommand(
                     this.getPlugin().app,
                     stream,
-                    this.getSettings().reuseCurrentTab
+                    this.getSettings().reuseCurrentTab,
+                    targetLeaf
                 );
                 command.execute();
             }

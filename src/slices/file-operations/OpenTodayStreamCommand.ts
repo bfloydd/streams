@@ -1,4 +1,4 @@
-import { App } from 'obsidian';
+import { App, WorkspaceLeaf } from 'obsidian';
 import { Stream } from '../../shared/types';
 import { openStreamDate } from './streamUtils';
 import { Logger } from '../debug-logging/Logger';
@@ -11,12 +11,13 @@ export class OpenTodayStreamCommand implements Command {
     constructor(
         private app: App,
         private stream: Stream,
-        private reuseCurrentTab: boolean = false
+        private reuseCurrentTab: boolean = false,
+        private targetLeaf?: WorkspaceLeaf
     ) {}
 
     async execute(): Promise<void> {
         log.debug(`Opening today's note for stream: ${this.stream.name}`);
         log.debug(`Reuse current tab: ${this.reuseCurrentTab}`);
-        await openStreamDate(this.app, this.stream, new Date(), this.reuseCurrentTab);
+        await openStreamDate(this.app, this.stream, new Date(), this.reuseCurrentTab, this.targetLeaf);
     }
 } 

@@ -7,6 +7,49 @@ import { centralizedLogger } from '../../shared/CentralizedLogger';
  */
 export class LeafSelectionService {
     /**
+     * Checks whether a workspace leaf is pinned.
+     * Obsidian exposes this via the internal `pinned` property on the leaf.
+     */
+    private static isLeafPinned(leaf: WorkspaceLeaf): boolean {
+        return (leaf as any).pinned === true;
+    }
+
+    /**
+     * Finds the next unpinned leaf in the workspace that can be reused.
+     * Mimics Obsidian's native behavior of selecting an existing tab rather
+     * than always creating a new one.
+     * @param app - Obsidian app instance
+     * @param viewTypeFilter - Optional filter to check if a leaf's view type is suitable
+     * @returns An unpinned leaf, or a new tab if none found
+     */
+    private static findNextUnpinnedLeaf(
+        app: App,
+        viewTypeFilter?: (viewType: string) => boolean
+    ): WorkspaceLeaf | null {
+        // Scan all root-level leaves for an unpinned candidate
+        const candidates: WorkspaceLeaf[] = [];
+        app.workspace.iterateRootLeaves((leaf: WorkspaceLeaf) => {
+            if (!this.isLeafPinned(leaf)) {
+                if (!viewTypeFilter || viewTypeFilter(leaf.view.getViewType())) {
+                    candidates.push(leaf);
+                }
+            }
+        });
+
+        if (candidates.length > 0) {
+            return candidates[0];
+        }
+
+        // No unpinned leaf found — create a new tab as last resort
+        try {
+            return app.workspace.getLeaf('tab');
+        } catch (error) {
+            centralizedLogger.error('Failed to create new leaf:', error);
+            return null;
+        }
+    }
+
+    /**
      * Selects the appropriate leaf based on reuseCurrentTab setting
      * @param app - Obsidian app instance
      * @param reuseCurrentTab - Whether to reuse the current tab
@@ -30,16 +73,12 @@ export class LeafSelectionService {
      */
     private static reuseCurrentLeaf(app: App): WorkspaceLeaf | null {
         const activeLeaf = app.workspace.activeLeaf;
-        if (activeLeaf) {
+        if (activeLeaf && !this.isLeafPinned(activeLeaf)) {
             return activeLeaf;
         }
         
-        try {
-            return app.workspace.getLeaf('tab');
-        } catch (error) {
-            centralizedLogger.error('Failed to create new leaf:', error);
-            return null;
-        }
+        // Active leaf is pinned — find the next unpinned leaf instead
+        return this.findNextUnpinnedLeaf(app);
     }
 
     /**
@@ -51,19 +90,15 @@ export class LeafSelectionService {
     ): WorkspaceLeaf | null {
         const activeLeaf = app.workspace.activeLeaf;
         
-        if (activeLeaf) {
+        if (activeLeaf && !this.isLeafPinned(activeLeaf)) {
             const viewType = activeLeaf.view.getViewType();
             if (!viewTypeFilter || viewTypeFilter(viewType)) {
                 return activeLeaf;
             }
         }
         
-        try {
-            return app.workspace.getLeaf('tab');
-        } catch (error) {
-            centralizedLogger.error('Failed to create new leaf:', error);
-            return null;
-        }
+        // Active leaf is pinned or filtered out — find the next unpinned leaf
+        return this.findNextUnpinnedLeaf(app, viewTypeFilter);
     }
 
     /**
@@ -101,18 +136,13 @@ export class LeafSelectionService {
         // If not found and reuseCurrentTab is enabled, try to reuse current leaf
         if (reuseCurrentTab) {
             const activeLeaf = app.workspace.activeLeaf;
-            if (activeLeaf) {
+            if (activeLeaf && !this.isLeafPinned(activeLeaf)) {
                 return activeLeaf;
             }
         }
 
-        // Create a new leaf
-        try {
-            return app.workspace.getLeaf('tab');
-        } catch (error) {
-            centralizedLogger.error('Failed to create new leaf:', error);
-            return null;
-        }
+        // Find the next unpinned leaf, or create a new tab as last resort
+        return this.findNextUnpinnedLeaf(app);
     }
 }
 
