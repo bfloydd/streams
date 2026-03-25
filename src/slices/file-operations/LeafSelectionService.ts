@@ -15,20 +15,30 @@ export class LeafSelectionService {
     }
 
     /**
-     * Finds the next unpinned leaf in the workspace that can be reused.
+     * Checks whether a leaf belongs to the main editor area (rootSplit),
+     * as opposed to left/right side panes.
+     */
+    private static isInMainEditorArea(app: App, leaf: WorkspaceLeaf): boolean {
+        return leaf.getRoot() === app.workspace.rootSplit;
+    }
+
+    /**
+     * Finds the next unpinned leaf in the main editor area that can be reused.
      * Mimics Obsidian's native behavior of selecting an existing tab rather
-     * than always creating a new one.
+     * than always creating a new one. Only considers leaves in the main
+     * editor area, never side panes.
      * @param app - Obsidian app instance
      * @param viewTypeFilter - Optional filter to check if a leaf's view type is suitable
-     * @returns An unpinned leaf, or a new tab if none found
+     * @returns An unpinned leaf in the main area, or a new tab if none found
      */
     private static findNextUnpinnedLeaf(
         app: App,
         viewTypeFilter?: (viewType: string) => boolean
     ): WorkspaceLeaf | null {
-        // Scan all root-level leaves for an unpinned candidate
+        // Scan only main editor leaves for an unpinned candidate
         const candidates: WorkspaceLeaf[] = [];
         app.workspace.iterateRootLeaves((leaf: WorkspaceLeaf) => {
+            if (!this.isInMainEditorArea(app, leaf)) return;
             if (!this.isLeafPinned(leaf)) {
                 if (!viewTypeFilter || viewTypeFilter(leaf.view.getViewType())) {
                     candidates.push(leaf);
@@ -40,7 +50,7 @@ export class LeafSelectionService {
             return candidates[0];
         }
 
-        // No unpinned leaf found — create a new tab as last resort
+        // No unpinned leaf found in main area — create a new tab as last resort
         try {
             return app.workspace.getLeaf('tab');
         } catch (error) {
@@ -73,11 +83,11 @@ export class LeafSelectionService {
      */
     private static reuseCurrentLeaf(app: App): WorkspaceLeaf | null {
         const activeLeaf = app.workspace.activeLeaf;
-        if (activeLeaf && !this.isLeafPinned(activeLeaf)) {
+        if (activeLeaf && !this.isLeafPinned(activeLeaf) && this.isInMainEditorArea(app, activeLeaf)) {
             return activeLeaf;
         }
         
-        // Active leaf is pinned — find the next unpinned leaf instead
+        // Active leaf is pinned or in a side pane — find the next unpinned leaf instead
         return this.findNextUnpinnedLeaf(app);
     }
 
@@ -90,14 +100,14 @@ export class LeafSelectionService {
     ): WorkspaceLeaf | null {
         const activeLeaf = app.workspace.activeLeaf;
         
-        if (activeLeaf && !this.isLeafPinned(activeLeaf)) {
+        if (activeLeaf && !this.isLeafPinned(activeLeaf) && this.isInMainEditorArea(app, activeLeaf)) {
             const viewType = activeLeaf.view.getViewType();
             if (!viewTypeFilter || viewTypeFilter(viewType)) {
                 return activeLeaf;
             }
         }
         
-        // Active leaf is pinned or filtered out — find the next unpinned leaf
+        // Active leaf is pinned, filtered out, or in a side pane — find the next unpinned leaf
         return this.findNextUnpinnedLeaf(app, viewTypeFilter);
     }
 
@@ -113,10 +123,11 @@ export class LeafSelectionService {
         file: TFile,
         reuseCurrentTab: boolean
     ): WorkspaceLeaf | null {
-        // First, try to find existing leaf with this file
+        // First, try to find existing leaf with this file (only in main editor area)
         const existingLeaf = app.workspace.getLeavesOfType('markdown')
             .find(leaf => {
                 try {
+                    if (!this.isInMainEditorArea(app, leaf)) return false;
                     const view = leaf.view as MarkdownView;
                     const viewFile = view?.file;
                     if (!viewFile || !file) return false;
@@ -136,12 +147,12 @@ export class LeafSelectionService {
         // If not found and reuseCurrentTab is enabled, try to reuse current leaf
         if (reuseCurrentTab) {
             const activeLeaf = app.workspace.activeLeaf;
-            if (activeLeaf && !this.isLeafPinned(activeLeaf)) {
+            if (activeLeaf && !this.isLeafPinned(activeLeaf) && this.isInMainEditorArea(app, activeLeaf)) {
                 return activeLeaf;
             }
         }
 
-        // Find the next unpinned leaf, or create a new tab as last resort
+        // Find the next unpinned leaf in the main area, or create a new tab as last resort
         return this.findNextUnpinnedLeaf(app);
     }
 }
