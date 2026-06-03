@@ -189,6 +189,20 @@ export class StreamsBarComponent extends Component {
             if (this.selectedStream?.id !== stream.id) {
                 this.updateActiveStream(stream);
             }
+
+            // Always update the date from the filename so the bar shows the correct
+            // date even when navigating to a stream file from outside the plugin
+            if (file) {
+                const match = file.basename.match(/^\d{4}-\d{2}-\d{2}/);
+                if (match) {
+                    const [year, month, day] = match[0].split('-').map(n => parseInt(n, 10));
+                    const date = new Date(year, month - 1, day);
+                    if (!isNaN(date.getTime())) {
+                        this.dateStateManager.setCurrentDate(date);
+                    }
+                }
+            }
+
             this.component.show();
         } else {
             // If no stream found for file, hide the component
