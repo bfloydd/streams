@@ -333,12 +333,14 @@
     display: block;
 }
 
-.streams-bar-dropdown-hidden {
-    display: none !important;
+body .streams-bar-dropdown-hidden,
+.streams-bar-component .streams-bar-dropdown-hidden {
+    display: none;
 }
 
-.streams-bar-dropdown-visible {
-    display: block !important;
+body .streams-bar-dropdown-visible,
+.streams-bar-component .streams-bar-dropdown-visible {
+    display: block;
 }
 
 .streams-bar-component--visible {
@@ -575,9 +577,9 @@
     display: none;
 }
 
-.streams-bar-streams-dropdown.streams-bar-dropdown-visible,
-.streams-bar-streams-dropdown.streams-dropdown--visible {
-    display: block !important;
+.streams-bar-component .streams-bar-streams-dropdown.streams-bar-dropdown-visible,
+.streams-bar-component .streams-bar-streams-dropdown.streams-dropdown--visible {
+    display: block;
 }
 
 .streams-bar-stream-item {
@@ -1739,16 +1741,18 @@
     position: relative;
 }
 
-.streams-empty-state-hidden {
-    display: none !important;
+body .streams-empty-state-hidden,
+div.streams-empty-state-hidden {
+    display: none;
     visibility: hidden;
     opacity: 0;
     height: 0;
     overflow: hidden;
 }
 
-.streams-date-setting-hidden {
-    display: none !important;
+body .streams-date-setting-hidden,
+div.streams-date-setting-hidden {
+    display: none;
 }
 
 .streams-install-meld-content {
