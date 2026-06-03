@@ -122,6 +122,7 @@ export class CreateFileView extends ItemView {
 
                     this.contentEl.empty();
                     this.contentEl.addClass('streams-create-file-container');
+                    this.containerEl.addClass('streams-create-file-leaf');
                     this.createFileViewContent(this.contentEl);
                 }
 
@@ -142,6 +143,7 @@ export class CreateFileView extends ItemView {
         if (this.contentEl) {
             this.contentEl.empty();
             this.contentEl.addClass('streams-create-file-container');
+            this.containerEl.addClass('streams-create-file-leaf');
             this.createFileViewContent(this.contentEl);
         }
     }
@@ -163,6 +165,7 @@ export class CreateFileView extends ItemView {
         // Prepare our content element
         this.contentEl.empty();
         this.contentEl.addClass('streams-create-file-container');
+        this.containerEl.addClass('streams-create-file-leaf');
 
         // Content element styling is handled by CSS class
 

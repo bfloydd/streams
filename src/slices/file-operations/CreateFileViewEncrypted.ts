@@ -106,6 +106,7 @@ export class CreateFileViewEncrypted extends ItemView {
                 if (this.contentEl) {
                     this.contentEl.empty();
                     this.contentEl.addClass('streams-create-file-encrypted-container');
+                    this.containerEl.addClass('streams-create-file-encrypted-leaf');
                     this.createFileViewEncryptedContent(this.contentEl);
                 }
             }
@@ -123,6 +124,7 @@ export class CreateFileViewEncrypted extends ItemView {
         if (this.contentEl) {
             this.contentEl.empty();
             this.contentEl.addClass('streams-create-file-encrypted-container');
+            this.containerEl.addClass('streams-create-file-encrypted-leaf');
             this.createFileViewEncryptedContent(this.contentEl);
         }
     }
@@ -145,6 +147,7 @@ export class CreateFileViewEncrypted extends ItemView {
         // Prepare our content element
         this.contentEl.empty();
         this.contentEl.addClass('streams-create-file-encrypted-container');
+        this.containerEl.addClass('streams-create-file-encrypted-leaf');
 
         // Content element styling is handled by CSS class
 

@@ -293,12 +293,12 @@
     top: 10px;
 }
 
-.workspace-leaf-content:has(.streams-create-file-container) {
+.streams-create-file-leaf {
     width: 100%;
 }
 
 /* Prevent scrollbars on CreateFileView */
-.workspace-leaf-content:has(.streams-create-file-container) .view-content {
+.streams-create-file-leaf .view-content {
     overflow: hidden;
 }
 
@@ -1923,12 +1923,12 @@ div.streams-date-setting-hidden {
 /*********************************************************
  * ENCRYPTED CREATE FILE VIEW STYLES
  *********************************************************/
-.workspace-leaf-content:has(.streams-create-file-encrypted-container) {
+.streams-create-file-encrypted-leaf {
     width: 100%;
 }
 
 /* Prevent scrollbars on EncryptedCreateFileView */
-.workspace-leaf-content:has(.streams-create-file-encrypted-container) .view-content {
+.streams-create-file-encrypted-leaf .view-content {
     overflow: hidden;
 }
 
