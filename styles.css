@@ -311,8 +311,8 @@
  * HOLISTIC SCROLLING FIX: 
  * Instead of making the header relative (which breaks immersive scrolling) or zeroing out padding, 
  * we let the header be native (absolute) so content scrolls under it. 
- * Since our Streams bar makes the header taller, we dynamically increase the padding-top
- * on the markdown containers.
+ * Since our Streams bar makes the header taller on mobile, we explicitly increase the padding-top
+ * on the markdown containers using an offset (4vh).
  */
 .is-phone .mod-root .workspace-leaf-content .view-content .markdown-reading-view > .markdown-preview-view,
 .is-phone .mod-root .workspace-leaf-content .view-content .markdown-source-view > .cm-editor > .cm-scroller {
