@@ -271,7 +271,7 @@
 .streams-bar-component {
     position: relative;
     width: 100%;
-    background-color: var(--background-primary);
+    background-color: transparent;
     padding: 4px 6px 4px 6px;
     font-size: 14px;
     line-height: 1.4;
@@ -279,8 +279,8 @@
     pointer-events: auto;
     display: flex;
     align-items: center;
-    border-bottom: 1px solid var(--background-modifier-border);
-    backdrop-filter: blur(8px);
+    border-bottom: none;
+    backdrop-filter: none;
     z-index: 1000;
     order: 99;
     flex-basis: 100%;
@@ -331,13 +331,10 @@
 }
 
 .is-phone .streams-bar-component {
-    backdrop-filter: none;
-    background-color: transparent;
-    border-bottom: none;
     font-size: 11px;
 }
 
-.is-phone .streams-bar-collapsed {
+.streams-bar-collapsed {
     background-color: transparent;
 }
 
@@ -345,8 +342,8 @@
  * PILL STYLE MENU
  * Wrap the two groups in pill-shaped containers to match Obsidian's native mobile menu buttons 
  */
-.is-phone .streams-bar-nav-controls,
-.is-phone .streams-bar-change-stream {
+.streams-bar-nav-controls,
+.streams-bar-change-stream {
     background-color: var(--background-primary);
     border-radius: var(--radius-xl, 20px);
     padding: 4px 8px;
@@ -357,10 +354,10 @@
 }
 
 /* Strip individual button borders/backgrounds to make them flow smoothly inside the pill */
-.is-phone .streams-bar-day-nav,
-.is-phone .streams-bar-today-button,
-.is-phone .streams-bar-home-button,
-.is-phone .streams-bar-settings-button {
+.streams-bar-day-nav,
+.streams-bar-today-button,
+.streams-bar-home-button,
+.streams-bar-settings-button {
     background-color: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -368,26 +365,26 @@
     padding: 4px;
 }
 
-.is-phone .streams-bar-day-nav:hover,
-.is-phone .streams-bar-today-button:hover,
-.is-phone .streams-bar-home-button:hover,
-.is-phone .streams-bar-settings-button:hover {
+.streams-bar-day-nav:hover,
+.streams-bar-today-button:hover,
+.streams-bar-home-button:hover,
+.streams-bar-settings-button:hover {
     background-color: transparent !important;
     color: var(--text-accent);
 }
 
-.is-phone .streams-bar-change-stream:hover {
+.streams-bar-change-stream:hover {
     background-color: var(--background-secondary) !important;
     color: var(--text-accent);
     border-color: var(--background-modifier-border);
 }
 
-.is-phone .streams-bar-nav-controls {
+.streams-bar-nav-controls {
     flex: 0 0 auto;
     /* Prevent stretching */
 }
 
-.is-phone .streams-bar-change-stream {
+.streams-bar-change-stream {
     margin-right: 0;
     /* Push all the way to the right */
 }
@@ -455,12 +452,15 @@ body .streams-bar-dropdown-visible,
     align-items: center;
     justify-content: flex-start;
     margin: 0;
-    background-color: transparent;
-    border-radius: 0;
-    padding: 0;
-    border: none;
-    gap: 8px;
-    flex: 1;
+    background-color: var(--background-primary);
+    border-radius: var(--radius-xl, 20px);
+    padding: 4px 8px;
+    box-shadow: var(--shadow-s, 0 2px 8px rgba(0, 0, 0, 0.05));
+    border: 1px solid var(--background-modifier-border);
+    height: 36px;
+    box-sizing: border-box;
+    gap: 4px;
+    flex: 0 0 auto;
 }
 
 .streams-bar-nav {
@@ -498,25 +498,25 @@ body .streams-bar-dropdown-visible,
     align-items: center;
     justify-content: center;
     width: 28px;
-    height: var(--streams-bar-widget-height);
+    height: auto;
     border-radius: 4px;
     cursor: pointer;
     color: var(--text-muted);
     transition: all 0.2s ease;
-    background-color: var(--interactive-normal);
-    border: 1px solid var(--background-modifier-border);
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
     font-size: 14px;
     font-weight: 500;
 }
 
 .streams-bar-day-nav:hover {
-    background-color: var(--interactive-hover);
-    color: var(--text-normal);
-    border-color: var(--text-accent);
+    background-color: transparent;
+    color: var(--text-accent);
 }
 
 .streams-bar-day-nav:active {
-    background-color: var(--interactive-accent-hover);
+    background-color: transparent;
     transform: scale(0.95);
 }
 
@@ -529,18 +529,18 @@ body .streams-bar-dropdown-visible,
     /* margin: 0 8px; */
     font-size: 15px;
     min-width: 60px;
-    height: var(--streams-bar-widget-height);
-    padding: 2px 2px;
+    height: auto;
+    padding: 4px;
     border-radius: 4px;
-    background-color: var(--interactive-normal);
-    border: 1px solid var(--background-modifier-border);
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
     cursor: pointer;
     /* transition: all 0.2s ease; */
 }
 
 .streams-bar-today-button:hover {
-    background-color: var(--interactive-hover);
-    border-color: var(--text-accent);
+    background-color: transparent;
     color: var(--text-accent);
 }
 
@@ -561,23 +561,25 @@ body .streams-bar-dropdown-visible,
     align-items: center;
     justify-content: center;
     gap: 6px;
-    padding: 5px 12px;
-    height: var(--streams-bar-widget-height);
-    border-radius: 4px;
+    padding: 4px 16px;
+    height: 36px;
+    border-radius: var(--radius-xl, 20px);
     cursor: pointer;
     transition: all 0.2s ease;
     color: var(--text-muted);
     margin: 0;
-    background-color: var(--interactive-normal);
+    background-color: var(--background-primary);
     border: 1px solid var(--background-modifier-border);
+    box-shadow: var(--shadow-s, 0 2px 8px rgba(0, 0, 0, 0.05));
     font-weight: 500;
     position: relative;
+    box-sizing: border-box;
 }
 
 .streams-bar-change-stream:hover {
-    background-color: var(--interactive-hover);
-    color: var(--text-normal);
-    border-color: var(--text-accent);
+    background-color: var(--background-secondary);
+    color: var(--text-accent);
+    border-color: var(--background-modifier-border);
 }
 
 .streams-bar-change-stream-text {
@@ -593,17 +595,18 @@ body .streams-bar-dropdown-visible,
     align-items: center;
     justify-content: center;
     width: 28px;
-    height: var(--streams-bar-widget-height);
+    height: auto;
+    padding: 4px;
     border-radius: 4px;
-    background-color: var(--interactive-normal);
-    border: 1px solid var(--background-modifier-border);
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
     color: var(--text-muted);
 }
 
 .streams-bar-home-button:hover {
-    background-color: var(--interactive-hover);
-    color: var(--text-normal);
-    border-color: var(--text-accent);
+    background-color: transparent;
+    color: var(--text-accent);
 }
 
 .streams-bar-settings-button {
@@ -613,17 +616,18 @@ body .streams-bar-dropdown-visible,
     align-items: center;
     justify-content: center;
     width: 28px;
-    height: var(--streams-bar-widget-height);
+    height: auto;
+    padding: 4px;
     border-radius: 4px;
-    background-color: var(--interactive-normal);
-    border: 1px solid var(--background-modifier-border);
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
     color: var(--text-muted);
 }
 
 .streams-bar-settings-button:hover {
-    background-color: var(--interactive-hover);
-    color: var(--text-normal);
-    border-color: var(--text-accent);
+    background-color: transparent;
+    color: var(--text-accent);
 }
 
 /*********************************************************
