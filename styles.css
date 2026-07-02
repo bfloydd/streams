@@ -282,6 +282,8 @@
     border-bottom: 1px solid var(--background-modifier-border);
     backdrop-filter: blur(8px);
     z-index: 1000;
+    order: 99;
+    flex-basis: 100%;
 }
 
 
@@ -294,7 +296,7 @@
     overflow: hidden;
 }
 
-.is-phone .view-header {
+.streams-leaf-active .view-header {
     z-index: 10000;
     flex-wrap: wrap;
     height: auto;
@@ -302,26 +304,33 @@
 }
 
 /* Ensure the native title container doesn't wrap to a new line, but shrinks and truncates as normal */
-.is-phone .view-header>.view-header-title-container {
+.streams-leaf-active .view-header>.view-header-title-container {
     min-width: 0;
     flex: 1 1 0;
 }
 
 /* 
- * HOLISTIC SCROLLING FIX: 
+ * HOLISTIC SCROLLING FIX (Desktop): 
  * Instead of making the header relative (which breaks immersive scrolling) or zeroing out padding, 
  * we let the header be native (absolute) so content scrolls under it. 
- * Since our Streams bar makes the header taller on mobile, we explicitly increase the padding-top
- * on the markdown containers using an offset (4vh).
+ * Since our Streams bar makes the header taller, we explicitly increase the padding-top
+ * on the markdown containers using an offset (40px).
  */
-.is-phone .mod-root .workspace-leaf-content .view-content .markdown-reading-view>.markdown-preview-view,
-.is-phone .mod-root .workspace-leaf-content .view-content .markdown-source-view>.cm-editor>.cm-scroller {
+.streams-leaf-active .mod-root .workspace-leaf-content .view-content .markdown-reading-view>.markdown-preview-view,
+.streams-leaf-active .mod-root .workspace-leaf-content .view-content .markdown-source-view>.cm-editor>.cm-scroller {
+    padding-top: calc(40px + var(--view-top-spacing-markdown)) !important;
+}
+
+/* 
+ * HOLISTIC SCROLLING FIX (Mobile): 
+ * Uses a slightly larger offset for touch targets (6vh).
+ */
+.is-phone .streams-leaf-active .mod-root .workspace-leaf-content .view-content .markdown-reading-view>.markdown-preview-view,
+.is-phone .streams-leaf-active .mod-root .workspace-leaf-content .view-content .markdown-source-view>.cm-editor>.cm-scroller {
     padding-top: calc(6vh + var(--view-top-spacing-markdown)) !important;
 }
 
 .is-phone .streams-bar-component {
-    order: 99;
-    flex-basis: 100%;
     backdrop-filter: none;
     background-color: transparent;
     border-bottom: none;
