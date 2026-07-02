@@ -226,7 +226,7 @@ export class ComponentUIBuilder {
 
     private setupNavigationControls(navControls: HTMLElement, collapsedView: HTMLElement): void {
         const prevDayButton = navControls.createDiv('streams-bar-day-nav prev-day');
-        prevDayButton.setText('←');
+        setIcon(prevDayButton, 'chevron-left');
         prevDayButton.setAttribute('aria-label', 'Previous day');
         this.eventRegistry.register(prevDayButton, 'click', async (e: Event) => {
             e.stopPropagation();
@@ -242,7 +242,7 @@ export class ComponentUIBuilder {
         });
 
         const nextDayButton = navControls.createDiv('streams-bar-day-nav next-day');
-        nextDayButton.setText('→');
+        setIcon(nextDayButton, 'chevron-right');
         nextDayButton.setAttribute('aria-label', 'Next day');
         this.eventRegistry.register(nextDayButton, 'click', async (e: Event) => {
             e.stopPropagation();
