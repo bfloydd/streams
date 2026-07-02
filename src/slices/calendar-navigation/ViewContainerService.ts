@@ -35,6 +35,8 @@ export class ViewContainerService {
         existingComponents.forEach(component => {
             component.remove();
         });
+        
+        leafContainer.removeClass('streams-leaf-active');
     }
 
     /**
@@ -44,6 +46,9 @@ export class ViewContainerService {
      * @returns True if attachment was successful, false otherwise
      */
     attachComponent(component: HTMLElement, leaf: WorkspaceLeaf): boolean {
+        // Add state class to the root leaf container to reliably target layout CSS
+        leaf.view.containerEl.addClass('streams-leaf-active');
+
         // Only add the calendar component if we're in the main editor area
         if (!this.isMainEditorLeaf(leaf)) {
             // Don't add calendar component to sidebars or other panes
