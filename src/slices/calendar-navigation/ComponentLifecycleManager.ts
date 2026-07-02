@@ -92,11 +92,6 @@ export class ComponentLifecycleManager {
                 component.updateReuseCurrentTab(settings.reuseCurrentTab);
             }
 
-            // Refresh bar style for all existing components
-            if (component && typeof component.refreshBarStyle === 'function') {
-                component.refreshBarStyle();
-            }
-
             // Update streams list for all existing components
             if (component && typeof component.updateStreamsList === 'function' && settings.streams) {
                 component.updateStreamsList(settings.streams);

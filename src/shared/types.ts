@@ -41,7 +41,6 @@ export interface StreamsSettings {
     reuseCurrentTab: boolean;
 
     debugLoggingEnabled: boolean; // Whether debug logging is enabled by default
-    barStyle: 'default' | 'modern'; // Style variant for the streams bar
 }
 
 // Specific error data types for better type safety

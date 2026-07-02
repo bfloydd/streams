@@ -24,8 +24,7 @@ export const DEFAULT_SETTINGS = {
     primaryStreamId: null,
     showStreamsBarComponent: true,
     reuseCurrentTab: false,
-    debugLoggingEnabled: false,
-    barStyle: 'default' as const
+    debugLoggingEnabled: false
 } as const;
 
 

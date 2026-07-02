@@ -54,8 +54,7 @@ describe('Calendar Navigation Integration Tests', () => {
 
                 showStreamsBarComponent: true,
                 reuseCurrentTab: false,
-                debugLoggingEnabled: false,
-                barStyle: 'default' as const
+                debugLoggingEnabled: false
             }
         };
 

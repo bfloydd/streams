@@ -39,7 +39,6 @@ export interface DefaultSettingsConfiguration {
     readonly reuseCurrentTab: boolean;
 
     readonly debugLoggingEnabled: boolean;
-    readonly barStyle: 'default';
 }
 
 // Main configuration interface
@@ -109,8 +108,7 @@ export class ConfigurationService extends BaseSliceService implements Configurat
             showStreamsBarComponent: true,
             reuseCurrentTab: false,
 
-            debugLoggingEnabled: false,
-            barStyle: 'default'
+            debugLoggingEnabled: false
         } as const
     };
 
@@ -226,8 +224,7 @@ export class ConfigurationService extends BaseSliceService implements Configurat
             showStreamsBarComponent: this.config.defaults.showStreamsBarComponent,
             reuseCurrentTab: this.config.defaults.reuseCurrentTab,
 
-            debugLoggingEnabled: this.config.defaults.debugLoggingEnabled,
-            barStyle: this.config.defaults.barStyle
+            debugLoggingEnabled: this.config.defaults.debugLoggingEnabled
         };
     }
 }

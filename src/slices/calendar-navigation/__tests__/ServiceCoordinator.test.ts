@@ -151,8 +151,7 @@ describe('ServiceCoordinator', () => {
                 primaryStreamId: null,
                 showStreamsBarComponent: true,
                 reuseCurrentTab: false,
-                debugLoggingEnabled: false,
-                barStyle: 'default'
+                debugLoggingEnabled: false
             };
 
             serviceCoordinator.onSettingsChanged(newSettings);

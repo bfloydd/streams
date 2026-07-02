@@ -45,12 +45,6 @@ export default class StreamsPlugin extends Plugin implements StreamsAPI {
 			await this.saveSettings();
 		}
 
-		// Migration: ensure barStyle exists
-		if (!this.settings.barStyle) {
-			this.settings.barStyle = 'default';
-			await this.saveSettings();
-		}
-
 		// Migration: ensure encryptThisStream, disabled, and merge 'folder' into 'dateFormat' for existing streams
 		let needsSave = false;
 		for (const stream of this.settings.streams) {

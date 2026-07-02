@@ -22,7 +22,6 @@ import { getStreamBaseFolder } from '../file-operations/streamUtils';
 
 interface PluginInterface {
     settings: {
-        barStyle?: 'default' | 'modern';
     };
     saveSettings(): void;
     setActiveStream(streamId: string, force?: boolean, suppressEvent?: boolean): Promise<void>;
@@ -100,12 +99,11 @@ export class StreamsBarComponent extends Component {
         this.eventRegistry = new EventHandlerRegistry();
         this.viewContainerService = new ViewContainerService();
         this.eventSubscriptionManager = new ComponentEventSubscriptionManager(this.dateStateManager);
-        this.stateManager = new ComponentStateManager(plugin, streams, stream, this.dateNavigationService);
+        this.stateManager = new ComponentStateManager(streams, stream, this.dateNavigationService);
         this.currentMonthView = new Date();
 
         this.component = document.createElement('div');
         this.component.addClass('streams-bar-component');
-        this.stateManager.applyBarStyle(this.component);
         this.initializeDateState(leaf);
 
         this.eventSubscriptionManager.subscribeToDateChanges((state) => {
@@ -541,8 +539,6 @@ export class StreamsBarComponent extends Component {
     }
 
     private handleSettingsChange(settings: StreamsSettings): void {
-        this.stateManager.applyBarStyle(this.component);
-
         if (settings.streams) {
             // Update streams list in selector
             this.updateStreamsList(settings.streams);
@@ -560,8 +556,5 @@ export class StreamsBarComponent extends Component {
         }
     }
 
-    public refreshBarStyle(): void {
-        this.stateManager.applyBarStyle(this.component);
-    }
 
 } 

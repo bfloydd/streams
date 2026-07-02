@@ -3,31 +3,19 @@ import { setIcon } from 'obsidian';
 import { DateNavigationService } from './DateNavigationService';
 
 /**
- * Interface for plugin that provides settings
- */
-interface PluginInterface {
-    settings: {
-        barStyle?: 'default' | 'modern';
-    };
-}
-
-/**
  * Manages component state for StreamsBarComponent
  * Extracted to follow Single Responsibility Principle
  */
 export class ComponentStateManager {
-    private plugin: PluginInterface | null;
     private streams: Stream[];
     private selectedStream: Stream;
     private dateNavigationService: DateNavigationService;
 
     constructor(
-        plugin: PluginInterface | null,
         streams: Stream[],
         selectedStream: Stream,
         dateNavigationService: DateNavigationService
     ) {
-        this.plugin = plugin;
         this.streams = streams;
         this.selectedStream = selectedStream;
         this.dateNavigationService = dateNavigationService;
@@ -75,24 +63,6 @@ export class ComponentStateManager {
         }
     }
 
-    /**
-     * Apply bar style to a component based on settings
-     */
-    applyBarStyle(component: HTMLElement): void {
-        if (!this.plugin?.settings) {
-            return;
-        }
-
-        const barStyle = this.plugin.settings.barStyle;
-
-        // Remove existing style classes
-        component.removeClass('modern-style');
-
-        // Apply the appropriate style class
-        if (barStyle === 'modern') {
-            component.addClass('modern-style');
-        }
-    }
 
     /**
      * Format the today button text based on the current date

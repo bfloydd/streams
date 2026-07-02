@@ -33,7 +33,6 @@ describe('RibbonService', () => {
         mockSettings = {
             streams: [],
             primaryStreamId: null,
-            barStyle: 'default',
             reuseCurrentTab: false,
             // ... other settings as needed ...
         } as any;
