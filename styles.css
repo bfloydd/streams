@@ -314,9 +314,9 @@
  * Since our Streams bar makes the header taller on mobile, we explicitly increase the padding-top
  * on the markdown containers using an offset (4vh).
  */
-.is-phone .mod-root .workspace-leaf-content .view-content .markdown-reading-view > .markdown-preview-view,
-.is-phone .mod-root .workspace-leaf-content .view-content .markdown-source-view > .cm-editor > .cm-scroller {
-    padding-top: calc(4vh + var(--view-top-spacing-markdown)) !important;
+.is-phone .mod-root .workspace-leaf-content .view-content .markdown-reading-view>.markdown-preview-view,
+.is-phone .mod-root .workspace-leaf-content .view-content .markdown-source-view>.cm-editor>.cm-scroller {
+    padding-top: calc(6vh + var(--view-top-spacing-markdown)) !important;
 }
 
 .is-phone .streams-bar-component {
@@ -332,8 +332,55 @@
     background-color: transparent;
 }
 
+/* 
+ * PILL STYLE MENU
+ * Wrap the two groups in pill-shaped containers to match Obsidian's native mobile menu buttons 
+ */
+.is-phone .streams-bar-nav-controls,
 .is-phone .streams-bar-change-stream {
-    margin-right: 25px;
+    background-color: var(--background-primary);
+    border-radius: var(--radius-xl, 20px);
+    padding: 4px 8px;
+    box-shadow: var(--shadow-s, 0 2px 8px rgba(0, 0, 0, 0.05));
+    border: 1px solid var(--background-modifier-border);
+    height: 36px;
+    box-sizing: border-box;
+}
+
+/* Strip individual button borders/backgrounds to make them flow smoothly inside the pill */
+.is-phone .streams-bar-day-nav,
+.is-phone .streams-bar-today-button,
+.is-phone .streams-bar-home-button,
+.is-phone .streams-bar-settings-button {
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    height: auto;
+    padding: 4px;
+}
+
+.is-phone .streams-bar-day-nav:hover,
+.is-phone .streams-bar-today-button:hover,
+.is-phone .streams-bar-home-button:hover,
+.is-phone .streams-bar-settings-button:hover {
+    background-color: transparent !important;
+    color: var(--text-accent);
+}
+
+.is-phone .streams-bar-change-stream:hover {
+    background-color: var(--background-secondary) !important;
+    color: var(--text-accent);
+    border-color: var(--background-modifier-border);
+}
+
+.is-phone .streams-bar-nav-controls {
+    flex: 0 0 auto;
+    /* Prevent stretching */
+}
+
+.is-phone .streams-bar-change-stream {
+    margin-right: 0;
+    /* Push all the way to the right */
 }
 
 .streams-bar-component .streams-dropdown {
