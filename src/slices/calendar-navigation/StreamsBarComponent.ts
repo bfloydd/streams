@@ -116,15 +116,9 @@ export class StreamsBarComponent extends Component {
             this.handleSettingsChange(settings);
         });
 
-        const contentContainer = this.viewContainerService.findContentContainer(leaf);
-        if (!contentContainer) {
-            centralizedLogger.error('Could not find content container');
-            return;
-        }
-
         this.viewContainerService.removeExistingComponents(leaf, '.streams-bar-component');
 
-        if (!this.viewContainerService.attachComponent(this.component, leaf, contentContainer)) {
+        if (!this.viewContainerService.attachComponent(this.component, leaf)) {
             return;
         }
 

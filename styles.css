@@ -284,14 +284,6 @@
     z-index: 1000;
 }
 
-.streams-markdown-view-content {
-    position: relative;
-}
-
-.streams-markdown-view-content .streams-bar-component {
-    position: absolute;
-    top: 10px;
-}
 
 .streams-create-file-leaf {
     width: 100%;
@@ -307,14 +299,17 @@
     z-index: 10000;
 }
 
+/* Override Obsidian's built-in margin-top for view-content on phone globally 
+   because our plugin makes .view-header position: relative globally */
+.is-phone .mod-root .workspace-leaf-content .view-content {
+    margin-top: 0 !important;
+}
+
 .is-phone .streams-bar-component {
-    position: absolute;
-    top: 45px;
     backdrop-filter: none;
     background-color: transparent;
     border-bottom: none;
     font-size: 11px;
-    z-index: 10001;
 }
 
 .is-phone .streams-bar-collapsed {
@@ -1102,14 +1097,11 @@ body .streams-bar-dropdown-visible,
 
 
 .is-phone .streams-bar-component.modern-style {
-    position: absolute;
-    top: 45px;
     backdrop-filter: none;
     background: transparent;
     border-bottom: none;
     font-size: 11px;
     padding: 6px 10px;
-    z-index: 10001;
 }
 
 .is-phone .streams-bar-component.modern-style .streams-bar-collapsed {

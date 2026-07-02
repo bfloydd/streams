@@ -15,57 +15,6 @@ interface ViewWithContentEl extends View {
  */
 export class ViewContainerService {
     /**
-     * Find the content container for a given leaf based on its view type
-     * @param leaf The workspace leaf to find the container for
-     * @returns The content container element, or null if not found
-     */
-    findContentContainer(leaf: WorkspaceLeaf): HTMLElement | null {
-        const viewType = leaf.view.getViewType();
-        let contentContainer: HTMLElement | null = null;
-
-        if (viewType === 'markdown') {
-            const markdownView = leaf.view as MarkdownView;
-            contentContainer = markdownView.contentEl;
-
-        } else if (viewType === CREATE_FILE_VIEW_TYPE ||
-            viewType === INSTALL_MELD_VIEW_TYPE ||
-            viewType === CREATE_FILE_VIEW_ENCRYPTED_TYPE) {
-            const view = leaf.view as unknown as ViewWithContentEl;
-            if (!view) {
-                centralizedLogger.error(`View is null for viewType: ${viewType}`);
-                return null;
-            }
-            contentContainer = view.contentEl;
-
-        } else if (viewType === 'empty') {
-            // For empty views, try to find the view-content element
-            const viewContent = leaf.view.containerEl.querySelector('.view-content');
-            if (viewContent) {
-                contentContainer = viewContent as HTMLElement;
-            } else {
-                centralizedLogger.error('Could not find view-content for empty view');
-                return null;
-            }
-        } else if (viewType === 'file-explorer') {
-            // For file explorer, add to the main content area
-            const mainContent = leaf.view.containerEl.querySelector('.nav-files-container') ||
-                leaf.view.containerEl.querySelector('.nav-files') ||
-                leaf.view.containerEl;
-            contentContainer = mainContent as HTMLElement;
-
-        } else {
-            const view = leaf.view as unknown as ViewWithContentEl;
-            if (!view) {
-                centralizedLogger.error('View is null');
-                return null;
-            }
-            contentContainer = view.contentEl;
-        }
-
-        return contentContainer;
-    }
-
-    /**
      * Check if a leaf is in the main editor area (not a sidebar)
      * @param leaf The workspace leaf to check
      * @returns True if the leaf is in the main editor area
@@ -92,13 +41,9 @@ export class ViewContainerService {
      * Attach a component to the DOM in the appropriate location
      * @param component The component element to attach
      * @param leaf The workspace leaf to attach to
-     * @param contentContainer The content container element
      * @returns True if attachment was successful, false otherwise
      */
-    attachComponent(component: HTMLElement, leaf: WorkspaceLeaf, contentContainer: HTMLElement): boolean {
-        // Add class to content container
-        contentContainer.addClass('streams-markdown-view-content');
-
+    attachComponent(component: HTMLElement, leaf: WorkspaceLeaf): boolean {
         // Only add the calendar component if we're in the main editor area
         if (!this.isMainEditorLeaf(leaf)) {
             // Don't add calendar component to sidebars or other panes
@@ -116,16 +61,9 @@ export class ViewContainerService {
         const viewHeader = leafContainer.querySelector('.view-header');
 
         if (viewHeader) {
-            // On mobile/phone, append inside the view-header as the last child
-            // On desktop, insert after the view-header
-            if (Platform.isPhone) {
-                viewHeader.appendChild(component);
-            } else if (viewHeader.parentElement) {
-                // Insert after the view-header for desktop
-                viewHeader.parentElement.insertBefore(component, viewHeader.nextSibling);
-            } else {
-                viewHeader.appendChild(component);
-            }
+            // Append inside the view-header for all platforms (mobile, tablet, desktop)
+            // to ensure consistent placement across the app
+            viewHeader.appendChild(component);
         } else {
             // Fallback: attach to the leaf container itself
             leafContainer.insertBefore(component, leafContainer.firstChild);
