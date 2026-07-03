@@ -316,8 +316,8 @@
  * Since our Streams bar makes the header taller, we explicitly increase the padding-top
  * on the markdown containers using an offset (40px).
  */
-.streams-leaf-active .mod-root .workspace-leaf-content .view-content .markdown-reading-view>.markdown-preview-view,
-.streams-leaf-active .mod-root .workspace-leaf-content .view-content .markdown-source-view>.cm-editor>.cm-scroller {
+.mod-root .workspace-leaf-content.streams-leaf-active .view-content .markdown-reading-view>.markdown-preview-view,
+.mod-root .workspace-leaf-content.streams-leaf-active .view-content .markdown-source-view>.cm-editor>.cm-scroller {
     padding-top: calc(40px + var(--view-top-spacing-markdown)) !important;
 }
 
@@ -325,13 +325,17 @@
  * HOLISTIC SCROLLING FIX (Mobile): 
  * Uses a slightly larger offset for touch targets (6vh).
  */
-.is-phone .streams-leaf-active .mod-root .workspace-leaf-content .view-content .markdown-reading-view>.markdown-preview-view,
-.is-phone .streams-leaf-active .mod-root .workspace-leaf-content .view-content .markdown-source-view>.cm-editor>.cm-scroller {
+.is-phone .mod-root .workspace-leaf-content.streams-leaf-active .view-content .markdown-reading-view>.markdown-preview-view,
+.is-phone .mod-root .workspace-leaf-content.streams-leaf-active .view-content .markdown-source-view>.cm-editor>.cm-scroller {
     padding-top: calc(6vh + var(--view-top-spacing-markdown)) !important;
 }
 
 .is-phone .streams-bar-component {
     font-size: 11px;
+}
+
+.streams-bar-component {
+    margin-top: -10px;
 }
 
 .streams-bar-collapsed {
