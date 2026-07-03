@@ -1,6 +1,6 @@
 {
 	"name": "streams",
-	"version": "1.3.3",
+	"version": "1.3.4",
 	"description": "Streams plugin for Obsidian",
 	"main": "main.js",
 	"scripts": {
