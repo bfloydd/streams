@@ -327,7 +327,7 @@
  */
 .is-phone .mod-root .workspace-leaf-content.streams-leaf-active .view-content .markdown-reading-view>.markdown-preview-view,
 .is-phone .mod-root .workspace-leaf-content.streams-leaf-active .view-content .markdown-source-view>.cm-editor>.cm-scroller {
-    padding-top: calc(6vh + var(--view-top-spacing-markdown)) !important;
+    padding-top: calc(4vh + var(--view-top-spacing-markdown)) !important;
 }
 
 .is-phone .streams-bar-component {
@@ -335,7 +335,7 @@
 }
 
 .streams-bar-component {
-    margin-top: -10px;
+    margin-top: -8px;
 }
 
 .streams-bar-collapsed {
